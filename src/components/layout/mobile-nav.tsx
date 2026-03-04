@@ -30,7 +30,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="left" className="w-[320px] p-0 flex flex-col">
+      <SheetContent side="left" className="w-[min(320px,85vw)] p-0 flex flex-col">
         {/* Header */}
         <SheetHeader className="p-4 pb-2">
           <SheetTitle className="flex items-center gap-2">

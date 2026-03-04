@@ -41,16 +41,16 @@ export function TrustIndicators() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
           {stats.map((stat) => (
             <div
               key={stat.label}
-              className="flex flex-col items-center rounded-xl bg-white p-6 text-center shadow-sm dark:bg-slate-800/50"
+              className="flex flex-col items-center rounded-xl bg-white p-4 sm:p-6 text-center shadow-sm dark:bg-slate-800/50"
             >
               <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-[#1a365d]/10 dark:bg-[#38a169]/10">
                 <stat.icon className="size-6 text-[#1a365d] dark:text-[#48bb78]" />
               </div>
-              <p className="text-2xl font-bold text-foreground sm:text-3xl">
+              <p className="text-xl font-bold text-foreground sm:text-2xl lg:text-3xl">
                 {stat.value}
               </p>
               <p className="mb-1 text-sm font-semibold text-foreground">

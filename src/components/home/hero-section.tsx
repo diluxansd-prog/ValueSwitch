@@ -49,11 +49,11 @@ export function HeroSection() {
         }}
       />
 
-      <div className="relative mx-auto max-w-6xl px-4 py-20 sm:px-6 sm:py-28 lg:py-32">
+      <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:py-32">
         <div className="flex flex-col items-center text-center">
           {/* Trust badges */}
           <motion.div
-            className="mb-8 flex flex-wrap items-center justify-center gap-4 sm:gap-6"
+            className="mb-6 sm:mb-8 flex flex-wrap items-center justify-center gap-2 sm:gap-4 lg:gap-6"
             initial="hidden"
             animate="visible"
             variants={fadeUp}
@@ -72,7 +72,7 @@ export function HeroSection() {
 
           {/* Heading */}
           <motion.h1
-            className="mb-6 text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl"
+            className="mb-4 sm:mb-6 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-6xl"
             initial="hidden"
             animate="visible"
             variants={fadeUp}
@@ -84,7 +84,7 @@ export function HeroSection() {
 
           {/* Subheading */}
           <motion.p
-            className="mb-10 max-w-2xl text-base leading-relaxed text-slate-300 sm:text-lg"
+            className="mb-8 sm:mb-10 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base lg:text-lg"
             initial="hidden"
             animate="visible"
             variants={fadeUp}
@@ -96,7 +96,7 @@ export function HeroSection() {
 
           {/* Postcode Checker */}
           <motion.div
-            className="mb-10 w-full max-w-lg"
+            className="mb-8 sm:mb-10 w-full max-w-lg"
             initial="hidden"
             animate="visible"
             variants={fadeUp}
@@ -123,7 +123,7 @@ export function HeroSection() {
                 <Link
                   key={category.slug}
                   href={`/${category.slug}`}
-                  className="group flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur-sm transition-all hover:border-[#48bb78]/40 hover:bg-white/10 hover:text-white"
+                  className="group flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm transition-all hover:border-[#48bb78]/40 hover:bg-white/10 hover:text-white sm:px-4 sm:py-2 sm:text-sm"
                 >
                   <Icon className="size-4 transition-colors group-hover:text-[#48bb78]" />
                   <span>{category.name}</span>

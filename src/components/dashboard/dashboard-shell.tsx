@@ -202,7 +202,7 @@ export function DashboardShell({
 
       {/* Mobile sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-72 p-0" showCloseButton={true}>
+        <SheetContent side="left" className="w-[min(288px,85vw)] p-0" showCloseButton={true}>
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>

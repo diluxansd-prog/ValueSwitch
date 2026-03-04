@@ -49,10 +49,10 @@ export function HowItWorks() {
           >
             {/* Numbered circle */}
             <div className="relative mb-6">
-              <div className="flex size-20 items-center justify-center rounded-full bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] shadow-lg shadow-[#1a365d]/20">
-                <step.icon className="size-8 text-white" />
+              <div className="flex size-16 sm:size-20 items-center justify-center rounded-full bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] shadow-lg shadow-[#1a365d]/20">
+                <step.icon className="size-6 sm:size-8 text-white" />
               </div>
-              <div className="absolute -right-1 -top-1 flex size-7 items-center justify-center rounded-full bg-[#38a169] text-xs font-bold text-white shadow-sm">
+              <div className="absolute -right-1 -top-1 flex size-6 sm:size-7 items-center justify-center rounded-full bg-[#38a169] text-[10px] sm:text-xs font-bold text-white shadow-sm">
                 {step.number}
               </div>
             </div>

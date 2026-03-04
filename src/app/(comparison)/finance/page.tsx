@@ -176,7 +176,7 @@ export default async function FinancePage() {
                     </Badge>
                   </div>
                 )}
-                <CardContent className="flex flex-col gap-4 p-6 pt-8">
+                <CardContent className="flex flex-col gap-3 sm:gap-4 p-4 pt-6 sm:p-6 sm:pt-8">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">
                       {deal.provider.name}

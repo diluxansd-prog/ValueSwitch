@@ -114,7 +114,7 @@ function DealCard({ deal, category }: { deal: Deal; category: string }) {
           </Badge>
         </div>
       )}
-      <CardContent className="flex flex-col gap-4 p-6 pt-8">
+      <CardContent className="flex flex-col gap-3 sm:gap-4 p-4 pt-6 sm:p-6 sm:pt-8">
         {/* Provider & Plan */}
         <div>
           <p className="text-sm font-medium text-muted-foreground">
@@ -165,7 +165,7 @@ export function PopularDeals() {
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="gap-1.5 px-4 py-2"
+                  className="gap-1.5 px-3 py-1.5 text-xs sm:px-4 sm:py-2 sm:text-sm"
                 >
                   <tab.icon className="size-4" />
                   {tab.label}

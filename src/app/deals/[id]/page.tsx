@@ -261,7 +261,7 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
                       {specifications.map((spec, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between px-6 py-4"
+                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 px-4 sm:px-6 py-3 sm:py-4"
                         >
                           <span className="text-sm text-muted-foreground">
                             {spec.label}
@@ -313,7 +313,7 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
           {/* Right column - sidebar */}
           <div className="space-y-6">
             {/* CTA Card */}
-            <Card className="sticky top-6 border-2 border-[#38a169]/30">
+            <Card className="sticky top-20 border-2 border-[#38a169]/30">
               <CardContent className="p-6">
                 <PriceDisplay
                   amount={deal.monthlyCost}

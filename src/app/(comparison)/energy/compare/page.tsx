@@ -152,17 +152,17 @@ function EnergyCompareContent() {
 
       {/* Controls Bar */}
       <section className="sticky top-0 z-30 border-b bg-background/95 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 sm:gap-4 px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Mobile filter trigger */}
             <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="sm" className="lg:hidden">
-                  <SlidersHorizontal className="mr-2 size-4" />
-                  Filters
+                  <SlidersHorizontal className="size-4" />
+                  <span className="hidden sm:inline ml-2">Filters</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-80 overflow-y-auto">
+              <SheetContent side="left" className="w-[min(320px,85vw)] overflow-y-auto">
                 <SheetHeader>
                   <SheetTitle>Filter Results</SheetTitle>
                 </SheetHeader>
@@ -177,9 +177,9 @@ function EnergyCompareContent() {
             </Sheet>
 
             <div className="flex items-center gap-2">
-              <ArrowUpDown className="size-4 text-muted-foreground" />
+              <ArrowUpDown className="hidden sm:block size-4 text-muted-foreground" />
               <Select value={sortBy} onValueChange={handleSortChange}>
-                <SelectTrigger className="h-9 w-[140px]">
+                <SelectTrigger className="h-9 w-[110px] sm:w-[140px]">
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
@@ -196,17 +196,17 @@ function EnergyCompareContent() {
               onClick={() =>
                 setSortOrder((o) => (o === "asc" ? "desc" : "asc"))
               }
-              className="text-xs"
+              className="text-xs hidden sm:inline-flex"
             >
               {sortOrder === "asc" ? "Low to High" : "High to Low"}
             </Button>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="hidden sm:flex items-center gap-1">
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
               size="icon"
-              className="size-9"
+              className="size-10 sm:size-9"
               onClick={() => setViewMode("grid")}
             >
               <LayoutGrid className="size-4" />
@@ -214,7 +214,7 @@ function EnergyCompareContent() {
             <Button
               variant={viewMode === "list" ? "secondary" : "ghost"}
               size="icon"
-              className="size-9"
+              className="size-10 sm:size-9"
               onClick={() => setViewMode("list")}
             >
               <List className="size-4" />
@@ -319,7 +319,7 @@ function EnergyCompareContent() {
                                   page === pageNum ? "default" : "outline"
                                 }
                                 size="sm"
-                                className="size-9"
+                                className="size-10 sm:size-9"
                                 onClick={() => setPage(pageNum)}
                               >
                                 {pageNum}

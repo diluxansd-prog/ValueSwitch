@@ -71,7 +71,7 @@ export function Header() {
                         {item.label}
                       </NavigationMenuTrigger>
                       <NavigationMenuContent>
-                        <ul className="grid w-[400px] gap-1 p-2 md:w-[500px] md:grid-cols-2">
+                        <ul className="grid w-[min(400px,90vw)] gap-1 p-2 md:w-[500px] md:grid-cols-2">
                           <li className="col-span-full">
                             <NavigationMenuLink asChild>
                               <Link
@@ -164,7 +164,7 @@ export function Header() {
           >
             <Link href="/energy">
               <ArrowRightLeft className="size-4" />
-              <span>Compare</span>
+              <span className="hidden md:inline">Compare</span>
             </Link>
           </Button>
 

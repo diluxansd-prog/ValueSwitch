@@ -171,7 +171,7 @@ export function ComparisonCard({ plan }: ComparisonCardProps) {
         );
       case "finance":
         return (
-          <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-center">
             {plan.apr !== null && (
               <div className="rounded-lg bg-slate-50 px-2 py-1.5 dark:bg-slate-800/50">
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -239,7 +239,7 @@ export function ComparisonCard({ plan }: ComparisonCardProps) {
         </div>
       )}
 
-      <CardContent className="flex flex-col gap-4 p-6 pt-8">
+      <CardContent className="flex flex-col gap-3 sm:gap-4 p-4 pt-6 sm:p-6 sm:pt-8">
         {/* Provider info */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
