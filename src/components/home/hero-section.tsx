@@ -26,7 +26,7 @@ export function HeroSection() {
   const router = useRouter();
 
   function handlePostcodeSubmit(postcode: string) {
-    router.push(`/energy?postcode=${encodeURIComponent(postcode)}`);
+    router.push(`/energy/compare?postcode=${encodeURIComponent(postcode)}`);
   }
 
   return (

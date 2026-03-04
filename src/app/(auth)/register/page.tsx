@@ -66,12 +66,15 @@ export default function RegisterPage() {
       }
 
       // Auto-login after registration
-      const loginResult = await loginUser(email, password);
-
-      if (loginResult.error) {
-        // Registration succeeded but auto-login failed; redirect to login
-        router.push("/login");
-        return;
+      try {
+        const loginResult = await loginUser(email, password);
+        if (loginResult?.error) {
+          // Registration succeeded but auto-login failed; redirect to login
+          router.push("/login");
+          return;
+        }
+      } catch {
+        // signIn may throw NEXT_REDIRECT on success - that's OK
       }
 
       router.push("/dashboard");

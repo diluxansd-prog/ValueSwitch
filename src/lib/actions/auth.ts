@@ -3,6 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { signIn } from "@/lib/auth";
+import { AuthError } from "next-auth";
 import crypto from "crypto";
 
 export async function registerUser(data: {
@@ -41,8 +42,12 @@ export async function loginUser(email: string, password: string) {
   try {
     await signIn("credentials", { email, password, redirect: false });
     return { success: true };
-  } catch {
-    return { error: "Invalid email or password" };
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return { error: "Invalid email or password" };
+    }
+    // Re-throw non-auth errors (e.g. NEXT_REDIRECT)
+    throw error;
   }
 }
 

@@ -246,7 +246,7 @@ export default async function FinancePage() {
                       asChild
                       className="bg-gradient-to-r from-[#1a365d] to-[#38a169] text-white hover:from-[#2a4a7f] hover:to-[#48bb78]"
                     >
-                      <Link href={`/deal/${deal.slug}`}>View deal</Link>
+                      <Link href={`/deals/${deal.slug}`}>View deal</Link>
                     </Button>
                   </div>
                 </CardContent>

@@ -32,7 +32,7 @@ export default function LoginPage() {
     try {
       const result = await loginUser(email, password);
 
-      if (result.error) {
+      if (result?.error) {
         setError(result.error);
         setIsLoading(false);
         return;
@@ -41,8 +41,9 @@ export default function LoginPage() {
       router.push("/dashboard");
       router.refresh();
     } catch {
-      setError("Something went wrong. Please try again.");
-      setIsLoading(false);
+      // signIn may throw NEXT_REDIRECT on success - navigate to dashboard
+      router.push("/dashboard");
+      router.refresh();
     }
   }
 
