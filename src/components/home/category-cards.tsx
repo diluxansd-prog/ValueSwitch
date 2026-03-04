@@ -20,7 +20,7 @@ export function CategoryCards() {
         {categories.map((category) => {
           const Icon = category.icon;
           return (
-            <Link key={category.slug} href={`/compare/${category.slug}`}>
+            <Link key={category.slug} href={`/${category.slug}`}>
               <Card className="group h-full cursor-pointer border border-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-black/5">
                 <CardContent className="flex flex-col gap-4 p-6">
                   {/* Icon */}

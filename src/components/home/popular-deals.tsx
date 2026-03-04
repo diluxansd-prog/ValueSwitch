@@ -1,6 +1,7 @@
 "use client";
 
-import { Zap, Wifi, Smartphone } from "lucide-react";
+import Link from "next/link";
+import { Zap, Wifi, Smartphone, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -103,9 +104,9 @@ const tabConfig = [
   { value: "mobile", label: "Mobile", icon: Smartphone, deals: mobileDeals },
 ];
 
-function DealCard({ deal }: { deal: Deal }) {
+function DealCard({ deal, category }: { deal: Deal; category: string }) {
   return (
-    <Card className="relative border border-border/60 transition-all duration-200 hover:shadow-md">
+    <Card className="relative border border-border/60 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
       {deal.promoted && (
         <div className="absolute -top-0 left-4">
           <Badge className="rounded-t-none rounded-b-md bg-[#38a169] text-white hover:bg-[#38a169]">
@@ -134,9 +135,10 @@ function DealCard({ deal }: { deal: Deal }) {
 
         {/* CTA */}
         <Button
+          asChild
           className="w-full bg-gradient-to-r from-[#1a365d] to-[#38a169] text-white hover:from-[#2a4a7f] hover:to-[#48bb78]"
         >
-          View deal
+          <Link href={`/${category}`}>View deal</Link>
         </Button>
       </CardContent>
     </Card>
@@ -176,8 +178,16 @@ export function PopularDeals() {
             <TabsContent key={tab.value} value={tab.value}>
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {tab.deals.map((deal) => (
-                  <DealCard key={deal.id} deal={deal} />
+                  <DealCard key={deal.id} deal={deal} category={tab.value} />
                 ))}
+              </div>
+              <div className="mt-8 text-center">
+                <Button variant="outline" size="lg" asChild>
+                  <Link href={`/${tab.value}`}>
+                    View all {tab.label.toLowerCase()} deals
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </Button>
               </div>
             </TabsContent>
           ))}

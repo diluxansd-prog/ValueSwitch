@@ -162,7 +162,7 @@ export function Header() {
             asChild
             className="hidden sm:inline-flex bg-gradient-to-r from-[#1a365d] to-[#38a169] hover:from-[#2a4a7f] hover:to-[#48bb78] text-white border-0"
           >
-            <Link href="/compare">
+            <Link href="/energy">
               <ArrowRightLeft className="size-4" />
               <span>Compare</span>
             </Link>

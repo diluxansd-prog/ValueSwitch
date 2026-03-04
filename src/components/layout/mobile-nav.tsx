@@ -54,7 +54,7 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
               className="w-full bg-gradient-to-r from-[#1a365d] to-[#38a169] hover:from-[#2a4a7f] hover:to-[#48bb78] text-white border-0"
               onClick={handleClose}
             >
-              <Link href="/compare">
+              <Link href="/energy">
                 <ArrowRightLeft className="size-4" />
                 Start Comparing
               </Link>

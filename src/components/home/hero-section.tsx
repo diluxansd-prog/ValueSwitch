@@ -26,7 +26,7 @@ export function HeroSection() {
   const router = useRouter();
 
   function handlePostcodeSubmit(postcode: string) {
-    router.push(`/compare/energy?postcode=${encodeURIComponent(postcode)}`);
+    router.push(`/energy?postcode=${encodeURIComponent(postcode)}`);
   }
 
   return (
@@ -122,7 +122,7 @@ export function HeroSection() {
               return (
                 <Link
                   key={category.slug}
-                  href={`/compare/${category.slug}`}
+                  href={`/${category.slug}`}
                   className="group flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm font-medium text-white/80 backdrop-blur-sm transition-all hover:border-[#48bb78]/40 hover:bg-white/10 hover:text-white"
                 >
                   <Icon className="size-4 transition-colors group-hover:text-[#48bb78]" />

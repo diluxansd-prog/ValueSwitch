@@ -14,21 +14,32 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { requestPasswordReset } from "@/lib/actions/auth";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
 
-    // Simulate sending reset email (actual implementation would send an email)
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    setIsSubmitted(true);
-    setIsLoading(false);
+    try {
+      const result = await requestPasswordReset(email);
+      if (result.error) {
+        setError(result.error);
+        setIsLoading(false);
+        return;
+      }
+      setIsSubmitted(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   if (isSubmitted) {
@@ -93,6 +104,12 @@ export default function ForgotPasswordPage() {
 
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          {error && (
+            <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email">Email address</Label>
             <div className="relative">
