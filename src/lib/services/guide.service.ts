@@ -1,15 +1,23 @@
 import { prisma } from "@/lib/prisma";
 
 export async function getGuides(category?: string) {
-  const where: any = { isPublished: true };
-  if (category) where.category = category;
+  try {
+    const where: any = { isPublished: true };
+    if (category) where.category = category;
 
-  return prisma.guide.findMany({
-    where,
-    orderBy: { publishedAt: "desc" },
-  });
+    return await prisma.guide.findMany({
+      where,
+      orderBy: { publishedAt: "desc" },
+    });
+  } catch {
+    return [];
+  }
 }
 
 export async function getGuideBySlug(slug: string) {
-  return prisma.guide.findUnique({ where: { slug } });
+  try {
+    return await prisma.guide.findUnique({ where: { slug } });
+  } catch {
+    return null;
+  }
 }
