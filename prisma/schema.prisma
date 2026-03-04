@@ -1,0 +1,280 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Authentication & Users ───────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  hashedPassword String?
+  image          String?
+  phone          String?
+  postcode       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  savedSearches  SavedSearch[]
+  comparisons    ComparisonHistory[]
+  alerts         PriceAlert[]
+  reviews        UserReview[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Providers ───────────────────────────────────────────────
+
+model Provider {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  logo        String?
+  website     String?
+  description String?
+  trustScore  Float?
+  reviewCount Int      @default(0)
+  isActive    Boolean  @default(true)
+  categories  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  plans   Plan[]
+  reviews UserReview[]
+}
+
+// ─── Plans / Deals ───────────────────────────────────────────
+
+model Plan {
+  id             String  @id @default(cuid())
+  providerId     String
+  name           String
+  slug           String  @unique
+  category       String
+  subcategory    String?
+  description    String?
+  monthlyCost    Float
+  annualCost     Float?
+  setupFee       Float   @default(0)
+  contractLength Int?
+  cancellationFee Float?
+  features       String?
+  specifications String?
+
+  // Energy
+  unitRate       Float?
+  standingCharge Float?
+  greenEnergy    Boolean @default(false)
+  tariffType     String?
+
+  // Broadband
+  downloadSpeed  Int?
+  uploadSpeed    Int?
+  dataLimit      String?
+  includesTV     Boolean @default(false)
+  tvChannels     Int?
+
+  // Mobile
+  dataAllowance  String?
+  minutes        String?
+  texts          String?
+  networkType    String?
+  includesHandset Boolean @default(false)
+  handsetModel   String?
+
+  // Insurance
+  coverLevel     String?
+  excessAmount   Float?
+
+  // Finance
+  apr            Float?
+  interestRate   Float?
+  creditLimit    Float?
+  balanceTransfer Boolean @default(false)
+  introRate      Float?
+  introRatePeriod Int?
+
+  // Metadata
+  isPromoted     Boolean  @default(false)
+  isBestValue    Boolean  @default(false)
+  isPopular      Boolean  @default(false)
+  availableFrom  DateTime @default(now())
+  expiresAt      DateTime?
+  postcodeRequired Boolean @default(false)
+  availableRegions String?
+  rating         Float?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  provider       Provider @relation(fields: [providerId], references: [id])
+  comparisonItems ComparisonItem[]
+
+  @@index([category])
+  @@index([category, subcategory])
+  @@index([providerId])
+  @@index([monthlyCost])
+}
+
+// ─── Categories ──────────────────────────────────────────────
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  icon        String?
+  parentId    String?
+  sortOrder   Int        @default(0)
+  isActive    Boolean    @default(true)
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─── Comparison History ──────────────────────────────────────
+
+model ComparisonHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  category    String
+  subcategory String?
+  postcode    String?
+  filters     String?
+  resultCount Int
+  createdAt   DateTime @default(now())
+
+  user  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items ComparisonItem[]
+}
+
+model ComparisonItem {
+  id           String @id @default(cuid())
+  comparisonId String
+  planId       String
+  rank         Int
+
+  comparison ComparisonHistory @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+  plan       Plan              @relation(fields: [planId], references: [id])
+}
+
+// ─── Saved Searches ─────────────────────────────────────────
+
+model SavedSearch {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  category    String
+  subcategory String?
+  postcode    String?
+  filters     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Price Alerts ────────────────────────────────────────────
+
+model PriceAlert {
+  id            String    @id @default(cuid())
+  userId        String
+  category      String
+  subcategory   String?
+  postcode      String?
+  targetPrice   Float?
+  filters       String?
+  isActive      Boolean   @default(true)
+  lastTriggered DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── User Reviews ────────────────────────────────────────────
+
+model UserReview {
+  id         String   @id @default(cuid())
+  userId     String
+  providerId String
+  rating     Int
+  title      String?
+  content    String?
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider Provider @relation(fields: [providerId], references: [id])
+
+  @@unique([userId, providerId])
+}
+
+// ─── Guides / Content ────────────────────────────────────────
+
+model Guide {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  category    String
+  excerpt     String?
+  content     String
+  coverImage  String?
+  author      String?
+  publishedAt DateTime?
+  isPublished Boolean   @default(false)
+  readTime    Int?
+  tags        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([isPublished])
+}
