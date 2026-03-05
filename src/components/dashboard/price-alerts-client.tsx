@@ -30,6 +30,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 interface PriceAlert {
   id: string;
@@ -83,7 +84,7 @@ export function PriceAlertsClient({ alerts }: { alerts: PriceAlert[] }) {
       });
       router.refresh();
     } catch {
-      // Handle error silently
+      toast.error("Failed to update alert. Please try again.");
     } finally {
       setTogglingId(null);
     }
@@ -95,7 +96,7 @@ export function PriceAlertsClient({ alerts }: { alerts: PriceAlert[] }) {
       await fetch(`/api/alerts/${id}`, { method: "DELETE" });
       router.refresh();
     } catch {
-      // Handle error silently
+      toast.error("Failed to delete alert. Please try again.");
     } finally {
       setDeletingId(null);
     }

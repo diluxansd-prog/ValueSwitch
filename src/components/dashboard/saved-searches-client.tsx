@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface SavedSearch {
   id: string;
@@ -77,7 +78,7 @@ export function SavedSearchesClient({
       await fetch(`/api/saved-searches/${id}`, { method: "DELETE" });
       router.refresh();
     } catch {
-      // Handle error silently
+      toast.error("Failed to delete search. Please try again.");
     } finally {
       setDeletingId(null);
     }

@@ -7,6 +7,8 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CookieConsent } from "@/components/shared/cookie-consent";
 import { BackToTop } from "@/components/shared/back-to-top";
+import { CompareDrawer } from "@/components/shared/compare-drawer";
+import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/shared/json-ld";
 import { defaultMetadata } from "@/config/seo";
 import "./globals.css";
 
@@ -29,15 +31,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <OrganizationJsonLd />
+        <WebSiteJsonLd />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <TooltipProvider>
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              Skip to main content
+            </a>
             <Header />
-            <main className="min-h-screen">{children}</main>
+            <main id="main-content" className="min-h-screen">{children}</main>
             <Footer />
             <Toaster />
+            <CompareDrawer />
             <CookieConsent />
             <BackToTop />
           </TooltipProvider>

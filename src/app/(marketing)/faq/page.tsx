@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { FAQPageJsonLd } from "@/components/shared/json-ld";
 import {
   Accordion,
   AccordionContent,
@@ -82,6 +83,7 @@ const faqs = [
 export default function FAQPage() {
   return (
     <div className="min-h-screen">
+      <FAQPageJsonLd faqs={faqs} />
       {/* Hero */}
       <section className="bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-16 text-white">
         <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">

@@ -2,11 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail, Phone, MapPin, HelpCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { ContactForm } from "./contact-form";
 
 export const metadata: Metadata = {
   title: "Contact Us",
@@ -36,62 +33,7 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div className="lg:col-span-2">
             <h2 className="mb-6 text-2xl font-bold">Send Us a Message</h2>
-            <Card>
-              <CardContent className="p-6 sm:p-8">
-                <form className="space-y-6">
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        placeholder="Your full name"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="you@example.com"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="subject">Subject</Label>
-                    <Input
-                      id="subject"
-                      name="subject"
-                      placeholder="What is your enquiry about?"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="message">Message</Label>
-                    <Textarea
-                      id="message"
-                      name="message"
-                      placeholder="Tell us how we can help..."
-                      rows={6}
-                      required
-                    />
-                  </div>
-
-                  <Button
-                    type="submit"
-                    size="lg"
-                    className="w-full bg-gradient-to-r from-[#1a365d] to-[#38a169] text-white hover:from-[#2a4a7f] hover:to-[#48bb78] sm:w-auto"
-                  >
-                    Send Message
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
+            <ContactForm />
           </div>
 
           {/* Contact Info Sidebar */}

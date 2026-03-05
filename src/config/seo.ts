@@ -19,6 +19,9 @@ export const defaultMetadata: Metadata = {
   ],
   authors: [{ name: "ValueSwitch" }],
   creator: "ValueSwitch",
+  alternates: {
+    canonical: siteConfig.url,
+  },
   openGraph: {
     type: "website",
     locale: "en_GB",
@@ -26,11 +29,13 @@ export const defaultMetadata: Metadata = {
     title: "ValueSwitch - Compare & Save",
     description: siteConfig.description,
     siteName: siteConfig.name,
+    images: [{ url: `${siteConfig.url}${siteConfig.ogImage}`, width: 1200, height: 630, alt: "ValueSwitch - Compare & Save" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "ValueSwitch - Compare & Save",
     description: siteConfig.description,
+    images: [`${siteConfig.url}${siteConfig.ogImage}`],
   },
   robots: {
     index: true,

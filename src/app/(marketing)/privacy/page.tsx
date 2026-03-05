@@ -22,7 +22,7 @@ export default function PrivacyPage() {
             your personal information.
           </p>
           <p className="mt-2 text-sm text-blue-200">
-            Last updated: 1 March 2025
+            Last updated: 1 March 2026
           </p>
         </div>
       </section>
