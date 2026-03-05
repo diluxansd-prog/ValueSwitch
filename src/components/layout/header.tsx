@@ -15,6 +15,7 @@ import {
 import { mainNavItems } from "@/config/navigation";
 import { categories } from "@/config/categories";
 import { MobileNav } from "@/components/layout/mobile-nav";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -145,7 +146,8 @@ export function Header() {
         </NavigationMenu>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <ThemeToggle />
           <Button
             variant="ghost"
             size="sm"
