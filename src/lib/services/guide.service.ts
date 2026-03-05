@@ -14,6 +14,18 @@ export async function getGuides(category?: string) {
   }
 }
 
+export async function getAllGuideSlugs() {
+  try {
+    const guides = await prisma.guide.findMany({
+      where: { isPublished: true },
+      select: { slug: true, category: true },
+    });
+    return guides;
+  } catch {
+    return [];
+  }
+}
+
 export async function getGuideBySlug(slug: string) {
   try {
     return await prisma.guide.findUnique({ where: { slug } });

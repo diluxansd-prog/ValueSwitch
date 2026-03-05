@@ -6,10 +6,15 @@ import ReactMarkdown from "react-markdown";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { getGuideBySlug, getGuides } from "@/lib/services/guide.service";
+import { getGuideBySlug, getGuides, getAllGuideSlugs } from "@/lib/services/guide.service";
 
 interface GuidePageProps {
   params: Promise<{ category: string; slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const guides = await getAllGuideSlugs();
+  return guides.map((g) => ({ category: g.category, slug: g.slug }));
 }
 
 export async function generateMetadata({

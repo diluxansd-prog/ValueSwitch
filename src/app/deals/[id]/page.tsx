@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PriceDisplay } from "@/components/shared/price-display";
 import { StarRating } from "@/components/shared/star-rating";
-import { getDealBySlug, getSimilarDeals } from "@/lib/services/deal.service";
+import { getDealBySlug, getSimilarDeals, getAllDealSlugs } from "@/lib/services/deal.service";
 import { formatPrice } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -45,6 +45,11 @@ function getInitials(name: string) {
 
 interface DealDetailPageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateStaticParams() {
+  const slugs = await getAllDealSlugs();
+  return slugs.map((slug) => ({ id: slug }));
 }
 
 export async function generateMetadata({

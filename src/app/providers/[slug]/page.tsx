@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { StarRating } from "@/components/shared/star-rating";
 import { PriceDisplay } from "@/components/shared/price-display";
-import { getProviderBySlug } from "@/lib/services/provider.service";
+import { getProviderBySlug, getAllProviderSlugs } from "@/lib/services/provider.service";
 import { formatPrice } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +39,11 @@ function getInitials(name: string) {
 
 interface ProviderDetailPageProps {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateStaticParams() {
+  const slugs = await getAllProviderSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({

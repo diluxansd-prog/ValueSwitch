@@ -17,6 +17,17 @@ export async function getPopularDeals(category?: string, limit = 6) {
   }
 }
 
+export async function getAllDealSlugs() {
+  try {
+    const plans = await prisma.plan.findMany({
+      select: { slug: true },
+    });
+    return plans.map((p) => p.slug);
+  } catch {
+    return [];
+  }
+}
+
 export async function getDealBySlug(slug: string) {
   try {
     return await prisma.plan.findUnique({

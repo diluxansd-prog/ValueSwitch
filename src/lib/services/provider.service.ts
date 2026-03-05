@@ -21,6 +21,17 @@ export async function getProviders(category?: string) {
   }
 }
 
+export async function getAllProviderSlugs() {
+  try {
+    const providers = await prisma.provider.findMany({
+      select: { slug: true },
+    });
+    return providers.map((p) => p.slug);
+  } catch {
+    return [];
+  }
+}
+
 export async function getProviderBySlug(slug: string) {
   try {
     const provider = await prisma.provider.findUnique({

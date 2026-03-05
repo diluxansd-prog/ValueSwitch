@@ -3,10 +3,16 @@ import Link from "next/link";
 import { Clock, Calendar, ArrowLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { getGuides } from "@/lib/services/guide.service";
+import { getGuides, getAllGuideSlugs } from "@/lib/services/guide.service";
 
 interface CategoryGuidesPageProps {
   params: Promise<{ category: string }>;
+}
+
+export async function generateStaticParams() {
+  const guides = await getAllGuideSlugs();
+  const categories = [...new Set(guides.map((g) => g.category))];
+  return categories.map((category) => ({ category }));
 }
 
 export async function generateMetadata({
