@@ -101,3 +101,71 @@ export function BreadcrumbJsonLd({
     />
   );
 }
+
+export function ProductJsonLd({
+  name,
+  description,
+  provider,
+  price,
+  category,
+  url,
+}: {
+  name: string;
+  description?: string;
+  provider: string;
+  price: number;
+  category: string;
+  url: string;
+}) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name,
+        description: description ?? `${name} from ${provider}`,
+        brand: { "@type": "Brand", name: provider },
+        category,
+        offers: {
+          "@type": "Offer",
+          price: price.toFixed(2),
+          priceCurrency: "GBP",
+          availability: "https://schema.org/InStock",
+          url,
+          priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
+        },
+      }}
+    />
+  );
+}
+
+export function LocalBusinessJsonLd({
+  name,
+  description,
+  url,
+  trustScore,
+  reviewCount,
+}: {
+  name: string;
+  description?: string;
+  url?: string;
+  trustScore?: number | null;
+  reviewCount?: number;
+}) {
+  const data: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name,
+    description: description ?? `${name} - trusted UK service provider`,
+    ...(url && { url }),
+  };
+  if (trustScore != null && reviewCount) {
+    data.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: trustScore.toFixed(1),
+      bestRating: "5",
+      ratingCount: reviewCount,
+    };
+  }
+  return <JsonLd data={data} />;
+}

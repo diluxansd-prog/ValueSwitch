@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { profileUpdateSchema } from "@/lib/validators/api";
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -10,7 +11,11 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, email, phone, postcode } = body;
+    const parsed = profileUpdateSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
+    }
+    const { name, email, phone, postcode } = parsed.data;
 
     // Check if email is being changed and is already taken
     if (email && email !== session.user.email) {

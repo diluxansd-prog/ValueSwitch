@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, Zap, User, ArrowRightLeft } from "lucide-react";
+import { Menu, Zap, User, ArrowRightLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -147,6 +147,11 @@ export function Header() {
 
         {/* Right side actions */}
         <div className="flex items-center gap-1 sm:gap-2">
+          <Button variant="ghost" size="icon" asChild className="hidden sm:inline-flex">
+            <Link href="/search" aria-label="Search">
+              <Search className="size-4" />
+            </Link>
+          </Button>
           <ThemeToggle />
           <Button
             variant="ghost"

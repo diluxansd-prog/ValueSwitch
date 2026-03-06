@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { runComparison } from "@/lib/services/comparison.service";
+import { comparisonSchema } from "@/lib/validators/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,16 +32,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const result = await runComparison({
-      category: body.category || "energy",
-      subcategory: body.subcategory,
-      postcode: body.postcode,
-      sortBy: body.sortBy || "price",
-      sortOrder: body.sortOrder || "asc",
-      page: body.page || 1,
-      perPage: body.perPage || 20,
-      filters: body.filters || {},
-    });
+    const parsed = comparisonSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
+    }
+    const result = await runComparison(parsed.data);
     return NextResponse.json(result);
   } catch {
     return NextResponse.json({ error: "Failed to run comparison" }, { status: 500 });

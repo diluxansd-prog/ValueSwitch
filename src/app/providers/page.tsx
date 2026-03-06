@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StarRating } from "@/components/shared/star-rating";
 import { getProviders } from "@/lib/services/provider.service";
+import { getProviderColor, getProviderInitials } from "@/lib/utils/provider-avatar";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -21,30 +22,6 @@ const FILTER_CATEGORIES = [
   "Insurance",
   "Finance",
 ] as const;
-
-const providerColors = [
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-purple-500",
-  "bg-orange-500",
-  "bg-rose-500",
-  "bg-cyan-500",
-];
-
-function getColorForName(name: string) {
-  const index =
-    name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % 6;
-  return providerColors[index];
-}
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
 
 interface ProvidersPageProps {
   searchParams: Promise<{ category?: string }>;
@@ -117,10 +94,10 @@ export default async function ProvidersPage({ searchParams }: ProvidersPageProps
                     <div
                       className={cn(
                         "flex size-14 shrink-0 items-center justify-center rounded-full text-lg font-bold text-white",
-                        getColorForName(provider.name)
+                        getProviderColor(provider.name)
                       )}
                     >
-                      {getInitials(provider.name)}
+                      {getProviderInitials(provider.name)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <h3 className="truncate text-lg font-semibold">

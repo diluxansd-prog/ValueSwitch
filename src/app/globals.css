@@ -162,3 +162,29 @@
     background: oklch(0.5 0.02 250);
   }
 }
+
+/* Print styles */
+@media print {
+  header, footer, nav,
+  [data-cookie-consent],
+  [data-back-to-top],
+  [data-compare-drawer] {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt;
+  }
+  main {
+    min-height: auto !important;
+  }
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

@@ -1,12 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Clock, Calendar, User } from "lucide-react";
+import { Clock, Calendar, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { ShareButtons } from "@/components/shared/share-buttons";
+import { BreadcrumbJsonLd } from "@/components/shared/json-ld";
 import { getGuideBySlug, getGuides, getAllGuideSlugs } from "@/lib/services/guide.service";
+import { siteConfig } from "@/config/seo";
 
 interface GuidePageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -27,11 +31,13 @@ export async function generateMetadata({
     return { title: "Guide Not Found" };
   }
 
+  const { category } = await params;
   return {
     title: guide.title,
     description:
       guide.excerpt ??
       `Read our comprehensive guide on ${guide.title}. Expert advice from ValueSwitch.`,
+    alternates: { canonical: `${siteConfig.url}/guides/${category}/${slug}` },
   };
 }
 
@@ -51,16 +57,27 @@ export default async function GuidePage({ params }: GuidePageProps) {
 
   return (
     <div className="min-h-screen">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: siteConfig.url },
+          { name: "Guides", url: `${siteConfig.url}/guides` },
+          { name: category.charAt(0).toUpperCase() + category.slice(1), url: `${siteConfig.url}/guides/${category}` },
+          { name: guide.title, url: `${siteConfig.url}/guides/${category}/${slug}` },
+        ]}
+      />
+
       {/* Article Header */}
       <section className="bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-12 text-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <Link
-            href={`/guides/${category}`}
-            className="mb-4 inline-flex items-center gap-1.5 text-sm text-blue-200 transition-colors hover:text-white"
-          >
-            <ArrowLeft className="size-4" />
-            {category.charAt(0).toUpperCase() + category.slice(1)} Guides
-          </Link>
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/" },
+              { label: "Guides", href: "/guides" },
+              { label: category.charAt(0).toUpperCase() + category.slice(1), href: `/guides/${category}` },
+              { label: guide.title },
+            ]}
+            className="mb-4 [&_a]:text-blue-200 [&_a:hover]:text-white [&_span]:text-blue-200 [&_[aria-current]]:text-white [&_svg]:text-blue-300"
+          />
           <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
             {guide.title}
           </h1>
@@ -90,6 +107,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
             <Badge className="border-white/20 bg-white/10 capitalize text-white hover:bg-white/20">
               {guide.category}
             </Badge>
+            <ShareButtons title={guide.title} url={`/guides/${category}/${slug}`} />
           </div>
         </div>
       </section>

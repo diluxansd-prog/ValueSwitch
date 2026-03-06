@@ -9,33 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { StarRating } from "@/components/shared/star-rating";
 import { PriceDisplay } from "@/components/shared/price-display";
+import { Breadcrumbs } from "@/components/shared/breadcrumbs";
+import { LocalBusinessJsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
 import { getProviderBySlug, getAllProviderSlugs } from "@/lib/services/provider.service";
 import { formatPrice } from "@/lib/constants";
+import { siteConfig } from "@/config/seo";
+import { getProviderColor, getProviderInitials } from "@/lib/utils/provider-avatar";
 import { cn } from "@/lib/utils";
-
-const providerColors = [
-  "bg-blue-500",
-  "bg-emerald-500",
-  "bg-purple-500",
-  "bg-orange-500",
-  "bg-rose-500",
-  "bg-cyan-500",
-];
-
-function getColorForName(name: string) {
-  const index =
-    name.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0) % 6;
-  return providerColors[index];
-}
-
-function getInitials(name: string) {
-  return name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
 
 interface ProviderDetailPageProps {
   params: Promise<{ slug: string }>;
@@ -59,6 +39,7 @@ export async function generateMetadata({
   return {
     title: `${provider.name} - Plans, Reviews & Trust Score`,
     description: `Compare ${provider.name} plans and deals. Trust score: ${provider.trustScore ?? "N/A"}/5. Read ${provider.reviewCount} reviews from real customers.`,
+    alternates: { canonical: `${siteConfig.url}/providers/${slug}` },
   };
 }
 
@@ -78,17 +59,40 @@ export default async function ProviderDetailPage({
 
   return (
     <div className="min-h-screen">
+      <LocalBusinessJsonLd
+        name={provider.name}
+        description={provider.description ?? undefined}
+        url={provider.website ?? undefined}
+        trustScore={provider.trustScore}
+        reviewCount={provider.reviewCount}
+      />
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Home", url: siteConfig.url },
+          { name: "Providers", url: `${siteConfig.url}/providers` },
+          { name: provider.name, url: `${siteConfig.url}/providers/${slug}` },
+        ]}
+      />
+
       {/* Provider Header */}
       <section className="bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-12 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/" },
+              { label: "Providers", href: "/providers" },
+              { label: provider.name },
+            ]}
+            className="mb-4 [&_a]:text-blue-200 [&_a:hover]:text-white [&_span]:text-blue-200 [&_[aria-current]]:text-white [&_svg]:text-blue-300"
+          />
           <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
             <div
               className={cn(
                 "flex size-20 shrink-0 items-center justify-center rounded-2xl text-2xl font-bold text-white shadow-lg",
-                getColorForName(provider.name)
+                getProviderColor(provider.name)
               )}
             >
-              {getInitials(provider.name)}
+              {getProviderInitials(provider.name)}
             </div>
             <div className="flex-1">
               <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
