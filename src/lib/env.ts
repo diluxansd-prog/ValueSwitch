@@ -14,8 +14,3 @@ export function validateEnv() {
   }
   return parsed.data;
 }
-
-// Validate on import in server contexts
-if (typeof window === "undefined") {
-  validateEnv();
-}

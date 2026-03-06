@@ -197,20 +197,15 @@ async function main() {
   console.log(`  Guides:          ${guides.length}`);
   console.log();
 
-  // ── Step 1: Clear existing data (respect foreign key order) ───────
-  console.log("🗑️  Clearing existing data...");
-  await prisma.$transaction([
-    prisma.comparisonItem.deleteMany(),
-    prisma.comparisonHistory.deleteMany(),
-    prisma.savedSearch.deleteMany(),
-    prisma.priceAlert.deleteMany(),
-    prisma.userReview.deleteMany(),
-    prisma.plan.deleteMany(),
-    prisma.provider.deleteMany(),
-    prisma.category.deleteMany(),
-    prisma.guide.deleteMany(),
-  ]);
-  console.log("  Done.\n");
+  // ── Step 1: Check if data already exists (skip seed on re-deploy) ──
+  const existingProviders = await prisma.provider.count();
+  if (existingProviders > 0) {
+    console.log(`  Database already has ${existingProviders} providers. Skipping seed to preserve user data.\n`);
+    console.log("✅ Seed skipped (data already exists).");
+    return;
+  }
+
+  console.log("  Database is empty. Seeding fresh data...\n");
 
   // ── Step 2: Seed providers ────────────────────────────────────────
   console.log("🏢 Seeding providers...");
