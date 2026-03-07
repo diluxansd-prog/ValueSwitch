@@ -10,6 +10,7 @@ import { BackToTop } from "@/components/shared/back-to-top";
 import { CompareDrawer } from "@/components/shared/compare-drawer";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/shared/json-ld";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { Analytics } from "@vercel/analytics/next";
 import { defaultMetadata } from "@/config/seo";
 import "./globals.css";
 
@@ -61,6 +62,7 @@ export default function RootLayout({
             <BackToTop />
           </TooltipProvider>
         </ThemeProvider>
+        <Analytics />
         </SessionProvider>
       </body>
     </html>

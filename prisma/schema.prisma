@@ -279,3 +279,39 @@ model Guide {
   @@index([category])
   @@index([isPublished])
 }
+
+// ─── Newsletter Subscribers ─────────────────────────────────
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+// ─── Contact Messages ───────────────────────────────────────
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// ─── Click Tracking (Affiliate) ─────────────────────────────
+
+model ClickEvent {
+  id         String   @id @default(cuid())
+  planId     String
+  providerId String
+  userId     String?
+  referrer   String?
+  createdAt  DateTime @default(now())
+
+  @@index([planId])
+  @@index([providerId])
+  @@index([createdAt])
+}

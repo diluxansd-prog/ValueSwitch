@@ -101,7 +101,7 @@ export function CompareDrawer() {
                 className="bg-gradient-to-r from-[#1a365d] to-[#38a169] text-white hover:from-[#2a4a7f] hover:to-[#48bb78]"
                 asChild
               >
-                <Link href={`/deals/${items[0].slug}`}>
+                <Link href="/compare">
                   Compare now
                 </Link>
               </Button>

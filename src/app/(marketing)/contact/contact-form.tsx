@@ -14,12 +14,29 @@ export function ContactForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 1000));
-
-    toast.success("Message sent! We'll get back to you within 24 hours.");
-    (e.target as HTMLFormElement).reset();
+    const form = e.target as HTMLFormElement;
+    const formData = new FormData(form);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.get("name"),
+          email: formData.get("email"),
+          subject: formData.get("subject"),
+          message: formData.get("message"),
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Failed to send message");
+      } else {
+        toast.success("Message sent! We'll get back to you within 24 hours.");
+        form.reset();
+      }
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    }
     setLoading(false);
   }
 

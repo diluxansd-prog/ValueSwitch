@@ -15,10 +15,22 @@ export function Newsletter() {
     if (!email) return;
 
     setLoading(true);
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 800));
-    toast.success("You're subscribed! We'll send you the best deals.");
-    setEmail("");
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        toast.error(data.error || "Failed to subscribe");
+      } else {
+        toast.success("You're subscribed! We'll send you the best deals.");
+        setEmail("");
+      }
+    } catch {
+      toast.error("Something went wrong. Please try again.");
+    }
     setLoading(false);
   }
 

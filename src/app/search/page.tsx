@@ -26,9 +26,9 @@ async function searchAll(query: string) {
     prisma.plan.findMany({
       where: {
         OR: [
-          { name: { contains: query } },
-          { description: { contains: query } },
-          { category: { contains: query } },
+          { name: { contains: query, mode: "insensitive" } },
+          { description: { contains: query, mode: "insensitive" } },
+          { category: { contains: query, mode: "insensitive" } },
         ],
       },
       include: { provider: { select: { name: true, slug: true } } },
@@ -38,8 +38,8 @@ async function searchAll(query: string) {
     prisma.provider.findMany({
       where: {
         OR: [
-          { name: { contains: query } },
-          { description: { contains: query } },
+          { name: { contains: query, mode: "insensitive" } },
+          { description: { contains: query, mode: "insensitive" } },
         ],
       },
       select: {
@@ -51,9 +51,9 @@ async function searchAll(query: string) {
     prisma.guide.findMany({
       where: {
         OR: [
-          { title: { contains: query } },
-          { excerpt: { contains: query } },
-          { category: { contains: query } },
+          { title: { contains: query, mode: "insensitive" } },
+          { excerpt: { contains: query, mode: "insensitive" } },
+          { category: { contains: query, mode: "insensitive" } },
         ],
       },
       select: { id: true, title: true, slug: true, category: true, excerpt: true, readTime: true },

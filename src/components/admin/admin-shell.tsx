@@ -15,6 +15,8 @@ import {
   LogOut,
   Shield,
   ArrowLeft,
+  Mail,
+  Newspaper,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -43,6 +45,8 @@ const navItems = [
   { label: "Providers", href: "/admin/providers", icon: Building2 },
   { label: "Plans & Deals", href: "/admin/plans", icon: FileText },
   { label: "Guides", href: "/admin/guides", icon: BookOpen },
+  { label: "Messages", href: "/admin/messages", icon: Mail },
+  { label: "Newsletter", href: "/admin/newsletter", icon: Newspaper },
 ];
 
 function getInitials(name?: string | null): string {
