@@ -1,5 +1,6 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
+import type { NextRequest } from "next/server";
 
 // Simple in-memory rate limiter for API routes
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -19,7 +20,7 @@ function isRateLimited(ip: string): boolean {
   return entry.count > RATE_LIMIT;
 }
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
   // Rate limiting for API routes
@@ -33,8 +34,9 @@ export default auth((req) => {
     }
   }
 
-  // Auth redirects
-  const isAuth = !!req.auth;
+  // Lightweight auth check using JWT token (no heavy imports)
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const isAuth = !!token;
   const isAuthPage =
     pathname.startsWith("/login") ||
     pathname.startsWith("/register");
@@ -56,7 +58,7 @@ export default auth((req) => {
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
 
   return response;
-});
+}
 
 export const config = {
   matcher: ["/dashboard/:path*", "/login", "/register", "/api/:path*"],
