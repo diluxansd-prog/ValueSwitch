@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Menu, Zap, User, ArrowRightLeft, Search } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Menu, Zap, User, ArrowRightLeft, Search, LayoutDashboard, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -19,6 +20,7 @@ import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { cn } from "@/lib/utils";
 
 export function Header() {
+  const { data: session } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -153,17 +155,36 @@ export function Header() {
             </Link>
           </Button>
           <ThemeToggle />
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className="hidden sm:inline-flex"
-          >
-            <Link href="/login">
-              <User className="size-4" />
-              <span>Login</span>
-            </Link>
-          </Button>
+          {session?.user ? (
+            <>
+              {(session.user as Record<string, unknown>).role === "admin" && (
+                <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+                  <Link href="/admin">
+                    <Shield className="size-4" />
+                    <span className="hidden md:inline">Admin</span>
+                  </Link>
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+                <Link href="/dashboard">
+                  <LayoutDashboard className="size-4" />
+                  <span className="hidden md:inline">{session.user.name?.split(" ")[0] || "Dashboard"}</span>
+                </Link>
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="hidden sm:inline-flex"
+            >
+              <Link href="/login">
+                <User className="size-4" />
+                <span>Login</span>
+              </Link>
+            </Button>
+          )}
           <Button
             size="sm"
             asChild
@@ -189,7 +210,7 @@ export function Header() {
       </div>
 
       {/* Mobile Navigation Sheet */}
-      <MobileNav open={mobileOpen} onOpenChange={setMobileOpen} />
+      <MobileNav open={mobileOpen} onOpenChange={setMobileOpen} session={session} />
     </header>
   );
 }

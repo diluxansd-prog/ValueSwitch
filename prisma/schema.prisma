@@ -18,6 +18,7 @@ model User {
   image          String?
   phone          String?
   postcode       String?
+  role           String    @default("user") // "user" or "admin"
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

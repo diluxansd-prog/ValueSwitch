@@ -40,13 +40,32 @@ export async function registerUser(data: {
 
 export async function loginUser(email: string, password: string) {
   try {
-    await signIn("credentials", { email, password, redirect: false });
-    return { success: true };
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+      redirectTo: "/dashboard",
+    });
+    return { success: true, redirect: result };
   } catch (error) {
     if (error instanceof AuthError) {
-      return { error: "Invalid email or password" };
+      switch (error.type) {
+        case "CredentialsSignin":
+          return { error: "Invalid email or password" };
+        default:
+          return { error: "Something went wrong. Please try again." };
+      }
     }
-    // Re-throw non-auth errors (e.g. NEXT_REDIRECT)
+    // NextAuth v5 may throw NEXT_REDIRECT on success — that's OK
+    if (
+      error &&
+      typeof error === "object" &&
+      "digest" in error &&
+      typeof (error as Record<string, unknown>).digest === "string" &&
+      ((error as Record<string, unknown>).digest as string).includes("NEXT_REDIRECT")
+    ) {
+      return { success: true };
+    }
     throw error;
   }
 }

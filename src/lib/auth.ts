@@ -7,6 +7,8 @@ import bcrypt from "bcryptjs";
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  trustHost: true,
   pages: {
     signIn: "/login",
     error: "/login",
@@ -46,10 +48,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async session({ session, token }) {
       if (token.sub) session.user.id = token.sub;
+      if (token.role) (session.user as unknown as Record<string, unknown>).role = token.role;
       return session;
     },
     async jwt({ token, user }) {
-      if (user) token.sub = user.id;
+      if (user) {
+        token.sub = user.id;
+        // Fetch role from database
+        const dbUser = await prisma.user.findUnique({
+          where: { id: user.id! },
+          select: { role: true },
+        });
+        token.role = dbUser?.role || "user";
+      }
       return token;
     },
   },

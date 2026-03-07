@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, User, UserPlus, ArrowRightLeft } from "lucide-react";
+import { Zap, User, UserPlus, ArrowRightLeft, LayoutDashboard, LogOut, Shield } from "lucide-react";
+import { signOut } from "next-auth/react";
+import type { Session } from "next-auth";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -23,9 +25,10 @@ import { cn } from "@/lib/utils";
 interface MobileNavProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  session?: Session | null;
 }
 
-export function MobileNav({ open, onOpenChange }: MobileNavProps) {
+export function MobileNav({ open, onOpenChange, session }: MobileNavProps) {
   const handleClose = () => onOpenChange(false);
 
   return (
@@ -115,30 +118,72 @@ export function MobileNav({ open, onOpenChange }: MobileNavProps) {
           </Accordion>
         </div>
 
-        {/* Footer - Login/Register */}
+        {/* Footer - Login/Register or Dashboard/Logout */}
         <div className="mt-auto border-t p-4 space-y-2">
-          <Button
-            variant="outline"
-            asChild
-            className="w-full justify-start"
-            onClick={handleClose}
-          >
-            <Link href="/login">
-              <User className="size-4" />
-              Login
-            </Link>
-          </Button>
-          <Button
-            variant="ghost"
-            asChild
-            className="w-full justify-start text-muted-foreground"
-            onClick={handleClose}
-          >
-            <Link href="/register">
-              <UserPlus className="size-4" />
-              Create Account
-            </Link>
-          </Button>
+          {session?.user ? (
+            <>
+              {(session.user as Record<string, unknown>).role === "admin" && (
+                <Button
+                  variant="outline"
+                  asChild
+                  className="w-full justify-start"
+                  onClick={handleClose}
+                >
+                  <Link href="/admin">
+                    <Shield className="size-4" />
+                    Admin Panel
+                  </Link>
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                asChild
+                className="w-full justify-start"
+                onClick={handleClose}
+              >
+                <Link href="/dashboard">
+                  <LayoutDashboard className="size-4" />
+                  Dashboard
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-muted-foreground"
+                onClick={() => {
+                  handleClose();
+                  signOut({ callbackUrl: "/" });
+                }}
+              >
+                <LogOut className="size-4" />
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                asChild
+                className="w-full justify-start"
+                onClick={handleClose}
+              >
+                <Link href="/login">
+                  <User className="size-4" />
+                  Login
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                asChild
+                className="w-full justify-start text-muted-foreground"
+                onClick={handleClose}
+              >
+                <Link href="/register">
+                  <UserPlus className="size-4" />
+                  Create Account
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>

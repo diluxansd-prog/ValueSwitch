@@ -9,6 +9,7 @@ import { CookieConsent } from "@/components/shared/cookie-consent";
 import { BackToTop } from "@/components/shared/back-to-top";
 import { CompareDrawer } from "@/components/shared/compare-drawer";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/shared/json-ld";
+import { SessionProvider } from "@/components/providers/session-provider";
 import { defaultMetadata } from "@/config/seo";
 import "./globals.css";
 
@@ -42,6 +43,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <SessionProvider>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <TooltipProvider>
             <a
@@ -59,6 +61,7 @@ export default function RootLayout({
             <BackToTop />
           </TooltipProvider>
         </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

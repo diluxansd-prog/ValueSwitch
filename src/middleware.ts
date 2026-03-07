@@ -35,17 +35,32 @@ export async function middleware(req: NextRequest) {
   }
 
   // Lightweight auth check using JWT token (no heavy imports)
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  });
   const isAuth = !!token;
   const isAuthPage =
     pathname.startsWith("/login") ||
     pathname.startsWith("/register");
   const isDashboard = pathname.startsWith("/dashboard");
+  const isAdmin = pathname.startsWith("/admin");
+  const isAdminApi = pathname.startsWith("/api/admin");
 
+  // Protect dashboard - require auth
   if (isDashboard && !isAuth) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
+  // Protect admin pages - require admin role
+  if ((isAdmin || isAdminApi) && (!isAuth || token?.role !== "admin")) {
+    if (!isAuth) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // Redirect logged-in users away from auth pages
   if (isAuthPage && isAuth) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
@@ -61,5 +76,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login", "/register", "/api/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/login", "/register", "/api/:path*"],
 };
