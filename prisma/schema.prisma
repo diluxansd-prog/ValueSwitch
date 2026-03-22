@@ -137,6 +137,10 @@ model Plan {
   introRate      Float?
   introRatePeriod Int?
 
+  // Affiliate
+  affiliateUrl   String?
+  merchantProductId String?
+
   // Metadata
   isPromoted     Boolean  @default(false)
   isBestValue    Boolean  @default(false)

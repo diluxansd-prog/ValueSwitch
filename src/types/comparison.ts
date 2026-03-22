@@ -63,6 +63,8 @@ export interface PlanWithProvider {
   creditLimit: number | null;
   introRate: number | null;
   introRatePeriod: number | null;
+  // Affiliate
+  affiliateUrl: string | null;
   provider: {
     id: string;
     name: string;

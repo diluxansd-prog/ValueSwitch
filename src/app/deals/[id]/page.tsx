@@ -331,11 +331,11 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
                   size="lg"
                 >
                   <a
-                    href={deal.provider.website ?? "#"}
+                    href={deal.affiliateUrl ?? `/api/redirect?plan=${deal.id}`}
                     target="_blank"
-                    rel="noopener noreferrer"
+                    rel="noopener noreferrer nofollow sponsored"
                   >
-                    Go to provider
+                    Go to {deal.provider.name}
                     <ExternalLink className="ml-2 size-4" />
                   </a>
                 </Button>

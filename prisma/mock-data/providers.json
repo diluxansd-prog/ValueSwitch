@@ -410,10 +410,32 @@
     "name": "Lebara",
     "slug": "lebara",
     "logo": null,
-    "website": "https://www.lebara.com",
+    "website": "https://www.lebara.co.uk",
     "description": "Budget mobile network on Vodafone, specialising in affordable SIM-only plans with international calling bundles.",
     "trustScore": 3.8,
     "reviewCount": 7500,
+    "isActive": true,
+    "categories": "mobile"
+  },
+  {
+    "name": "Talkmobile",
+    "slug": "talkmobile",
+    "logo": null,
+    "website": "https://www.talkmobile.co.uk",
+    "description": "Vodafone-owned budget mobile network offering simple, affordable SIM-only plans with no price rises during your contract.",
+    "trustScore": 4.0,
+    "reviewCount": 5200,
+    "isActive": true,
+    "categories": "mobile"
+  },
+  {
+    "name": "TTfone",
+    "slug": "ttfone",
+    "logo": null,
+    "website": "https://www.ttfone.com",
+    "description": "UK specialist in easy-to-use mobile phones designed for seniors and those who prefer simple, straightforward handsets.",
+    "trustScore": 4.1,
+    "reviewCount": 3800,
     "isActive": true,
     "categories": "mobile"
   }
