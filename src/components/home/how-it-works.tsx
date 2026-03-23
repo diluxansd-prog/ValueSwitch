@@ -4,23 +4,23 @@ const steps = [
   {
     number: 1,
     icon: Search,
-    title: "Tell us what you need",
+    title: "Browse deals",
     description:
-      "Enter your postcode and current usage details so we can find the best deals for your area.",
+      "Browse real mobile phone deals from our verified affiliate partners. Filter by price, data, and contract length.",
   },
   {
     number: 2,
     icon: BarChart3,
-    title: "Compare deals",
+    title: "Compare side by side",
     description:
-      "We\u2019ll search hundreds of deals from trusted UK providers to find the best matches for you.",
+      "Add up to 3 deals to your comparison basket and view them side by side with all the details.",
   },
   {
     number: 3,
     icon: ArrowRightLeft,
-    title: "Switch & save",
+    title: "Go to provider",
     description:
-      "Switch online in minutes. We handle the hard work so you can start saving straight away.",
+      "Click through to the provider\u2019s website via our affiliate link and complete your switch directly with them.",
   },
 ];
 

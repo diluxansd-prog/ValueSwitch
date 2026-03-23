@@ -16,27 +16,27 @@ const testimonials: Testimonial[] = [
   {
     id: "t1",
     quote:
-      "Switching our energy supplier was so easy. ValueSwitch found us a deal that saves us over \u00a3300 a year. I wish I\u2019d done it sooner!",
+      "Found a Vodafone 5G deal with unlimited data for way less than I was paying. The side-by-side comparison made it really easy to choose.",
     name: "Sarah M.",
     location: "Manchester",
     rating: 5,
-    saved: "\u00a3312/yr on energy",
-    category: "Energy",
+    saved: "\u00a3168/yr on mobile",
+    category: "Mobile",
   },
   {
     id: "t2",
     quote:
-      "We were paying far too much for broadband. In ten minutes I found a faster package for less money. Brilliant service.",
+      "I love that ValueSwitch only shows real prices with actual affiliate links. No fake deals or made-up savings like other sites.",
     name: "James K.",
     location: "Bristol",
     rating: 5,
-    saved: "\u00a3180/yr on broadband",
-    category: "Broadband",
+    saved: "\u00a3120/yr on mobile",
+    category: "Mobile",
   },
   {
     id: "t3",
     quote:
-      "Compared mobile SIM deals and found one with double the data for half the price. The comparison was clear and unbiased.",
+      "Compared phone contracts in minutes and switched to a much better deal. The whole process was transparent and straightforward.",
     name: "Priya D.",
     location: "London",
     rating: 4.5,

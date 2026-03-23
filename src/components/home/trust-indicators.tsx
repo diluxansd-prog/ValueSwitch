@@ -2,28 +2,28 @@ import { Users, PiggyBank, Star, ShieldCheck } from "lucide-react";
 
 const stats = [
   {
-    icon: Users,
-    value: "2.7M+",
-    label: "Switches",
-    description: "Completed through our platform",
+    icon: ShieldCheck,
+    value: "Awin",
+    label: "Verified",
+    description: "Official affiliate partner",
   },
   {
     icon: PiggyBank,
-    value: "\u00a3312",
-    label: "Avg Savings",
-    description: "Saved per household each year",
+    value: "66+",
+    label: "Real Deals",
+    description: "From verified providers",
   },
   {
     icon: Star,
-    value: "4.7/5",
-    label: "TrustPilot",
-    description: "Based on 35,000+ reviews",
+    value: "4",
+    label: "Partners",
+    description: "Vodafone, Talkmobile & more",
   },
   {
-    icon: ShieldCheck,
-    value: "Ofgem",
-    label: "Accredited",
-    description: "Fully regulated comparison",
+    icon: Users,
+    value: "100%",
+    label: "Real Data",
+    description: "No fake or mock deals",
   },
 ];
 
@@ -33,11 +33,10 @@ export function TrustIndicators() {
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
         <div className="mb-12 text-center">
           <h2 className="mb-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Trusted by millions of UK households
+            Why ValueSwitch?
           </h2>
           <p className="text-muted-foreground">
-            Join the millions who have already switched and saved with
-            ValueSwitch.
+            We only show real deals from verified affiliate partners. No fake data, no inflated savings.
           </p>
         </div>
 
