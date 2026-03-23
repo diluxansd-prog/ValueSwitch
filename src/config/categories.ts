@@ -19,9 +19,28 @@ export interface CategoryConfig {
   heroTitle: string;
   heroDescription: string;
   averageSavings: string;
+  isActive: boolean;
+  comingSoon?: boolean;
 }
 
+// Only Mobile is live with real data right now
 export const categories: CategoryConfig[] = [
+  {
+    name: "Mobile",
+    slug: "mobile",
+    description: "Compare mobile phone deals",
+    icon: Smartphone,
+    color: "text-purple-500",
+    gradient: "from-purple-500 to-pink-500",
+    subcategories: [
+      { name: "SIM Only", slug: "sim-only", description: "Keep your phone, get a new SIM deal" },
+      { name: "Phone Contracts", slug: "contracts", description: "New phone with a monthly contract" },
+    ],
+    heroTitle: "Compare Mobile Deals",
+    heroDescription: "Find the perfect mobile phone deal. Compare real deals from Vodafone with affiliate pricing you can trust.",
+    averageSavings: "£168",
+    isActive: true,
+  },
   {
     name: "Energy",
     slug: "energy",
@@ -31,13 +50,13 @@ export const categories: CategoryConfig[] = [
     gradient: "from-yellow-500 to-orange-500",
     subcategories: [
       { name: "Gas & Electricity", slug: "gas-electricity", description: "Compare dual fuel tariffs" },
-      { name: "Gas Only", slug: "gas", description: "Compare gas-only deals" },
-      { name: "Electricity Only", slug: "electricity", description: "Compare electricity tariffs" },
       { name: "Green Energy", slug: "green-energy", description: "100% renewable energy tariffs" },
     ],
     heroTitle: "Compare Energy Deals & Save",
-    heroDescription: "Find cheaper gas and electricity tariffs. The average household saves £312 per year by switching.",
+    heroDescription: "Find cheaper gas and electricity tariffs.",
     averageSavings: "£312",
+    isActive: false,
+    comingSoon: true,
   },
   {
     name: "Broadband",
@@ -49,28 +68,12 @@ export const categories: CategoryConfig[] = [
     subcategories: [
       { name: "Fibre Broadband", slug: "fibre", description: "Superfast fibre optic deals" },
       { name: "Broadband & TV", slug: "tv-packages", description: "Bundle broadband with TV packages" },
-      { name: "Broadband Only", slug: "broadband-only", description: "Standalone broadband deals" },
-      { name: "Speed Test", slug: "speed-test", description: "Test your current broadband speed" },
     ],
     heroTitle: "Compare Broadband Deals",
-    heroDescription: "Find the fastest broadband at the best price. Save up to £329 per year by switching provider.",
+    heroDescription: "Find the fastest broadband at the best price.",
     averageSavings: "£329",
-  },
-  {
-    name: "Mobile",
-    slug: "mobile",
-    description: "Compare mobile phone deals",
-    icon: Smartphone,
-    color: "text-purple-500",
-    gradient: "from-purple-500 to-pink-500",
-    subcategories: [
-      { name: "SIM Only", slug: "sim-only", description: "Keep your phone, get a new SIM deal" },
-      { name: "Phone Contracts", slug: "contracts", description: "New phone with a monthly contract" },
-      { name: "Pay As You Go", slug: "pay-as-you-go", description: "Flexible PAYG deals" },
-    ],
-    heroTitle: "Compare Mobile Deals",
-    heroDescription: "Find the perfect mobile phone deal. Compare SIM only and contract deals from all major networks.",
-    averageSavings: "£168",
+    isActive: false,
+    comingSoon: true,
   },
   {
     name: "Insurance",
@@ -82,12 +85,12 @@ export const categories: CategoryConfig[] = [
     subcategories: [
       { name: "Car Insurance", slug: "car", description: "Compare car insurance quotes" },
       { name: "Home Insurance", slug: "home", description: "Buildings and contents insurance" },
-      { name: "Pet Insurance", slug: "pet", description: "Protect your pets" },
-      { name: "Travel Insurance", slug: "travel", description: "Cover for your holidays" },
     ],
     heroTitle: "Compare Insurance Quotes",
-    heroDescription: "Get the best insurance deals. Compare quotes from leading UK insurers in minutes.",
+    heroDescription: "Get the best insurance deals.",
     averageSavings: "£247",
+    isActive: false,
+    comingSoon: true,
   },
   {
     name: "Finance",
@@ -99,30 +102,17 @@ export const categories: CategoryConfig[] = [
     subcategories: [
       { name: "Credit Cards", slug: "credit-cards", description: "0% cards, rewards & cashback" },
       { name: "Personal Loans", slug: "loans", description: "Compare personal loan rates" },
-      { name: "Mortgages", slug: "mortgages", description: "Find the best mortgage deals" },
-      { name: "Savings Accounts", slug: "savings", description: "Best savings rates" },
     ],
     heroTitle: "Compare Financial Products",
-    heroDescription: "Find the best credit cards, loans, and savings accounts. Make your money work harder.",
+    heroDescription: "Find the best credit cards, loans, and savings accounts.",
     averageSavings: "£195",
-  },
-  {
-    name: "Business",
-    slug: "business",
-    description: "Business comparison services",
-    icon: Building2,
-    color: "text-slate-600",
-    gradient: "from-slate-600 to-slate-800",
-    subcategories: [
-      { name: "Business Energy", slug: "energy", description: "Compare business energy rates" },
-      { name: "Business Broadband", slug: "broadband", description: "Business broadband deals" },
-      { name: "Business Finance", slug: "finance", description: "Business loans and finance" },
-    ],
-    heroTitle: "Compare Business Services",
-    heroDescription: "Save on your business energy, broadband and finance. Tailored comparison for UK businesses.",
-    averageSavings: "£485",
+    isActive: false,
+    comingSoon: true,
   },
 ];
+
+export const activeCategories = categories.filter((c) => c.isActive);
+export const comingSoonCategories = categories.filter((c) => c.comingSoon);
 
 export function getCategoryBySlug(slug: string): CategoryConfig | undefined {
   return categories.find((c) => c.slug === slug);

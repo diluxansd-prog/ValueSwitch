@@ -39,9 +39,9 @@ export function Footer() {
                 <ShieldCheck className="size-5 text-[#38a169]" />
               </div>
               <div>
-                <p className="text-sm font-semibold">Ofgem Accredited</p>
+                <p className="text-sm font-semibold">Awin Affiliate Partner</p>
                 <p className="text-xs text-white/60">
-                  Official energy comparison
+                  Verified real deals
                 </p>
               </div>
             </div>
@@ -86,9 +86,9 @@ export function Footer() {
               Compare. Switch. Save.
             </p>
             <p className="text-sm text-white/60 leading-relaxed mb-6">
-              The UK&apos;s trusted price comparison service. Compare energy,
-              broadband, mobile, insurance and financial products to find the
-              best deals and save money.
+              Compare real mobile phone deals from trusted UK networks.
+              Real prices from Vodafone, Talkmobile, TTfone and Lebara.
+              More categories coming soon.
             </p>
 
             <Newsletter />
@@ -185,9 +185,9 @@ export function Footer() {
               &copy; 2026 ValueSwitch. All rights reserved.
             </p>
             <p className="text-xs text-white/40 max-w-xl leading-relaxed">
-              ValueSwitch is a trading name of ValueSwitch Ltd, registered in
-              England and Wales. Authorised and regulated by the Financial
-              Conduct Authority (FCA). Energy comparisons are Ofgem accredited.
+              ValueSwitch is an Awin affiliate partner. We earn commission when
+              you click through to providers. This does not affect the deals
+              shown or the prices you pay.
             </p>
           </div>
         </div>

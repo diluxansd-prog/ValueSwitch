@@ -1,16 +1,15 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Star, Shield, MessageSquare } from "lucide-react";
-import { PostcodeChecker } from "@/components/shared/postcode-checker";
-import { categories } from "@/config/categories";
+import { Star, Shield, Smartphone, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { comingSoonCategories } from "@/config/categories";
 
 const trustBadges = [
-  { icon: Star, label: "4.7\u2605 TrustPilot" },
-  { icon: Shield, label: "Ofgem Accredited" },
-  { icon: MessageSquare, label: "35,000+ reviews" },
+  { icon: Star, label: "Real Deals" },
+  { icon: Shield, label: "Trusted Partners" },
+  { icon: Smartphone, label: "Awin Verified" },
 ];
 
 const fadeUp = {
@@ -23,12 +22,6 @@ const fadeUp = {
 };
 
 export function HeroSection() {
-  const router = useRouter();
-
-  function handlePostcodeSubmit(postcode: string) {
-    router.push(`/energy/compare?postcode=${encodeURIComponent(postcode)}`);
-  }
-
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-[#1a365d] via-[#1e3a5f] to-slate-800">
       {/* Animated background pattern */}
@@ -78,7 +71,7 @@ export function HeroSection() {
             variants={fadeUp}
             custom={1}
           >
-            Compare. Switch.{" "}
+            Compare Mobile Deals.{" "}
             <span className="text-[#48bb78]">Save.</span>
           </motion.h1>
 
@@ -90,26 +83,42 @@ export function HeroSection() {
             variants={fadeUp}
             custom={2}
           >
-            Find the best deals on energy, broadband, mobile, insurance and
-            more. Free, impartial comparison for UK households.
+            Compare real phone contracts and SIM-only deals from Vodafone, Talkmobile, TTfone, and Lebara.
+            Real prices, real affiliate links, no fake data.
           </motion.p>
 
-          {/* Postcode Checker */}
+          {/* CTA Buttons */}
           <motion.div
-            className="mb-8 sm:mb-10 w-full max-w-lg"
+            className="mb-10 flex flex-col sm:flex-row items-center gap-4"
             initial="hidden"
             animate="visible"
             variants={fadeUp}
             custom={3}
           >
-            <PostcodeChecker
-              onSubmit={handlePostcodeSubmit}
-              placeholder="Enter your postcode to start"
-              buttonText="Compare deals"
-            />
+            <Button
+              size="lg"
+              asChild
+              className="bg-gradient-to-r from-[#38a169] to-[#48bb78] text-white hover:from-[#2f8a5a] hover:to-[#38a169] px-8"
+            >
+              <Link href="/mobile">
+                <Smartphone className="size-5" />
+                Compare Mobile Deals
+                <ArrowRight className="size-4" />
+              </Link>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              asChild
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              <Link href="/mobile/contracts">
+                Browse Phone Contracts
+              </Link>
+            </Button>
           </motion.div>
 
-          {/* Category quick-links */}
+          {/* Coming Soon Categories */}
           <motion.div
             className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
             initial="hidden"
@@ -117,17 +126,17 @@ export function HeroSection() {
             variants={fadeUp}
             custom={4}
           >
-            {categories.map((category) => {
+            <span className="text-xs text-white/50 mr-1">Coming soon:</span>
+            {comingSoonCategories.map((category) => {
               const Icon = category.icon;
               return (
-                <Link
+                <div
                   key={category.slug}
-                  href={`/${category.slug}`}
-                  className="group flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/80 backdrop-blur-sm transition-all hover:border-[#48bb78]/40 hover:bg-white/10 hover:text-white sm:px-4 sm:py-2 sm:text-sm"
+                  className="flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-white/40"
                 >
-                  <Icon className="size-4 transition-colors group-hover:text-[#48bb78]" />
+                  <Icon className="size-3.5" />
                   <span>{category.name}</span>
-                </Link>
+                </div>
               );
             })}
           </motion.div>

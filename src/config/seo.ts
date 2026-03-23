@@ -2,20 +2,20 @@ import type { Metadata } from "next";
 
 export const siteConfig = {
   name: "ValueSwitch",
-  description: "Compare and switch to save money on energy, broadband, mobile, insurance and more. Free, impartial price comparison for UK households and businesses.",
+  description: "Compare real mobile phone deals from Vodafone, Talkmobile, TTfone and Lebara. Real prices, verified affiliate links. UK price comparison.",
   url: "https://valueswitch.co.uk",
   ogImage: "/images/og-default.png",
 };
 
 export const defaultMetadata: Metadata = {
   title: {
-    default: "ValueSwitch - Compare & Save on Energy, Broadband, Mobile & More",
+    default: "ValueSwitch - Compare Real Mobile Phone Deals",
     template: "%s | ValueSwitch",
   },
   description: siteConfig.description,
   keywords: [
-    "price comparison", "compare energy", "compare broadband", "switch energy supplier",
-    "cheap broadband", "mobile phone deals", "car insurance comparison", "UK comparison",
+    "mobile phone deals", "compare mobile deals", "Vodafone deals", "phone contracts UK",
+    "SIM only deals", "cheap mobile deals", "Talkmobile", "Lebara deals", "UK mobile comparison",
   ],
   authors: [{ name: "ValueSwitch" }],
   creator: "ValueSwitch",

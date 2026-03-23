@@ -11,16 +11,12 @@ import { cn } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Our Providers",
   description:
-    "Browse trusted providers across energy, broadband, mobile, insurance and finance. Read reviews, compare trust scores, and find the right provider for you.",
+    "Browse our mobile network affiliate partners. Compare deals from Vodafone, Talkmobile, TTfone, and Lebara.",
 };
 
 const FILTER_CATEGORIES = [
   "All",
-  "Energy",
-  "Broadband",
   "Mobile",
-  "Insurance",
-  "Finance",
 ] as const;
 
 interface ProvidersPageProps {
@@ -43,9 +39,8 @@ export default async function ProvidersPage({ searchParams }: ProvidersPageProps
             Our Providers
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-blue-100">
-            We partner with the UK&apos;s leading providers to bring you the
-            best deals across energy, broadband, mobile, insurance and
-            finance.
+            We partner with UK mobile networks through the Awin affiliate
+            network to bring you real, verified deals.
           </p>
         </div>
       </section>
