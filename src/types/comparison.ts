@@ -65,6 +65,7 @@ export interface PlanWithProvider {
   introRatePeriod: number | null;
   // Affiliate
   affiliateUrl: string | null;
+  imageUrl: string | null;
   provider: {
     id: string;
     name: string;

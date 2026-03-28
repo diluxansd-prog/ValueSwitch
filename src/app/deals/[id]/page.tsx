@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import {
   ExternalLink,
@@ -109,7 +110,20 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
                 {deal.networkType && <Badge className="bg-white/15 text-white backdrop-blur-sm"><Wifi className="mr-1 size-3" />{deal.networkType}</Badge>}
               </div>
             </div>
-            <ShareButtons title={`${deal.provider.name} ${deal.name}`} url={dealUrl} />
+            <div className="flex items-center gap-4">
+              {deal.imageUrl && (
+                <div className="hidden sm:block relative size-28 lg:size-36 bg-white/10 rounded-2xl p-2 backdrop-blur-sm">
+                  <Image
+                    src={deal.imageUrl}
+                    alt={deal.name}
+                    fill
+                    className="object-contain p-2"
+                    sizes="144px"
+                  />
+                </div>
+              )}
+              <ShareButtons title={`${deal.provider.name} ${deal.name}`} url={dealUrl} />
+            </div>
           </div>
         </div>
       </section>

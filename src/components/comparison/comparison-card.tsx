@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Leaf, TrendingUp, Star, Megaphone, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -243,14 +244,26 @@ export function ComparisonCard({ plan }: ComparisonCardProps) {
         {/* Provider info */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                "flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white",
-                providerColors[colorIndex]
-              )}
-            >
-              {initials}
-            </div>
+            {plan.imageUrl ? (
+              <div className="relative size-14 shrink-0 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-1">
+                <Image
+                  src={plan.imageUrl}
+                  alt={plan.name}
+                  fill
+                  className="object-contain p-1"
+                  sizes="56px"
+                />
+              </div>
+            ) : (
+              <div
+                className={cn(
+                  "flex size-10 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white",
+                  providerColors[colorIndex]
+                )}
+              >
+                {initials}
+              </div>
+            )}
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 {plan.provider.name}

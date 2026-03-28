@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --version)",
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "WebFetch(domain:ui.shadcn.com)",
+      "WebFetch(domain:authjs.dev)",
+      "WebFetch(domain:www.prisma.io)",
+      "WebFetch(domain:uswitch.com)",
+      "Bash(python3 -c \"import sys,json; data=json.load\\(sys.stdin\\); print\\(data[0][''text''][:15000]\\)\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\); const d=JSON.parse\\(fs.readFileSync\\(''C:/Users/Diluxsan/.claude/projects/C--Users-Diluxsan-OneDrive-Desktop-ValueSwitch/472e6e58-dbfe-4b5c-ad73-edd9a52854be/tool-results/toolu_01HejqankjRoVQ7oaUAzDXkF.json'',''utf8''\\)\\); console.log\\(d[0].text.substring\\(0,20000\\)\\)\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\); const d=JSON.parse\\(fs.readFileSync\\(''C:/Users/Diluxsan/.claude/projects/C--Users-Diluxsan-OneDrive-Desktop-ValueSwitch/472e6e58-dbfe-4b5c-ad73-edd9a52854be/tool-results/toolu_01HejqankjRoVQ7oaUAzDXkF.json'',''utf8''\\)\\); console.log\\(d[0].text.substring\\(20000,40000\\)\\)\")",
+      "Bash(node -e \"const fs=require\\(''fs''\\); const d=JSON.parse\\(fs.readFileSync\\(''C:/Users/Diluxsan/.claude/projects/C--Users-Diluxsan-OneDrive-Desktop-ValueSwitch/472e6e58-dbfe-4b5c-ad73-edd9a52854be/tool-results/toolu_01HejqankjRoVQ7oaUAzDXkF.json'',''utf8''\\)\\); console.log\\(d[0].text.substring\\(40000\\)\\)\")"
+    ]
+  }
+}

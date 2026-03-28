@@ -140,6 +140,7 @@ model Plan {
   // Affiliate
   affiliateUrl   String?
   merchantProductId String?
+  imageUrl       String?
 
   // Metadata
   isPromoted     Boolean  @default(false)
