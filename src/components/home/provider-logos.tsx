@@ -1,8 +1,7 @@
 const providers = [
-  { name: "Vodafone", live: true },
-  { name: "Talkmobile", live: true },
-  { name: "TTfone", live: true },
-  { name: "Lebara", live: true },
+  { name: "Vodafone", deals: "66 deals" },
+  { name: "Talkmobile", deals: "25 deals" },
+  { name: "Lebara", deals: "15 deals" },
 ];
 
 export function ProviderLogos() {
@@ -10,23 +9,24 @@ export function ProviderLogos() {
     <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
       <div className="mb-10 text-center">
         <h2 className="mb-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          Our Affiliate Partners
+          Our Partners
         </h2>
         <p className="text-sm text-muted-foreground">
-          We work directly with these providers through the Awin affiliate network.
+          Real deals from verified providers through the Awin affiliate network.
         </p>
       </div>
 
-      <div className="flex gap-3 flex-wrap justify-center">
+      <div className="flex gap-4 flex-wrap justify-center">
         {providers.map((provider) => (
           <div
             key={provider.name}
-            className="flex items-center gap-2 rounded-full border border-border/60 bg-white px-5 py-2.5 text-sm font-medium text-foreground dark:bg-slate-800/50"
+            className="flex items-center gap-3 rounded-xl border border-border/60 bg-white px-6 py-4 dark:bg-slate-800/50"
           >
-            <span>{provider.name}</span>
-            {provider.live && (
-              <span className="flex size-2 rounded-full bg-green-500" />
-            )}
+            <div className="flex size-3 rounded-full bg-green-500 shrink-0" />
+            <div>
+              <span className="text-sm font-semibold">{provider.name}</span>
+              <p className="text-xs text-muted-foreground">{provider.deals}</p>
+            </div>
           </div>
         ))}
       </div>

@@ -100,7 +100,7 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
                 </div>
               </div>
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
-                {deal.name}
+                {deal.provider.name} {deal.name.replace(/ - £[\d.]+\/mo.*/, "")}
               </h1>
               <div className="mt-4 flex flex-wrap gap-2">
                 {deal.isBestValue && <Badge className="bg-emerald-500 text-white"><TrendingUp className="mr-1 size-3" />Best Value</Badge>}
