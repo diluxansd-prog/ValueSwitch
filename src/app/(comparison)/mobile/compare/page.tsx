@@ -48,7 +48,7 @@ function MobileCompareContent() {
   const [sortBy, setSortBy] = useState(initialSort);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(initialPage);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [filters, setFilters] = useState<FilterValues>({});
   const [providers, setProviders] = useState<string[]>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -176,9 +176,10 @@ function MobileCompareContent() {
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="price">Price</SelectItem>
+                  <SelectItem value="price">Monthly cost</SelectItem>
+                  <SelectItem value="popularity">Bestselling</SelectItem>
+                  <SelectItem value="data">Data</SelectItem>
                   <SelectItem value="rating">Rating</SelectItem>
-                  <SelectItem value="popularity">Popularity</SelectItem>
                 </SelectContent>
               </Select>
             </div>
