@@ -29,6 +29,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ComparisonCard } from "@/components/comparison/comparison-card";
+import { FeaturedPhones } from "@/components/comparison/featured-phones";
 import {
   ComparisonFilters,
   type FilterValues,
@@ -52,6 +53,7 @@ function MobileCompareContent() {
   const [filters, setFilters] = useState<FilterValues>({});
   const [providers, setProviders] = useState<string[]>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [phones, setPhones] = useState<Array<{ brand: string; image: string; cheapestPrice: number; setupFee: number; dealCount: number }>>([]);
 
   const fetchResults = useCallback(async () => {
     setLoading(true);
@@ -95,6 +97,10 @@ function MobileCompareContent() {
   useEffect(() => {
     fetchResults();
   }, [fetchResults]);
+
+  useEffect(() => {
+    fetch("/api/phones").then(r => r.json()).then(setPhones).catch(() => {});
+  }, []);
 
   function handleSortChange(value: string) {
     setSortBy(value);
@@ -232,6 +238,11 @@ function MobileCompareContent() {
             </aside>
 
             <div className="min-w-0 flex-1">
+              {/* Phone Gallery */}
+              {phones.length > 0 && page === 1 && !subcategory && (
+                <FeaturedPhones phones={phones} />
+              )}
+
               {loading ? (
                 <div
                   className={
