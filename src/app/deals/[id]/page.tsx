@@ -30,6 +30,7 @@ import { getDealBySlug, getSimilarDeals, getAllDealSlugs } from "@/lib/services/
 import { formatPrice } from "@/lib/constants";
 import { siteConfig } from "@/config/seo";
 import { getProviderColor, getProviderInitials } from "@/lib/utils/provider-avatar";
+import { ProviderLogo } from "@/components/shared/provider-logo";
 import { cn } from "@/lib/utils";
 
 interface DealDetailPageProps {
@@ -90,9 +91,7 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
-                <div className={cn("flex size-12 items-center justify-center rounded-xl text-sm font-bold text-white", getProviderColor(deal.provider.name))}>
-                  {getProviderInitials(deal.provider.name)}
-                </div>
+                <ProviderLogo name={deal.provider.name} logo={deal.provider.logo} size={48} />
                 <div>
                   <p className="text-sm text-blue-200">{deal.provider.name}</p>
                   {deal.provider.trustScore !== null && (
@@ -248,9 +247,7 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
                 <Separator />
                 {/* Provider mini card */}
                 <div className="flex items-center gap-3">
-                  <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white", getProviderColor(deal.provider.name))}>
-                    {getProviderInitials(deal.provider.name)}
-                  </div>
+                  <ProviderLogo name={deal.provider.name} logo={deal.provider.logo} size={40} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold">{deal.provider.name}</p>
                     {deal.provider.trustScore !== null && (
