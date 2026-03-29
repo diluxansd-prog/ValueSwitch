@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
         provider: searchParams.get("providers") || undefined,
         minSpeed: searchParams.get("minSpeed") || undefined,
         contractLength: searchParams.get("contractLength") || undefined,
+        brand: searchParams.get("brand") || undefined,
       },
     });
     return NextResponse.json(result);

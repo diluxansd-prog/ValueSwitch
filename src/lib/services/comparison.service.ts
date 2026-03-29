@@ -12,6 +12,7 @@ export async function runComparison(query: ComparisonQuery): Promise<ComparisonR
     if (query.filters.greenOnly === true) where.greenEnergy = true;
     if (query.filters.minSpeed) where.downloadSpeed = { gte: Number(query.filters.minSpeed) };
     if (query.filters.contractLength) where.contractLength = Number(query.filters.contractLength);
+    if (query.filters.brand) where.handsetModel = { equals: query.filters.brand, mode: "insensitive" };
 
     const orderByMap: Record<string, any> = {
       price: { monthlyCost: query.sortOrder },

@@ -41,6 +41,7 @@ function MobileCompareContent() {
   const searchParams = useSearchParams();
 
   const subcategory = searchParams.get("subcategory") || "";
+  const brand = searchParams.get("brand") || "";
   const initialSort = searchParams.get("sort") || "price";
   const initialPage = Number(searchParams.get("page")) || 1;
 
@@ -61,6 +62,7 @@ function MobileCompareContent() {
       const queryParams = new URLSearchParams({
         category: "mobile",
         ...(subcategory && { subcategory }),
+        ...(brand && { brand }),
         sortBy,
         sortOrder,
         page: String(page),
@@ -92,7 +94,7 @@ function MobileCompareContent() {
     } finally {
       setLoading(false);
     }
-  }, [subcategory, sortBy, sortOrder, page, filters, providers.length]);
+  }, [subcategory, brand, sortBy, sortOrder, page, filters, providers.length]);
 
   useEffect(() => {
     fetchResults();
@@ -133,11 +135,13 @@ function MobileCompareContent() {
             <div>
               <h1 className="flex items-center gap-2 text-2xl font-bold text-white sm:text-3xl">
                 <Smartphone className="size-7" />
-                Compare Mobile Deals
+                {brand ? `${brand} Deals` : "Compare Mobile Deals"}
               </h1>
-              {subcategory && (
+              {(subcategory || brand) && (
                 <p className="mt-1 text-sm text-white/80">
-                  Showing {subcategory.replace("-", " ")} deals
+                  {subcategory && `Showing ${subcategory.replace("-", " ")} deals`}
+                  {brand && !subcategory && `Showing all ${brand} phone deals`}
+                  {brand && subcategory && ` · ${brand}`}
                 </p>
               )}
             </div>
@@ -239,7 +243,7 @@ function MobileCompareContent() {
 
             <div className="min-w-0 flex-1">
               {/* Phone Gallery */}
-              {phones.length > 0 && page === 1 && !subcategory && (
+              {phones.length > 0 && page === 1 && !subcategory && !brand && (
                 <FeaturedPhones phones={phones} />
               )}
 
