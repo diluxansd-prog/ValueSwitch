@@ -1,63 +1,44 @@
-import { Users, PiggyBank, Star, ShieldCheck } from "lucide-react";
+import { ShieldCheck, BadgePoundSterling, Zap } from "lucide-react";
 
-const stats = [
+const values = [
   {
     icon: ShieldCheck,
-    value: "Awin",
-    label: "Verified",
-    description: "Official affiliate partner",
+    title: "Real prices",
+    description: "Every deal comes from our verified Awin affiliate partners. No fake prices or made-up savings.",
   },
   {
-    icon: PiggyBank,
-    value: "66+",
-    label: "Real Deals",
-    description: "From verified providers",
+    icon: BadgePoundSterling,
+    title: "Fair comparison",
+    description: "We show you actual monthly costs with real contract details so you can make informed decisions.",
   },
   {
-    icon: Star,
-    value: "4",
-    label: "Partners",
-    description: "Vodafone, Talkmobile & more",
-  },
-  {
-    icon: Users,
-    value: "100%",
-    label: "Real Data",
-    description: "No fake or mock deals",
+    icon: Zap,
+    title: "Quick switching",
+    description: "Click through to the provider directly. We earn a commission but it never affects your price.",
   },
 ];
 
 export function TrustIndicators() {
   return (
     <section className="bg-slate-50 dark:bg-slate-900/50">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-        <div className="mb-12 text-center">
-          <h2 className="mb-3 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            Why ValueSwitch?
+      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-18">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Why choose ValueSwitch?
           </h2>
-          <p className="text-muted-foreground">
-            We only show real deals from verified affiliate partners. No fake data, no inflated savings.
+          <p className="mt-2 text-muted-foreground text-sm">
+            We only show real deals you can actually buy.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="flex flex-col items-center rounded-xl bg-white p-4 sm:p-6 text-center shadow-sm dark:bg-slate-800/50"
-            >
-              <div className="mb-3 flex size-12 items-center justify-center rounded-full bg-[#1a365d]/10 dark:bg-[#38a169]/10">
-                <stat.icon className="size-6 text-[#1a365d] dark:text-[#48bb78]" />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          {values.map((item) => (
+            <div key={item.title} className="flex flex-col items-center text-center rounded-2xl bg-white dark:bg-slate-800/50 p-8 shadow-sm">
+              <div className="flex size-14 items-center justify-center rounded-2xl bg-[#1a365d]/10 dark:bg-[#48bb78]/10 mb-4">
+                <item.icon className="size-7 text-[#1a365d] dark:text-[#48bb78]" />
               </div>
-              <p className="text-xl font-bold text-foreground sm:text-2xl lg:text-3xl">
-                {stat.value}
-              </p>
-              <p className="mb-1 text-sm font-semibold text-foreground">
-                {stat.label}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {stat.description}
-              </p>
+              <h3 className="text-lg font-bold">{item.title}</h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{item.description}</p>
             </div>
           ))}
         </div>
