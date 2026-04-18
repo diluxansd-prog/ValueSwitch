@@ -69,18 +69,20 @@ model VerificationToken {
 // ─── Providers ───────────────────────────────────────────────
 
 model Provider {
-  id          String   @id @default(cuid())
-  name        String
-  slug        String   @unique
-  logo        String?
-  website     String?
-  description String?
-  trustScore  Float?
-  reviewCount Int      @default(0)
-  isActive    Boolean  @default(true)
-  categories  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  name           String
+  slug           String   @unique
+  logo           String?
+  website        String?
+  affiliateUrl   String?  // Awin cread link to merchant homepage (fallback)
+  awinMerchantId String?  // Awin MID for generating product-specific links
+  description    String?
+  trustScore     Float?
+  reviewCount    Int      @default(0)
+  isActive       Boolean  @default(true)
+  categories     String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   plans   Plan[]
   reviews UserReview[]

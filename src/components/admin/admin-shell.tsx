@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Mail,
   Newspaper,
+  Link2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,6 +48,7 @@ const navItems = [
   { label: "Guides", href: "/admin/guides", icon: BookOpen },
   { label: "Messages", href: "/admin/messages", icon: Mail },
   { label: "Newsletter", href: "/admin/newsletter", icon: Newspaper },
+  { label: "Link Generator", href: "/admin/links", icon: Link2 },
 ];
 
 function getInitials(name?: string | null): string {
