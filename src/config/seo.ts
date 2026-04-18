@@ -7,12 +7,18 @@ export const siteConfig = {
   ogImage: "/images/og-default.png",
 };
 
+// Social/share titles — keep between 50-60 chars for optimal preview
+// display on Facebook, X, LinkedIn, WhatsApp, Discord, iMessage, Slack.
+const SHARE_TITLE = "Compare UK Mobile Phone Deals & SIM Only | ValueSwitch"; // 54 chars
+const SHARE_DESC =
+  "Compare real Vodafone, Talkmobile & Lebara mobile deals. Save £300+/year on your UK mobile phone contract. Free, unbiased comparison updated daily.";
+
 export const defaultMetadata: Metadata = {
   title: {
-    default: "ValueSwitch - Compare Real Mobile Phone Deals",
+    default: "Compare UK Mobile Phone Deals & SIM Only | ValueSwitch",
     template: "%s | ValueSwitch",
   },
-  description: siteConfig.description,
+  description: SHARE_DESC,
   keywords: [
     "mobile phone deals", "compare mobile deals", "Vodafone deals", "phone contracts UK",
     "SIM only deals", "cheap mobile deals", "Talkmobile", "Lebara deals", "UK mobile comparison",
@@ -26,16 +32,23 @@ export const defaultMetadata: Metadata = {
     type: "website",
     locale: "en_GB",
     url: siteConfig.url,
-    title: "ValueSwitch - Compare & Save",
-    description: siteConfig.description,
+    title: SHARE_TITLE,
+    description: SHARE_DESC,
     siteName: siteConfig.name,
-    images: [{ url: `${siteConfig.url}${siteConfig.ogImage}`, width: 1200, height: 630, alt: "ValueSwitch - Compare & Save" }],
+    images: [
+      {
+        url: `${siteConfig.url}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "Compare UK mobile phone deals and SIM-only contracts — ValueSwitch",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "ValueSwitch - Compare & Save",
-    description: siteConfig.description,
-    images: [`${siteConfig.url}${siteConfig.ogImage}`],
+    title: SHARE_TITLE,
+    description: SHARE_DESC,
+    images: [`${siteConfig.url}/opengraph-image`],
   },
   robots: {
     index: true,
