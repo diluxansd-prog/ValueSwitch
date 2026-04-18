@@ -2,7 +2,7 @@
 
 import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Loader2, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 function LoginContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const justRegistered = searchParams.get("registered") === "1";
   const [email, setEmail] = useState("");
@@ -62,9 +61,12 @@ function LoginContent() {
         return;
       }
 
-      // Success — session cookie is set, navigate to dashboard
-      router.push("/dashboard");
-      router.refresh();
+      // Success — session cookie is set. Use a hard navigation so the
+      // new cookie is sent on the request and middleware lets us into
+      // /dashboard. router.push() stays on /login because the client
+      // router hasn't picked up the new session yet.
+      window.location.assign("/dashboard");
+      return;
     } catch (err) {
       console.error("Login error:", err);
       const msg = err instanceof Error ? err.message : "Unknown error";

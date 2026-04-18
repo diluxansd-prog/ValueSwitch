@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Loader2, Mail, Lock, User, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { registerUser } from "@/lib/actions/auth";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,13 +72,15 @@ export default function RegisterPage() {
       });
 
       if (!loginResult || loginResult.error) {
-        // Registration succeeded but auto-login failed; send to login page
-        router.push("/login?registered=1");
+        // Registration succeeded but auto-login failed — hard nav to login
+        window.location.assign("/login?registered=1");
         return;
       }
 
-      router.push("/dashboard");
-      router.refresh();
+      // Hard navigation so the new session cookie is sent on the request
+      // and middleware lets us into /dashboard
+      window.location.assign("/dashboard");
+      return;
     } catch (err) {
       console.error("Register error:", err);
       setError("Something went wrong. Please try again.");
