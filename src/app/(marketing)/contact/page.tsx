@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail, Phone, MapPin, HelpCircle } from "lucide-react";
+import { Mail, Phone, MapPin, HelpCircle, Building2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ContactForm } from "./contact-form";
+import { COMPANY } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Contact Us",
@@ -49,10 +50,10 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium">Email</p>
                     <a
-                      href="mailto:support@valueswitch.co.uk"
+                      href={`mailto:${COMPANY.email.support}`}
                       className="text-sm text-muted-foreground hover:text-[#1a365d] hover:underline"
                     >
-                      support@valueswitch.co.uk
+                      {COMPANY.email.support}
                     </a>
                   </div>
                 </div>
@@ -64,13 +65,13 @@ export default function ContactPage() {
                   <div>
                     <p className="font-medium">Phone</p>
                     <a
-                      href="tel:08001234567"
+                      href={`tel:${COMPANY.phone.tel}`}
                       className="text-sm text-muted-foreground hover:text-[#1a365d] hover:underline"
                     >
-                      0800 123 4567
+                      {COMPANY.phone.display}
                     </a>
                     <p className="text-xs text-muted-foreground">
-                      Mon-Fri 9am-6pm, Sat 10am-4pm
+                      {COMPANY.hours}
                     </p>
                   </div>
                 </div>
@@ -80,13 +81,30 @@ export default function ContactPage() {
                     <MapPin className="size-5" />
                   </div>
                   <div>
-                    <p className="font-medium">Address</p>
+                    <p className="font-medium">Registered Office</p>
                     <p className="text-sm text-muted-foreground">
-                      ValueSwitch Ltd
+                      {COMPANY.legalName}
                       <br />
-                      123 Comparison Street
+                      {COMPANY.address.street}
                       <br />
-                      London, EC2A 1NT
+                      {COMPANY.address.city}, {COMPANY.address.country}
+                      <br />
+                      {COMPANY.address.postcode}
+                    </p>
+                  </div>
+                </div>
+                <Separator />
+                <div className="flex items-start gap-4">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950 dark:text-amber-400">
+                    <Building2 className="size-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Company Details</p>
+                    <p className="text-sm text-muted-foreground">
+                      Company No: <span className="font-mono">{COMPANY.companyNumber}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {COMPANY.companyType}
                     </p>
                   </div>
                 </div>

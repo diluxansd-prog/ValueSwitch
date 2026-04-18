@@ -76,7 +76,7 @@ const faqs = [
   {
     question: "How do I contact ValueSwitch for help?",
     answer:
-      "You can reach us by email at support@valueswitch.co.uk, by phone on 0800 123 4567 (Mon-Fri 9am-6pm, Sat 10am-4pm), or through our contact form. Our support team is happy to help with any questions about comparing, switching or using our service.",
+      "You can reach us by email at support@valueswitch.co.uk, by phone on +44 800 688 9495 (Mon-Fri 9am-6pm, Sat 10am-4pm), or through our contact form. Our support team is happy to help with any questions about comparing, switching or using our service.",
   },
 ];
 

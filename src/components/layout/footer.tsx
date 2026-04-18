@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Zap, ShieldCheck, Star, Lock } from "lucide-react";
+import { Zap, ShieldCheck, Star, Lock, Phone, Mail, MapPin } from "lucide-react";
 import { Newsletter } from "@/components/shared/newsletter";
 import { footerLinks } from "@/config/navigation";
+import { COMPANY } from "@/lib/constants";
 
 function TwitterIcon({ className }: { className?: string }) {
   return (
@@ -93,6 +94,31 @@ export function Footer() {
 
             <Newsletter />
 
+            {/* Contact info */}
+            <div className="mt-6 space-y-2.5 text-sm text-white/70">
+              <a
+                href={`tel:${COMPANY.phone.tel}`}
+                className="flex items-center gap-2 hover:text-white transition-colors"
+              >
+                <Phone className="size-4 text-[#48bb78]" />
+                <span>{COMPANY.phone.display}</span>
+              </a>
+              <a
+                href={`mailto:${COMPANY.email.support}`}
+                className="flex items-center gap-2 hover:text-white transition-colors"
+              >
+                <Mail className="size-4 text-[#48bb78]" />
+                <span>{COMPANY.email.support}</span>
+              </a>
+              <div className="flex items-start gap-2">
+                <MapPin className="size-4 text-[#48bb78] shrink-0 mt-0.5" />
+                <span className="text-xs leading-relaxed">
+                  {COMPANY.address.street}, {COMPANY.address.city},{" "}
+                  {COMPANY.address.country}, {COMPANY.address.postcode}
+                </span>
+              </div>
+            </div>
+
             <div className="mt-6 flex items-center gap-3">
               <a
                 href="https://twitter.com/valueswitch"
@@ -179,15 +205,24 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 space-y-3">
+          <p className="text-xs text-white/40 max-w-4xl leading-relaxed">
+            {COMPANY.legalName} is a company registered in England and Wales.
+            Company number{" "}
+            <span className="font-mono text-white/60">
+              {COMPANY.companyNumber}
+            </span>
+            . Registered office: {COMPANY.address.full}. ValueSwitch is an Awin
+            affiliate partner. We earn commission when you click through to
+            providers. This does not affect the deals shown or the prices you
+            pay.
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pt-3 border-t border-white/5">
             <p className="text-xs text-white/50">
-              &copy; 2026 ValueSwitch. All rights reserved.
+              &copy; 2026 {COMPANY.legalName}. All rights reserved.
             </p>
-            <p className="text-xs text-white/40 max-w-xl leading-relaxed">
-              ValueSwitch is an Awin affiliate partner. We earn commission when
-              you click through to providers. This does not affect the deals
-              shown or the prices you pay.
+            <p className="text-xs text-white/40">
+              Company No: {COMPANY.companyNumber} · {COMPANY.address.postcode}
             </p>
           </div>
         </div>

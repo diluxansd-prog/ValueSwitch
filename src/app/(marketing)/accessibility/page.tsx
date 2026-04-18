@@ -82,7 +82,7 @@ export default function AccessibilityPage() {
               </a>
             </li>
             <li>
-              Phone: <a href="tel:08001234567">0800 123 4567</a>
+              Phone: <a href="tel:+448006889495">+44 800 688 9495</a>
             </li>
             <li>
               Or use our{" "}

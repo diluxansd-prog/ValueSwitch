@@ -1,4 +1,5 @@
 import { siteConfig } from "@/config/seo";
+import { COMPANY } from "@/lib/constants";
 
 interface JsonLdProps {
   data: Record<string, unknown>;
@@ -20,12 +21,25 @@ export function OrganizationJsonLd() {
         "@context": "https://schema.org",
         "@type": "Organization",
         name: siteConfig.name,
+        legalName: COMPANY.legalName,
         url: siteConfig.url,
         logo: `${siteConfig.url}/favicon.ico`,
         description: siteConfig.description,
+        identifier: COMPANY.companyNumber,
+        taxID: COMPANY.companyNumber,
+        foundingDate: "2026-03-23",
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: COMPANY.address.street,
+          addressLocality: COMPANY.address.city,
+          addressRegion: COMPANY.address.country,
+          postalCode: COMPANY.address.postcode,
+          addressCountry: "GB",
+        },
         contactPoint: {
           "@type": "ContactPoint",
-          telephone: "+44-800-123-4567",
+          telephone: COMPANY.phone.display,
+          email: COMPANY.email.support,
           contactType: "customer service",
           areaServed: "GB",
           availableLanguage: "English",

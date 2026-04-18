@@ -212,9 +212,12 @@ export default function TermsPage() {
                   legal@valueswitch.co.uk
                 </a>
               </li>
-              <li>Phone: 0800 123 4567</li>
+              <li>Phone: +44 800 688 9495</li>
               <li>
-                Post: ValueSwitch Ltd, 123 Comparison Street, London, EC2A 1NT
+                Post: VALUESWITCH LIMITED, 6 Berkett Road, Coventry, England, CV6 4FU
+              </li>
+              <li>
+                Company No: 17108611 (registered in England and Wales)
               </li>
             </ul>
           </section>
