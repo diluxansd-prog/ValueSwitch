@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import type { NextRequest } from "next/server";
 
+// NextAuth v5 uses `authjs.session-token` (not v4's `next-auth.session-token`)
+// and `__Secure-` prefix in production (HTTPS). getToken() needs these
+// explicitly because the library defaults still point to v4 names.
+const SESSION_COOKIE_NAME =
+  process.env.NODE_ENV === "production"
+    ? "__Secure-authjs.session-token"
+    : "authjs.session-token";
+
 // Simple in-memory rate limiter for API routes
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 60; // requests per window
@@ -41,9 +49,12 @@ export async function middleware(req: NextRequest) {
   }
 
   // Lightweight auth check using JWT token (no heavy imports)
+  // NextAuth v5 encrypts JWTs (JWE) with a salt derived from the cookie name
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+    cookieName: SESSION_COOKIE_NAME,
+    salt: SESSION_COOKIE_NAME,
   });
   const isAuth = !!token;
   const isAuthPage =

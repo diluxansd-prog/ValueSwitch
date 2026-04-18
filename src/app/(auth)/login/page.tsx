@@ -65,7 +65,9 @@ function LoginContent() {
       // new cookie is sent on the request and middleware lets us into
       // /dashboard. router.push() stays on /login because the client
       // router hasn't picked up the new session yet.
-      window.location.assign("/dashboard");
+      // Small delay gives the browser a moment to fully commit the cookie.
+      await new Promise((r) => setTimeout(r, 150));
+      window.location.href = "/dashboard";
       return;
     } catch (err) {
       console.error("Login error:", err);

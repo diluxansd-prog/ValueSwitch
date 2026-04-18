@@ -73,13 +73,14 @@ export default function RegisterPage() {
 
       if (!loginResult || loginResult.error) {
         // Registration succeeded but auto-login failed — hard nav to login
-        window.location.assign("/login?registered=1");
+        window.location.href = "/login?registered=1";
         return;
       }
 
       // Hard navigation so the new session cookie is sent on the request
       // and middleware lets us into /dashboard
-      window.location.assign("/dashboard");
+      await new Promise((r) => setTimeout(r, 150));
+      window.location.href = "/dashboard";
       return;
     } catch (err) {
       console.error("Register error:", err);
