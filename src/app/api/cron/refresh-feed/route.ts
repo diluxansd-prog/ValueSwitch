@@ -1,29 +1,35 @@
 /**
- * Weekly Awin feed refresh (Vercel cron).
+ * Weekly multi-merchant Awin feed refresh (Vercel cron).
  *
- * Schedule: every Sunday at 03:00 UTC (see vercel.json)
- * Auth: requires Authorization: Bearer <CRON_SECRET>
- *       Vercel cron jobs automatically send this header.
+ * Schedule: Sunday 03:00 UTC (see vercel.json)
+ * Auth: Authorization: Bearer <CRON_SECRET>  (Vercel sends automatically)
+ *       OR admin session cookie.
  *
- * Can also be triggered manually from /admin/cron, which requires an
- * admin user (checked via session) instead of the bearer secret.
+ * Iterates every merchant in src/config/merchants.ts whose feed URL env
+ * var is set (see getActiveMerchantFeeds). Imports them sequentially so
+ * the serverless function stays well under the 60s Hobby-tier budget
+ * even with 4-5 partners configured.
  *
- * Side effects:
- *   - Imports new Vodafone deals from AWIN_VODAFONE_FEED_URL
- *   - Updates prices on existing deals + snapshots to PriceHistory
- *   - Pings IndexNow for new deal pages
- *   - Records run in CronRun table for audit history
+ * Side effects per merchant:
+ *   - Imports new deals with stable affiliate URLs
+ *   - Updates prices + snapshots PriceHistory on every change
+ *   - Pings IndexNow for brand-new deal pages
+ *
+ * All runs recorded to CronRun with per-merchant summary JSON.
  */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { importFeed } from "@/lib/feed-importer";
+import { importFeed, type FeedImportResult } from "@/lib/feed-importer";
 import { pingIndexNow } from "@/lib/indexnow";
 import { auth } from "@/lib/auth";
+import { getActiveMerchantFeeds, MERCHANT_FEEDS } from "@/config/merchants";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60; // 60s for Hobby tier; 300s on Pro
+export const maxDuration = 60;
 
-async function isAuthorized(req: Request): Promise<{ ok: boolean; source: "cron" | "admin" | "denied" }> {
+async function isAuthorized(
+  req: Request
+): Promise<{ ok: boolean; source: "cron" | "admin" | "denied" }> {
   // Vercel Cron: Bearer <CRON_SECRET>
   const authHeader = req.headers.get("authorization") || "";
   const cronSecret = process.env.CRON_SECRET;
@@ -44,53 +50,101 @@ async function isAuthorized(req: Request): Promise<{ ok: boolean; source: "cron"
   return { ok: false, source: "denied" };
 }
 
-async function runJob(source: "cron" | "admin" | "denied") {
-  const feedUrl = process.env.AWIN_VODAFONE_FEED_URL;
-  const jobName = "refresh-feed";
+interface MultiMerchantResult {
+  ok: boolean;
+  source: "cron" | "admin" | "denied";
+  runId: string;
+  totalMerchants: number;
+  totalSucceeded: number;
+  totalFailed: number;
+  perMerchant: FeedImportResult[];
+  skipped: Array<{ merchant: string; reason: string }>;
+  durationMs: number;
+}
 
-  // Create run record immediately for observability
+async function runJob(
+  source: "cron" | "admin" | "denied"
+): Promise<MultiMerchantResult> {
+  const started = Date.now();
+  const activeFeeds = getActiveMerchantFeeds();
+  const skipped = MERCHANT_FEEDS.filter(
+    (m) => !activeFeeds.some((af) => af.slug === m.slug)
+  ).map((m) => ({
+    merchant: m.slug,
+    reason: `${m.feedUrlEnv} env var not set`,
+  }));
+
   const run = await prisma.cronRun.create({
-    data: { jobName, ok: false },
+    data: {
+      jobName: "refresh-feed",
+      ok: false,
+      summary: JSON.stringify({
+        status: "running",
+        totalMerchants: activeFeeds.length,
+      }),
+    },
   });
 
-  if (!feedUrl) {
-    await prisma.cronRun.update({
-      where: { id: run.id },
-      data: {
-        finishedAt: new Date(),
-        durationMs: 0,
-        ok: false,
-        error:
-          "AWIN_VODAFONE_FEED_URL env var is not set. Set it on Vercel to the gzipped CSV URL from your Awin dashboard.",
-      },
-    });
-    return {
-      ok: false,
-      error: "AWIN_VODAFONE_FEED_URL env var is not set",
-      source,
-      runId: run.id,
-    };
+  const perMerchant: FeedImportResult[] = [];
+  const newUrlsAll: string[] = [];
+
+  for (const m of activeFeeds) {
+    const r = await importFeed(m, m.feedUrl);
+    perMerchant.push(r);
+    if (r.newDealUrls) newUrlsAll.push(...r.newDealUrls);
   }
 
-  const result = await importFeed(feedUrl);
-
-  // Ping IndexNow with new URLs (non-blocking)
-  if (result.newDealUrls.length > 0) {
-    pingIndexNow(result.newDealUrls).catch(() => null);
+  // Batch-ping IndexNow with all new URLs across all merchants
+  if (newUrlsAll.length > 0) {
+    pingIndexNow(newUrlsAll).catch(() => null);
   }
+
+  const totalSucceeded = perMerchant.filter((r) => r.ok).length;
+  const totalFailed = perMerchant.filter((r) => !r.ok).length;
+  const overallOk = totalFailed === 0 && activeFeeds.length > 0;
+  const durationMs = Date.now() - started;
 
   await prisma.cronRun.update({
     where: { id: run.id },
     data: {
       finishedAt: new Date(),
-      durationMs: result.durationMs,
-      ok: result.ok,
-      error: result.error || null,
-      summary: JSON.stringify(result.counts),
+      durationMs,
+      ok: overallOk,
+      error:
+        activeFeeds.length === 0
+          ? "No merchant feeds configured. Set at least one *_FEED_URL env var."
+          : totalFailed > 0
+            ? perMerchant
+                .filter((r) => !r.ok)
+                .map((r) => `${r.merchant}: ${r.error}`)
+                .join("; ")
+            : null,
+      summary: JSON.stringify({
+        totalMerchants: activeFeeds.length,
+        totalSucceeded,
+        totalFailed,
+        skipped,
+        perMerchant: perMerchant.map((r) => ({
+          merchant: r.merchant,
+          ok: r.ok,
+          counts: r.counts,
+          error: r.error,
+        })),
+      }),
     },
   });
 
-  return { ...result, source, runId: run.id };
+  return {
+    ok: overallOk,
+    source,
+    runId: run.id,
+    totalMerchants: activeFeeds.length,
+    totalSucceeded,
+    totalFailed,
+    perMerchant,
+    skipped,
+    durationMs,
+  };
 }
 
 export async function GET(req: Request) {
@@ -98,16 +152,13 @@ export async function GET(req: Request) {
   if (!authResult.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await runJob(authResult.source);
-  return NextResponse.json(result);
+  return NextResponse.json(await runJob(authResult.source));
 }
 
-// Admin UI uses POST (action = "run" pattern)
 export async function POST(req: Request) {
   const authResult = await isAuthorized(req);
   if (!authResult.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const result = await runJob(authResult.source);
-  return NextResponse.json(result);
+  return NextResponse.json(await runJob(authResult.source));
 }

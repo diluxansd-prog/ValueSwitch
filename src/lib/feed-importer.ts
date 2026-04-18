@@ -1,30 +1,32 @@
 /**
- * Awin Product Feed importer.
+ * Awin Product Feed importer (merchant-agnostic).
  *
- * Fetches the latest gzipped CSV from Awin, diffs it against the DB,
- * and applies three side effects:
+ * Given a MerchantFeedConfig + feed URL, fetches the latest gzipped CSV
+ * from Awin, diffs it against the DB, and applies three side effects:
  *
- *   1. Import new plans (with stable affiliate URLs, never expiring SKUs)
+ *   1. Import new plans (with stable affiliate URLs to merchant landing
+ *      pages from the config — never expiring SKU-level deep links)
  *   2. Update existing plans if price or metadata changed
  *   3. Snapshot every price change to PriceHistory
  *
- * Designed to be called from:
- *   - The Vercel Cron job (weekly auto-refresh)
- *   - A manual admin "Refresh now" button
- *   - CLI (scripts/refresh-feed.ts)
+ * The provider record (Provider.slug === merchant.slug) must already
+ * exist in the DB.  Throws otherwise.
+ *
+ * Usage:
+ *   for (const m of getActiveMerchantFeeds()) {
+ *     await importFeed(m, m.feedUrl);
+ *   }
  *
  * All side effects are idempotent — running twice is safe.
  */
 import { prisma } from "@/lib/prisma";
 import { gunzipSync } from "zlib";
-import { generateAwinLink, AWIN_MERCHANTS } from "@/lib/affiliate";
-
-// Verified-live stable landing pages — see scripts/fix-to-stable-links.ts
-const HANDSET_PAGE = "https://www.vodafone.co.uk/mobile/phones";
-const SIMONLY_PAGE = "https://www.vodafone.co.uk/mobile/best-sim-only-deals";
+import { generateAwinLink } from "@/lib/affiliate";
+import type { MerchantFeedConfig } from "@/config/merchants";
 
 export interface FeedImportResult {
   ok: boolean;
+  merchant: string;
   source: string;
   durationMs: number;
   counts: {
@@ -176,10 +178,14 @@ function dedupe(
   return [...buckets.values()].map((b) => b.row);
 }
 
-export async function importFeed(feedUrl: string): Promise<FeedImportResult> {
+export async function importFeed(
+  merchant: MerchantFeedConfig,
+  feedUrl: string
+): Promise<FeedImportResult> {
   const started = Date.now();
   const result: FeedImportResult = {
     ok: false,
+    merchant: merchant.slug,
     source: feedUrl,
     durationMs: 0,
     counts: {
@@ -195,9 +201,13 @@ export async function importFeed(feedUrl: string): Promise<FeedImportResult> {
   };
 
   try {
-    console.log(`[feed-importer] fetching ${feedUrl.substring(0, 80)}...`);
+    console.log(
+      `[feed-importer:${merchant.slug}] fetching ${feedUrl.substring(0, 80)}...`
+    );
     const { csv, bytes } = await fetchFeed(feedUrl);
-    console.log(`[feed-importer] downloaded ${bytes} bytes, parsing...`);
+    console.log(
+      `[feed-importer:${merchant.slug}] downloaded ${bytes} bytes, parsing...`
+    );
 
     const rows = parseFeedToPlans(csv);
     result.counts.totalRows = rows.length;
@@ -205,14 +215,17 @@ export async function importFeed(feedUrl: string): Promise<FeedImportResult> {
     const deduped = dedupe(rows).slice(0, 200); // safety cap
     result.counts.uniqueDeals = deduped.length;
 
-    const vodafone = await prisma.provider.findUnique({
-      where: { slug: "vodafone" },
+    const provider = await prisma.provider.findUnique({
+      where: { slug: merchant.slug },
     });
-    if (!vodafone) throw new Error("Vodafone provider not found in DB");
+    if (!provider)
+      throw new Error(
+        `Provider "${merchant.slug}" not found in DB — create it first`
+      );
 
-    // Pull current Vodafone plans keyed by merchantProductId for diffing
+    // Pull current provider plans keyed by merchantProductId for diffing
     const existing = await prisma.plan.findMany({
-      where: { providerId: vodafone.id },
+      where: { providerId: provider.id },
       select: {
         id: true,
         merchantProductId: true,
@@ -230,16 +243,18 @@ export async function importFeed(feedUrl: string): Promise<FeedImportResult> {
           /sim[\s-]?only|simo/i.test(row["Telcos:contract_type"]) ||
           /sim[\s-]?only/i.test(row.product_name);
 
-        const destination = isSim ? SIMONLY_PAGE : HANDSET_PAGE;
+        const destination = isSim
+          ? merchant.landingPages.simOnly
+          : merchant.landingPages.handset;
         const brand =
           (row.product_name || "")
             .match(/^(Apple|Samsung|Google|Huawei|Honor|Motorola|OnePlus|Xiaomi|Sony|Nokia|Doro|ZTE|Vodafone)/i)?.[0] || "Other";
         const clickref = isSim
-          ? "deal_simonly"
-          : `deal_${brand.toLowerCase()}`;
+          ? `deal_simonly_${merchant.slug}`
+          : `deal_${brand.toLowerCase()}_${merchant.slug}`;
 
         const affiliateUrl = generateAwinLink({
-          merchantId: AWIN_MERCHANTS.vodafone,
+          merchantId: merchant.awinMerchantId,
           destinationUrl: destination,
           clickref,
         });
@@ -247,14 +262,14 @@ export async function importFeed(feedUrl: string): Promise<FeedImportResult> {
         // Generate a readable plan name/slug from the feed
         const shortName = row.product_name.substring(0, 120);
         const slug = slugify(
-          `${brand}-${row["Telcos:storage_size"] || ""}-on-vodafone-${monthCost.toFixed(2).replace(".", "")}-${term || ""}`
+          `${brand}-${row["Telcos:storage_size"] || ""}-on-${merchant.slug}-${monthCost.toFixed(2).replace(".", "")}-${term || ""}`
         );
 
         const previous = existingMap.get(row.merchant_product_id);
 
         const dataFields = {
           name: shortName,
-          category: "mobile" as const,
+          category: merchant.category,
           subcategory: isSim ? "sim-only" : "contract",
           description: (row.description || "").substring(0, 500),
           monthlyCost: monthCost,
@@ -292,7 +307,7 @@ export async function importFeed(feedUrl: string): Promise<FeedImportResult> {
             result.counts.priceChanges++;
             result.counts.updated++;
             console.log(
-              `[feed-importer] price change: ${shortName.substring(0, 60)}: £${previous.monthlyCost} → £${monthCost}`
+              `[feed-importer:${merchant.slug}] price change: ${shortName.substring(0, 60)}: £${previous.monthlyCost} → £${monthCost}`
             );
           } else {
             result.counts.unchanged++;
@@ -303,7 +318,7 @@ export async function importFeed(feedUrl: string): Promise<FeedImportResult> {
             data: {
               ...dataFields,
               slug,
-              providerId: vodafone.id,
+              providerId: provider.id,
               features: JSON.stringify([]),
             },
           });
@@ -322,7 +337,7 @@ export async function importFeed(feedUrl: string): Promise<FeedImportResult> {
       } catch (err) {
         result.counts.errors++;
         console.error(
-          `[feed-importer] error importing row ${row._uniqKey}:`,
+          `[feed-importer:${merchant.slug}] error importing row ${row._uniqKey}:`,
           (err as Error).message
         );
       }
@@ -331,13 +346,13 @@ export async function importFeed(feedUrl: string): Promise<FeedImportResult> {
     result.ok = true;
     result.durationMs = Date.now() - started;
     console.log(
-      `[feed-importer] done in ${result.durationMs}ms — created ${result.counts.created}, updated ${result.counts.updated}, price changes ${result.counts.priceChanges}`
+      `[feed-importer:${merchant.slug}] done in ${result.durationMs}ms — created ${result.counts.created}, updated ${result.counts.updated}, price changes ${result.counts.priceChanges}`
     );
     return result;
   } catch (err) {
     result.durationMs = Date.now() - started;
     result.error = err instanceof Error ? err.message : String(err);
-    console.error(`[feed-importer] FAILED: ${result.error}`);
+    console.error(`[feed-importer:${merchant.slug}] FAILED: ${result.error}`);
     return result;
   }
 }
