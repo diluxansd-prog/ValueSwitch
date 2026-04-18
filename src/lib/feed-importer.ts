@@ -67,6 +67,33 @@ function parseCSVLine(line: string): string[] {
   return result.map((s) => s.trim());
 }
 
+/**
+ * Vodafone retired their /web-shop/deeplink?handsetSkuId=...&planSkuId=...
+ * endpoint — it now returns 404.  The exact same SKU pair, however, works at
+ * /basket?planSkuId=...&deviceSkuId=... (parameter renamed: handsetSkuId →
+ * deviceSkuId).  Transform old-style URLs on the fly so clicks land on the
+ * working basket page.  Tested live 2026-04-18.
+ */
+function rewriteVodafoneUrl(url: string | undefined | null): string | null {
+  if (!url || !url.startsWith("http")) return null;
+  try {
+    const u = new URL(url);
+    if (u.hostname !== "www.vodafone.co.uk") return url;
+
+    if (u.pathname === "/web-shop/deeplink") {
+      const hsku = u.searchParams.get("handsetSkuId");
+      const psku = u.searchParams.get("planSkuId");
+      if (hsku && psku) {
+        return `https://www.vodafone.co.uk/basket?planSkuId=${psku}&deviceSkuId=${hsku}`;
+      }
+      return null; // not enough params, bail
+    }
+    return url;
+  } catch {
+    return null;
+  }
+}
+
 function slugify(s: string): string {
   return s
     .toLowerCase()
@@ -101,12 +128,14 @@ async function fetchFeed(
 
 interface FeedRow {
   merchant_product_id: string;
+  merchant_id: string; // which Awin merchant this row belongs to
   product_name: string;
   description: string;
   merchant_name: string;
   merchant_category: string;
   search_price: string; // display price as-is from feed
   merchant_image_url: string;
+  merchant_deep_link: string;
   "Telcos:contract_type": string;
   "Telcos:term": string; // months
   "Telcos:initial_cost": string; // £ upfront
@@ -151,9 +180,10 @@ function parseFeedToPlans(csv: string): Array<FeedRow & { _uniqKey: string }> {
 }
 
 /**
- * Reduce 4000+ raw variants into a representative deal per (brand, storage, term).
- * Keeps the cheapest for each combo — avoids spamming users with 50 Samsung S24
- * deals that differ only by upfront cost.
+ * Reduce raw variants to one representative deal per
+ * (brand, storage, contract length, data allowance, contract type).
+ * Keeps the cheapest for each unique combo — users get a diverse
+ * catalogue without 50 near-identical variants of the same phone.
  */
 function dedupe(
   rows: Array<FeedRow & { _uniqKey: string }>
@@ -163,12 +193,22 @@ function dedupe(
 
   for (const r of rows) {
     const name = r.product_name || "";
-    const brand = (name.match(/^(Apple|Samsung|Google|Huawei|Honor|Motorola|OnePlus|Xiaomi|Sony|Nokia|Doro|ZTE|Vodafone)/i)?.[0] || "Other").toLowerCase();
+    const brand = (name.match(/^(Apple|Samsung|Google|Huawei|Honor|Motorola|OnePlus|Xiaomi|Sony|Nokia|Doro|ZTE|Vodafone|Nothing|Asus|Realme|Oppo)/i)?.[0] || "Other").toLowerCase();
     const storage = (r["Telcos:storage_size"] || "").replace(/\s+/g, "");
     const term = r["Telcos:term"] || "";
-    const price = parseFloat(r["Telcos:month_cost"]);
+    const data = (r["Telcos:inc_data"] || "").replace(/\s+/g, "");
+    const ctype = (r["Telcos:contract_type"] || "").toLowerCase().replace(/\s+/g, "");
+    // Extract "Pro Max", "Ultra", etc. from product_name to preserve variants
+    const modelHint = (name.match(/\b(pro max|pro|max|ultra|plus|mini|lite|fold|flip|edge|ace)\b/i)?.[0] || "").toLowerCase();
 
-    const key = `${brand}|${storage}|${term}`;
+    const price = parseFloat(
+      r["Telcos:month_cost"] ||
+        (r as unknown as Record<string, string>).search_price ||
+        "0"
+    );
+    if (!isFinite(price) || price <= 0) continue;
+
+    const key = `${brand}|${modelHint}|${storage}|${term}|${data}|${ctype}`;
     const existing = buckets.get(key);
     if (!existing || price < existing.price) {
       buckets.set(key, { key, row: r, price });
@@ -212,7 +252,18 @@ export async function importFeed(
     const rows = parseFeedToPlans(csv);
     result.counts.totalRows = rows.length;
 
-    const deduped = dedupe(rows).slice(0, 200); // safety cap
+    // If the CSV contains multiple merchants, keep only rows for THIS
+    // merchant. Awin sometimes ships a combined feed for publishers who
+    // joined multiple programmes.
+    const merchantRows = rows.filter(
+      (r) =>
+        !r.merchant_id || r.merchant_id === merchant.awinMerchantId
+    );
+    console.log(
+      `[feed-importer:${merchant.slug}] ${merchantRows.length}/${rows.length} rows match merchant_id=${merchant.awinMerchantId}`
+    );
+
+    const deduped = dedupe(merchantRows).slice(0, 200); // safety cap
     result.counts.uniqueDeals = deduped.length;
 
     const provider = await prisma.provider.findUnique({
@@ -236,22 +287,42 @@ export async function importFeed(
 
     for (const row of deduped) {
       try {
-        const monthCost = parseFloat(row["Telcos:month_cost"]);
+        // Telcos:month_cost is the preferred field but some rows only
+        // have search_price or display_price populated.
+        const rawMonth =
+          row["Telcos:month_cost"] ||
+          (row as unknown as Record<string, string>).search_price ||
+          "";
+        const monthCost = parseFloat(rawMonth);
+        if (!isFinite(monthCost) || monthCost <= 0) {
+          result.counts.errors++;
+          continue; // skip this row — no valid price
+        }
         const initialCost = parseFloat(row["Telcos:initial_cost"]) || 0;
         const term = parseInt(row["Telcos:term"], 10) || null;
         const isSim =
           /sim[\s-]?only|simo/i.test(row["Telcos:contract_type"]) ||
           /sim[\s-]?only/i.test(row.product_name);
 
-        const destination = isSim
-          ? merchant.landingPages.simOnly
-          : merchant.landingPages.handset;
         const brand =
           (row.product_name || "")
             .match(/^(Apple|Samsung|Google|Huawei|Honor|Motorola|OnePlus|Xiaomi|Sony|Nokia|Doro|ZTE|Vodafone)/i)?.[0] || "Other";
         const clickref = isSim
           ? `deal_simonly_${merchant.slug}`
           : `deal_${brand.toLowerCase()}_${merchant.slug}`;
+
+        // PREFER the feed's specific product deep link (lands the user
+        // on the exact deal on the merchant's site). Only fall back to
+        // the category landing page if the feed didn't provide one.
+        const rawDeepLink = (row as unknown as Record<string, string>).merchant_deep_link;
+        const merchantDeepLink = rewriteVodafoneUrl(rawDeepLink);
+        const fallbackLanding = isSim
+          ? merchant.landingPages.simOnly
+          : merchant.landingPages.handset;
+        const destination =
+          merchantDeepLink && merchantDeepLink.startsWith("http")
+            ? merchantDeepLink
+            : fallbackLanding;
 
         const affiliateUrl = generateAwinLink({
           merchantId: merchant.awinMerchantId,
@@ -261,8 +332,11 @@ export async function importFeed(
 
         // Generate a readable plan name/slug from the feed
         const shortName = row.product_name.substring(0, 120);
+        // Append a short hash of merchant_product_id to guarantee uniqueness
+        // even when brand/storage/price collide between variants.
+        const idSuffix = row.merchant_product_id.toString().slice(-6);
         const slug = slugify(
-          `${brand}-${row["Telcos:storage_size"] || ""}-on-${merchant.slug}-${monthCost.toFixed(2).replace(".", "")}-${term || ""}`
+          `${brand}-${row["Telcos:storage_size"] || ""}-${merchant.slug}-${monthCost.toFixed(0)}mo-${term || ""}m-${idSuffix}`
         );
 
         const previous = existingMap.get(row.merchant_product_id);
@@ -285,6 +359,7 @@ export async function importFeed(
           imageUrl: row.merchant_image_url || null,
           affiliateUrl,
           merchantProductId: row.merchant_product_id,
+          merchantDeepLink: merchantDeepLink || null,
         };
 
         if (previous) {

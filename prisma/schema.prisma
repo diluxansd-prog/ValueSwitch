@@ -140,8 +140,9 @@ model Plan {
   introRatePeriod Int?
 
   // Affiliate
-  affiliateUrl   String?
-  merchantProductId String?
+  affiliateUrl   String?   // Awin cread-wrapped click URL
+  merchantProductId String? // Awin product ID from feed
+  merchantDeepLink  String? // Raw merchant URL from feed (unwrapped)
   imageUrl       String?
 
   // Metadata
