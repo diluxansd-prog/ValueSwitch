@@ -52,12 +52,30 @@ export const defaultMetadata: Metadata = {
   // verification codes from the dashboard without editing code:
   //   GOOGLE_SITE_VERIFICATION=<token from Search Console "HTML tag" method>
   //   BING_SITE_VERIFICATION=<token from Bing Webmaster Tools>
+  //
+  // Paste ONLY the token (the `content="..."` value), NOT the whole meta
+  // tag. extractToken() strips the wrapping tag if the user pastes too
+  // much — fail-safe against the #1 mistake on this integration.
   verification: {
     ...(process.env.GOOGLE_SITE_VERIFICATION && {
-      google: process.env.GOOGLE_SITE_VERIFICATION,
+      google: extractToken(process.env.GOOGLE_SITE_VERIFICATION),
     }),
     ...(process.env.BING_SITE_VERIFICATION && {
-      other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION },
+      other: { "msvalidate.01": extractToken(process.env.BING_SITE_VERIFICATION) },
     }),
   },
 };
+
+/**
+ * Extract the verification token from whatever the user pasted.
+ *
+ *   "ABC123..."                                    → "ABC123..."
+ *   '<meta name="..." content="ABC123..." />'      → "ABC123..."
+ *   ' content="ABC123..." '                        → "ABC123..."
+ */
+function extractToken(raw: string): string {
+  const trimmed = raw.trim();
+  const match = trimmed.match(/content\s*=\s*["']?([^"'\s>]+)/i);
+  if (match) return match[1];
+  return trimmed.replace(/^["']|["']$/g, "");
+}
