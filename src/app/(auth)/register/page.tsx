@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Loader2, Mail, Lock, User, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { registerUser, loginUser } from "@/lib/actions/auth";
+import { registerUser } from "@/lib/actions/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -65,21 +66,23 @@ export default function RegisterPage() {
         return;
       }
 
-      // Auto-login after registration
-      try {
-        const loginResult = await loginUser(email, password);
-        if (loginResult?.error) {
-          // Registration succeeded but auto-login failed; redirect to login
-          router.push("/login");
-          return;
-        }
-      } catch {
-        // signIn may throw NEXT_REDIRECT on success - that's OK
+      // Auto-login using client-side signIn (NextAuth v5 handles cookies properly)
+      const loginResult = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (!loginResult || loginResult.error) {
+        // Registration succeeded but auto-login failed; send to login page
+        router.push("/login?registered=1");
+        return;
       }
 
       router.push("/dashboard");
       router.refresh();
-    } catch {
+    } catch (err) {
+      console.error("Register error:", err);
       setError("Something went wrong. Please try again.");
       setIsLoading(false);
     }

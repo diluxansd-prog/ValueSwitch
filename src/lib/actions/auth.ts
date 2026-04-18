@@ -2,8 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-import { signIn } from "@/lib/auth";
-import { AuthError } from "next-auth";
 import crypto from "crypto";
 
 export async function registerUser(data: {
@@ -13,60 +11,47 @@ export async function registerUser(data: {
   postcode?: string;
 }) {
   try {
+    // Basic validation
+    if (!data.email || !data.password || !data.name) {
+      return { error: "Name, email and password are required." };
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      return { error: "Please enter a valid email address." };
+    }
+    if (data.password.length < 8) {
+      return { error: "Password must be at least 8 characters." };
+    }
+
+    const email = data.email.toLowerCase().trim();
+
     const existing = await prisma.user.findUnique({
-      where: { email: data.email },
+      where: { email },
     });
 
     if (existing) {
-      return { error: "Email already registered" };
+      return { error: "An account with this email already exists." };
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 12);
 
     const user = await prisma.user.create({
       data: {
-        name: data.name,
-        email: data.email,
+        name: data.name.trim(),
+        email,
         hashedPassword,
-        postcode: data.postcode || null,
+        postcode: data.postcode?.trim() || null,
       },
     });
 
     return { success: true, userId: user.id };
-  } catch {
-    return { error: "Failed to create account. Please try again." };
-  }
-}
-
-export async function loginUser(email: string, password: string) {
-  try {
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-      redirectTo: "/dashboard",
-    });
-    return { success: true, redirect: result };
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case "CredentialsSignin":
-          return { error: "Invalid email or password" };
-        default:
-          return { error: "Something went wrong. Please try again." };
-      }
-    }
-    // NextAuth v5 may throw NEXT_REDIRECT on success — that's OK
-    if (
-      error &&
-      typeof error === "object" &&
-      "digest" in error &&
-      typeof (error as Record<string, unknown>).digest === "string" &&
-      ((error as Record<string, unknown>).digest as string).includes("NEXT_REDIRECT")
-    ) {
-      return { success: true };
-    }
-    throw error;
+  } catch (err) {
+    console.error("[registerUser] error:", err);
+    // Surface the actual error message in dev to aid debugging
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Failed to create account. Please try again.";
+    return { error: message };
   }
 }
 

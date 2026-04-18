@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import { Loader2, Mail, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,10 +16,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { loginUser } from "@/lib/actions/auth";
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const justRegistered = searchParams.get("registered") === "1";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -30,20 +32,33 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const result = await loginUser(email, password);
+      // Use client-side signIn (NextAuth v5 handles cookies properly in browser)
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-      if (result?.error) {
-        setError(result.error);
+      if (!result) {
+        setError("Sign in failed. Please try again.");
         setIsLoading(false);
         return;
       }
 
+      if (result.error) {
+        // NextAuth returns error codes like "CredentialsSignin" for bad creds
+        setError("Invalid email or password.");
+        setIsLoading(false);
+        return;
+      }
+
+      // Success — session cookie is set, navigate to dashboard
       router.push("/dashboard");
       router.refresh();
-    } catch {
-      // signIn may throw NEXT_REDIRECT on success - navigate to dashboard
-      router.push("/dashboard");
-      router.refresh();
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("Something went wrong. Please try again.");
+      setIsLoading(false);
     }
   }
 
@@ -60,6 +75,11 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          {justRegistered && !error && (
+            <div className="rounded-lg bg-[#38a169]/10 border border-[#38a169]/20 px-4 py-3 text-sm text-[#2f855a] dark:text-[#48bb78]">
+              Account created! Please sign in to continue.
+            </div>
+          )}
           {error && (
             <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
               {error}
@@ -139,5 +159,23 @@ export default function LoginPage() {
         </CardFooter>
       </form>
     </Card>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <Card className="border-border/50 shadow-xl shadow-black/5">
+          <CardHeader className="space-y-1 text-center">
+            <CardTitle className="text-2xl font-bold tracking-tight">
+              Welcome back
+            </CardTitle>
+          </CardHeader>
+        </Card>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
