@@ -63,14 +63,22 @@ export async function middleware(req: NextRequest) {
   const isDashboard = pathname.startsWith("/dashboard");
   const isAdmin = pathname.startsWith("/admin");
   const isAdminApi = pathname.startsWith("/api/admin");
+  // Setup endpoint bootstraps the first admin; it does its own auth
+  // check internally (requires signed-in user, refuses if an admin
+  // already exists) so the middleware must let it through.
+  const isAdminSetup = pathname === "/api/admin/setup";
 
   // Protect dashboard - require auth
   if (isDashboard && !isAuth) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // Protect admin pages - require admin role
-  if ((isAdmin || isAdminApi) && (!isAuth || token?.role !== "admin")) {
+  // Protect admin pages - require admin role (except the setup endpoint)
+  if (
+    (isAdmin || isAdminApi) &&
+    !isAdminSetup &&
+    (!isAuth || token?.role !== "admin")
+  ) {
     if (!isAuth) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
