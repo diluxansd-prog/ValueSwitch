@@ -23,7 +23,13 @@ function isRateLimited(ip: string): boolean {
 export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
 
-  // Rate limiting for API routes
+  // NextAuth's own routes (CSRF, callback, providers, session) must NOT
+  // be rate-limited or intercepted — let them pass straight through.
+  if (pathname.startsWith("/api/auth/")) {
+    return NextResponse.next();
+  }
+
+  // Rate limiting for other API routes
   if (pathname.startsWith("/api/")) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     if (isRateLimited(ip)) {

@@ -32,12 +32,17 @@ function LoginContent() {
     setIsLoading(true);
 
     try {
-      // Use client-side signIn (NextAuth v5 handles cookies properly in browser)
-      const result = await signIn("credentials", {
+      // 20-second safety timeout so the user never sees an infinite spinner
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("timeout")), 20_000)
+      );
+      const signInPromise = signIn("credentials", {
         email,
         password,
         redirect: false,
       });
+
+      const result = await Promise.race([signInPromise, timeout]);
 
       if (!result) {
         setError("Sign in failed. Please try again.");
@@ -46,8 +51,13 @@ function LoginContent() {
       }
 
       if (result.error) {
-        // NextAuth returns error codes like "CredentialsSignin" for bad creds
-        setError("Invalid email or password.");
+        // "CredentialsSignin" = bad email/password; anything else = server error
+        const isBadCreds = result.error === "CredentialsSignin";
+        setError(
+          isBadCreds
+            ? "Invalid email or password."
+            : `Sign in error: ${result.error}`
+        );
         setIsLoading(false);
         return;
       }
@@ -57,7 +67,12 @@ function LoginContent() {
       router.refresh();
     } catch (err) {
       console.error("Login error:", err);
-      setError("Something went wrong. Please try again.");
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      setError(
+        msg === "timeout"
+          ? "Sign in took too long. Please try again."
+          : `Something went wrong: ${msg}`
+      );
       setIsLoading(false);
     }
   }
