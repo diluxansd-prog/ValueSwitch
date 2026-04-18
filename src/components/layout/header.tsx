@@ -2,9 +2,29 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
-import { Menu, Zap, User, ArrowRightLeft, Search, LayoutDashboard, Shield } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import {
+  Menu,
+  Zap,
+  User,
+  ArrowRightLeft,
+  Search,
+  LayoutDashboard,
+  Shield,
+  LogOut,
+  UserCircle,
+  ChevronDown,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -156,22 +176,78 @@ export function Header() {
           </Button>
           <ThemeToggle />
           {session?.user ? (
-            <>
-              {(session.user as Record<string, unknown>).role === "admin" && (
-                <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-                  <Link href="/admin">
-                    <Shield className="size-4" />
-                    <span className="hidden md:inline">Admin</span>
-                  </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden sm:inline-flex gap-2 pl-2 pr-2.5"
+                >
+                  <Avatar className="size-6">
+                    <AvatarImage
+                      src={session.user.image || undefined}
+                      alt={session.user.name || "User"}
+                    />
+                    <AvatarFallback className="text-[10px] bg-gradient-to-br from-[#1a365d] to-[#38a169] text-white">
+                      {session.user.name
+                        ?.split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden md:inline max-w-[100px] truncate">
+                    {session.user.name?.split(" ")[0] || "Account"}
+                  </span>
+                  <ChevronDown className="size-3.5 opacity-60" />
                 </Button>
-              )}
-              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-                <Link href="/dashboard">
-                  <LayoutDashboard className="size-4" />
-                  <span className="hidden md:inline">{session.user.name?.split(" ")[0] || "Dashboard"}</span>
-                </Link>
-              </Button>
-            </>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-sm font-semibold leading-none">
+                      {session.user.name || "User"}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground truncate">
+                      {session.user.email}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard" className="cursor-pointer">
+                    <LayoutDashboard className="size-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard/profile" className="cursor-pointer">
+                    <UserCircle className="size-4 mr-2" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                {(session.user as Record<string, unknown>).role === "admin" && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="cursor-pointer">
+                        <Shield className="size-4 mr-2 text-red-500" />
+                        Admin Panel
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="cursor-pointer text-destructive focus:text-destructive"
+                >
+                  <LogOut className="size-4 mr-2" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <Button
               variant="ghost"
