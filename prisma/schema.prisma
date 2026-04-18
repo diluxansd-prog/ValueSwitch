@@ -159,11 +159,26 @@ model Plan {
 
   provider       Provider @relation(fields: [providerId], references: [id])
   comparisonItems ComparisonItem[]
+  priceHistory    PriceHistory[]
 
   @@index([category])
   @@index([category, subcategory])
   @@index([providerId])
   @@index([monthlyCost])
+}
+
+// ─── Price History (for "was £35, now £30" + trend charts) ───
+
+model PriceHistory {
+  id          String   @id @default(cuid())
+  planId      String
+  monthlyCost Float
+  setupFee    Float    @default(0)
+  recordedAt  DateTime @default(now())
+
+  plan Plan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId, recordedAt])
 }
 
 // ─── Categories ──────────────────────────────────────────────

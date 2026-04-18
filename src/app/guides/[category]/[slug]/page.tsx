@@ -8,7 +8,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { ShareButtons } from "@/components/shared/share-buttons";
-import { BreadcrumbJsonLd } from "@/components/shared/json-ld";
+import { BreadcrumbJsonLd, ArticleJsonLd } from "@/components/shared/json-ld";
+import { AuthorByline } from "@/components/shared/author-byline";
 import { getGuideBySlug, getGuides, getAllGuideSlugs } from "@/lib/services/guide.service";
 import { siteConfig } from "@/config/seo";
 
@@ -32,12 +33,22 @@ export async function generateMetadata({
   }
 
   const { category } = await params;
+  const url = `${siteConfig.url}/guides/${category}/${slug}`;
   return {
     title: guide.title,
     description:
       guide.excerpt ??
       `Read our comprehensive guide on ${guide.title}. Expert advice from ValueSwitch.`,
-    alternates: { canonical: `${siteConfig.url}/guides/${category}/${slug}` },
+    alternates: { canonical: url },
+    openGraph: {
+      type: "article",
+      title: guide.title,
+      description: guide.excerpt ?? undefined,
+      url,
+      publishedTime: guide.publishedAt?.toString(),
+      modifiedTime: guide.updatedAt.toString(),
+      authors: guide.author ? [guide.author] : undefined,
+    },
   };
 }
 
@@ -64,6 +75,15 @@ export default async function GuidePage({ params }: GuidePageProps) {
           { name: category.charAt(0).toUpperCase() + category.slice(1), url: `${siteConfig.url}/guides/${category}` },
           { name: guide.title, url: `${siteConfig.url}/guides/${category}/${slug}` },
         ]}
+      />
+      <ArticleJsonLd
+        title={guide.title}
+        description={guide.excerpt ?? undefined}
+        url={`${siteConfig.url}/guides/${category}/${slug}`}
+        author={guide.author}
+        publishedAt={guide.publishedAt}
+        updatedAt={guide.updatedAt}
+        imageUrl={guide.coverImage}
       />
 
       {/* Article Header */}
@@ -114,7 +134,17 @@ export default async function GuidePage({ params }: GuidePageProps) {
 
       {/* Article Content */}
       <article className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="prose prose-lg max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-10 prose-h2:text-2xl prose-h3:text-xl prose-p:leading-relaxed prose-p:text-muted-foreground prose-a:text-[#1a365d] prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground prose-ul:text-muted-foreground prose-ol:text-muted-foreground prose-li:marker:text-[#38a169] dark:prose-invert">
+        {/* Author byline — E-E-A-T trust signal */}
+        {guide.author && (
+          <AuthorByline
+            author={guide.author}
+            role="Content Editor"
+            publishedAt={guide.publishedAt}
+            updatedAt={guide.updatedAt}
+            readTime={guide.readTime || undefined}
+          />
+        )}
+        <div className="prose prose-lg max-w-none prose-headings:font-semibold prose-headings:tracking-tight prose-h2:mt-10 prose-h2:text-2xl prose-h3:text-xl prose-p:leading-relaxed prose-p:text-muted-foreground prose-a:text-[#1a365d] prose-a:no-underline hover:prose-a:underline prose-strong:text-foreground prose-ul:text-muted-foreground prose-ol:text-muted-foreground prose-li:marker:text-[#38a169] dark:prose-invert pt-6">
           <ReactMarkdown>{guide.content}</ReactMarkdown>
         </div>
       </article>

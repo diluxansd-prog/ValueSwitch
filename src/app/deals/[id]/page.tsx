@@ -26,6 +26,7 @@ import { StarRating } from "@/components/shared/star-rating";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { ShareButtons } from "@/components/shared/share-buttons";
 import { ProductJsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
+import { PriceTrend } from "@/components/shared/price-change-badge";
 import { getDealBySlug, getSimilarDeals, getAllDealSlugs } from "@/lib/services/deal.service";
 import { formatPrice } from "@/lib/constants";
 import { siteConfig } from "@/config/seo";
@@ -234,8 +235,20 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
                 </div>
               </div>
               <CardContent className="p-5 space-y-4">
+                {/* Price trend from PriceHistory */}
+                {deal.priceHistory && deal.priceHistory.length > 0 && (
+                  <div className="rounded-lg bg-muted/40 px-3 py-2">
+                    <PriceTrend
+                      history={deal.priceHistory.map((h) => ({
+                        monthlyCost: h.monthlyCost,
+                        recordedAt: h.recordedAt,
+                      }))}
+                      currentPrice={deal.monthlyCost}
+                    />
+                  </div>
+                )}
                 <Button asChild className="w-full h-12 text-base bg-gradient-to-r from-[#38a169] to-[#48bb78] text-white hover:from-[#2f8a5a] hover:to-[#38a169] shadow-lg shadow-green-500/20" size="lg">
-                  <a href={deal.affiliateUrl ?? `/api/redirect?plan=${deal.id}`} target="_blank" rel="noopener noreferrer nofollow sponsored">
+                  <a href={`/api/redirect?plan=${deal.id}&src=deal_page`} target="_blank" rel="noopener noreferrer nofollow sponsored">
                     Go to {deal.provider.name}
                     <ExternalLink className="ml-2 size-4" />
                   </a>

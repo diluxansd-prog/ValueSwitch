@@ -96,10 +96,19 @@ export async function middleware(req: NextRequest) {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  response.headers.set(
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';"
-  );
+  // CSP — explicitly allow Awin, Vercel Analytics, and common fonts/images.
+  // Awin uses www.awin1.com for tracking + clicks.awin.com for pixels.
+  const csp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.awin1.com https://va.vercel-scripts.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: blob: https: https://media.bigupdata.co.uk",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "connect-src 'self' https: https://www.awin1.com https://www.dwin1.com https://vitals.vercel-insights.com",
+    "frame-src 'self' https://www.awin1.com",
+    "frame-ancestors 'none'",
+  ].join("; ");
+  response.headers.set("Content-Security-Policy", csp);
 
   return response;
 }

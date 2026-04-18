@@ -32,7 +32,13 @@ export async function getDealBySlug(slug: string) {
   try {
     return await prisma.plan.findUnique({
       where: { slug },
-      include: { provider: true },
+      include: {
+        provider: true,
+        priceHistory: {
+          orderBy: { recordedAt: "desc" },
+          take: 10,
+        },
+      },
     });
   } catch {
     return null;

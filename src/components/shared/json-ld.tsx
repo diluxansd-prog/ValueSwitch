@@ -116,6 +116,58 @@ export function BreadcrumbJsonLd({
   );
 }
 
+export function ArticleJsonLd({
+  title,
+  description,
+  url,
+  author,
+  publishedAt,
+  updatedAt,
+  imageUrl,
+}: {
+  title: string;
+  description?: string;
+  url: string;
+  author?: string | null;
+  publishedAt?: string | Date | null;
+  updatedAt?: string | Date | null;
+  imageUrl?: string | null;
+}) {
+  const pub = publishedAt ? new Date(publishedAt).toISOString() : undefined;
+  const upd = updatedAt ? new Date(updatedAt).toISOString() : undefined;
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: title,
+        description,
+        image: imageUrl ? [imageUrl] : [`${url.split("/").slice(0, 3).join("/")}/opengraph-image`],
+        author: author
+          ? [
+              {
+                "@type": "Person",
+                name: author,
+                url: `${url.split("/").slice(0, 3).join("/")}/about`,
+              },
+            ]
+          : undefined,
+        publisher: {
+          "@type": "Organization",
+          name: "ValueSwitch",
+          logo: {
+            "@type": "ImageObject",
+            url: `${url.split("/").slice(0, 3).join("/")}/icon`,
+          },
+        },
+        datePublished: pub,
+        dateModified: upd || pub,
+        mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      }}
+    />
+  );
+}
+
 export function ProductJsonLd({
   name,
   description,
