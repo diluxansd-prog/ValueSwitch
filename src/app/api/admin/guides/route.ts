@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { pingIndexNow } from "@/lib/indexnow";
+import { siteConfig } from "@/config/seo";
 
 async function isAdmin() {
   const session = await auth();
@@ -24,13 +26,21 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
-    await prisma.guide.update({
+    const guide = await prisma.guide.update({
       where: { id: guideId },
       data: {
         isPublished,
         publishedAt: isPublished ? new Date() : null,
       },
+      select: { category: true, slug: true },
     });
+
+    // When a guide becomes published, tell Bing / Yandex / DuckDuckGo
+    // immediately via IndexNow (don't block the response).
+    if (isPublished) {
+      const url = `${siteConfig.url}/guides/${guide.category}/${guide.slug}`;
+      pingIndexNow([url]).catch(() => null);
+    }
 
     return NextResponse.json({ success: true });
   } catch {

@@ -40,5 +40,24 @@ export const defaultMetadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  // Search Console verification — reads from env so you can paste the
+  // verification codes from the dashboard without editing code:
+  //   GOOGLE_SITE_VERIFICATION=<token from Search Console "HTML tag" method>
+  //   BING_SITE_VERIFICATION=<token from Bing Webmaster Tools>
+  verification: {
+    ...(process.env.GOOGLE_SITE_VERIFICATION && {
+      google: process.env.GOOGLE_SITE_VERIFICATION,
+    }),
+    ...(process.env.BING_SITE_VERIFICATION && {
+      other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION },
+    }),
   },
 };

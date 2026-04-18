@@ -4,6 +4,11 @@ import { getAllDealSlugs } from "@/lib/services/deal.service";
 import { getAllProviderSlugs } from "@/lib/services/provider.service";
 import { getAllGuideSlugs } from "@/lib/services/guide.service";
 
+// Regenerate on every request so newly-published deals/guides appear
+// in search engines without requiring a redeploy.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url;
 
