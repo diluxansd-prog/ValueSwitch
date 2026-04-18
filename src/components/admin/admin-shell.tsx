@@ -19,6 +19,7 @@ import {
   Newspaper,
   Link2,
   BarChart3,
+  Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -51,6 +52,7 @@ const navItems = [
   { label: "Messages", href: "/admin/messages", icon: Mail },
   { label: "Newsletter", href: "/admin/newsletter", icon: Newspaper },
   { label: "Link Generator", href: "/admin/links", icon: Link2 },
+  { label: "Scheduled Jobs", href: "/admin/cron", icon: Clock },
 ];
 
 function getInitials(name?: string | null): string {

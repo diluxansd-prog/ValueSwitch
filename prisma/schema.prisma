@@ -337,3 +337,18 @@ model ClickEvent {
   @@index([providerId])
   @@index([createdAt])
 }
+
+// ─── Cron Run History (audit trail for scheduled jobs) ──────
+
+model CronRun {
+  id           String   @id @default(cuid())
+  jobName      String   // e.g. "refresh-feed"
+  startedAt    DateTime @default(now())
+  finishedAt   DateTime?
+  durationMs   Int?
+  ok           Boolean  @default(false)
+  error        String?
+  summary      String?  // JSON-encoded FeedImportResult or similar
+
+  @@index([jobName, startedAt])
+}

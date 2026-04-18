@@ -37,6 +37,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // Vercel Cron jobs authenticate via Bearer <CRON_SECRET> in the
+  // endpoint itself; must bypass rate-limiter + session checks.
+  if (pathname.startsWith("/api/cron/")) {
+    return NextResponse.next();
+  }
+
   // Rate limiting for other API routes
   if (pathname.startsWith("/api/")) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
