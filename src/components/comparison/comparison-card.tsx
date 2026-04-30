@@ -109,16 +109,24 @@ export function ComparisonCard({ plan }: ComparisonCardProps) {
               {pricePence > 0 && (
                 <span className="text-lg font-bold">.{pricePence.toString().padStart(2, "0")}</span>
               )}
-              <span className="text-sm text-muted-foreground ml-0.5">a month</span>
+              <span className="text-sm text-muted-foreground ml-0.5">
+                {plan.subcategory === "sim-free" ? "total" : "a month"}
+              </span>
             </div>
-            {plan.contractLength && plan.contractLength > 1 && (
-              <p className="text-[11px] text-muted-foreground">{plan.contractLength} month contract</p>
-            )}
-            {plan.contractLength === 1 && (
-              <p className="text-[11px] text-muted-foreground">No contract</p>
-            )}
-            {plan.setupFee > 0 && (
-              <p className="text-[11px] text-muted-foreground">£{plan.setupFee.toFixed(2)} upfront</p>
+            {plan.subcategory === "sim-free" ? (
+              <p className="text-[11px] text-muted-foreground">SIM-free, no contract</p>
+            ) : (
+              <>
+                {plan.contractLength && plan.contractLength > 1 && (
+                  <p className="text-[11px] text-muted-foreground">{plan.contractLength} month contract</p>
+                )}
+                {plan.contractLength === 1 && (
+                  <p className="text-[11px] text-muted-foreground">No contract</p>
+                )}
+                {plan.setupFee > 0 && (
+                  <p className="text-[11px] text-muted-foreground">£{plan.setupFee.toFixed(2)} upfront</p>
+                )}
+              </>
             )}
           </div>
 

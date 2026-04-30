@@ -68,6 +68,50 @@ function parseCSVLine(line: string): string[] {
 }
 
 /**
+ * Quote-aware CSV row splitter — handles multi-line quoted fields.
+ *
+ * Mozillion (and many other Awin merchants) ship feeds where
+ * `description` contains hard newlines inside the quoted value:
+ *
+ *   "iPhone 16 Pro","42mp camera, 8GB ram\n10 days standby\nGreat phone"
+ *
+ * A naive split on \n breaks every quoted description into separate
+ * "rows" with mangled column alignment.  Walk the whole string instead
+ * and emit a row only when we see \n outside an open quote.
+ */
+function splitCSVRows(csv: string): string[] {
+  const rows: string[] = [];
+  let buf = "";
+  let inQuotes = false;
+  for (let i = 0; i < csv.length; i++) {
+    const ch = csv[i];
+    if (ch === '"') {
+      if (inQuotes && csv[i + 1] === '"') {
+        // escaped quote — keep both chars in buffer for parseCSVLine to
+        // resolve; just don't toggle quote state.
+        buf += '""';
+        i++;
+        continue;
+      }
+      inQuotes = !inQuotes;
+      buf += ch;
+    } else if ((ch === "\n" || ch === "\r") && !inQuotes) {
+      // Line ending outside a quoted field → end of row.
+      // Skip \r\n combo so we don't emit blank rows.
+      if (ch === "\r" && csv[i + 1] === "\n") i++;
+      if (buf.length > 0) {
+        rows.push(buf);
+        buf = "";
+      }
+    } else {
+      buf += ch;
+    }
+  }
+  if (buf.length > 0) rows.push(buf);
+  return rows;
+}
+
+/**
  * Vodafone retired their /web-shop/deeplink?handsetSkuId=...&planSkuId=...
  * endpoint — it now returns 404.  The exact same SKU pair, however, works at
  * /basket?planSkuId=...&deviceSkuId=... (parameter renamed: handsetSkuId →
@@ -287,17 +331,51 @@ function inferTelcosFromText(row: Record<string, string>): Record<string, string
   if (/5G/i.test(haystack)) out["Telcos:connectivity"] = "5G";
   else if (/4G/i.test(haystack)) out["Telcos:connectivity"] = "4G";
 
-  // ─── SIM-only detection ───
+  // ─── SIM-free / contract / sim-only detection ───
+  // SIM-free = one-time purchase of a handset (Mozillion's model).
+  // Detected via URL pattern (/phone-detail/, /buy/, /sim-free/) or
+  // explicit "SIM Free" / "Brand New" / "Refurbished" wording paired
+  // with NO contract indicator.
+  const isSimFree =
+    /\/phone-detail\//i.test(dl) ||
+    (/(SIM\s*Free|Brand\s*New|Refurbished|Excellent|Good|Fair)/i.test(name) &&
+      !/contract|pay\s*monthly|pm\b|\/mo\b/i.test(haystack));
+
   const isSimOnly =
-    /\bsim[\s-]?only\b/i.test(haystack) ||
-    /\/basket\/add\/sim/i.test(dl);
-  out["Telcos:contract_type"] = isSimOnly ? "SIM Only" : "Pay Monthly Contract";
+    !isSimFree &&
+    (/\bsim[\s-]?only\b/i.test(haystack) ||
+      /\/basket\/add\/sim/i.test(dl));
+
+  if (isSimFree) {
+    // For SIM-free, the price is search_price (one-time cost). Surface it
+    // through the Telcos:month_cost slot so the row passes the price filter
+    // — the import loop tags subcategory="sim-free" and keeps it distinct.
+    out["Telcos:contract_type"] = "SIM Free";
+    out["Telcos:term"] = "0";
+    if (row.search_price) out["Telcos:month_cost"] = row.search_price;
+  } else if (isSimOnly) {
+    out["Telcos:contract_type"] = "SIM Only";
+  } else {
+    out["Telcos:contract_type"] = "Pay Monthly Contract";
+  }
 
   return out;
 }
 
+/** Detect rows we don't want to import at all (travel SIMs, accessories). */
+function shouldSkipRow(row: Record<string, string>): boolean {
+  const dl = row.merchant_deep_link || "";
+  const cat = row.merchant_category || "";
+  // Mozillion travel SIMs (data bundles for foreign trips, not phone deals)
+  if (/\/sim-detail\//i.test(dl)) return true;
+  if (/Travel\s*SIM/i.test(cat)) return true;
+  // Broadband-only rows in a mobile feed
+  if (/^Broadband$/i.test(cat) && !/mobile/i.test(row.product_name || "")) return true;
+  return false;
+}
+
 function parseFeedToPlans(csv: string): Array<FeedRow & { _uniqKey: string }> {
-  const lines = csv.split(/\r?\n/);
+  const lines = splitCSVRows(csv);
   if (lines.length < 2) return [];
 
   const headers = parseCSVLine(lines[0]);
@@ -313,6 +391,9 @@ function parseFeedToPlans(csv: string): Array<FeedRow & { _uniqKey: string }> {
     headers.forEach((h, idx) => (row[h] = vals[idx] || ""));
 
     if (!row.merchant_product_id) continue;
+
+    // Skip travel SIMs / broadband / accessories that pollute mobile feeds
+    if (shouldSkipRow(row)) continue;
 
     // If the feed didn't have Telcos columns, infer them from product_name
     // + description + merchant_deep_link.  Critical for Fonehouse and
@@ -331,8 +412,12 @@ function parseFeedToPlans(csv: string): Array<FeedRow & { _uniqKey: string }> {
       : row["Telcos:month_cost"] || "0";
     const monthCost = parseFloat(rawMonth);
     if (!isFinite(monthCost) || monthCost <= 0) continue;
-    // Sanity: skip pure accessories (priced above £200/mo are usually misparses)
-    if (monthCost > 200) continue;
+    // Sanity caps:
+    //   Contract/SIM-only — anything above £200/mo is a parse error
+    //   SIM-free          — full handset cost can be £1,500+, allow it
+    const isSimFreeRow = /SIM\s*Free/i.test(row["Telcos:contract_type"] || "");
+    if (!isSimFreeRow && monthCost > 200) continue;
+    if (isSimFreeRow && monthCost > 5000) continue; // sanity: no phone above £5k
 
     rows.push({
       ...(row as unknown as FeedRow),
@@ -460,14 +545,19 @@ export async function importFeed(
         }
         const initialCost = parseFloat(row["Telcos:initial_cost"]) || 0;
         const term = parseInt(row["Telcos:term"], 10) || null;
+        const ctype = row["Telcos:contract_type"] || "";
+        const isSimFree = /sim\s*free/i.test(ctype);
         const isSim =
-          /sim[\s-]?only|simo/i.test(row["Telcos:contract_type"]) ||
-          /sim[\s-]?only/i.test(row.product_name);
+          !isSimFree &&
+          (/sim[\s-]?only|simo/i.test(ctype) ||
+            /sim[\s-]?only/i.test(row.product_name));
 
         const brand = extractBrand(row.product_name || "");
-        const clickref = isSim
-          ? `deal_simonly_${merchant.slug}`
-          : `deal_${brand.toLowerCase()}_${merchant.slug}`;
+        const clickref = isSimFree
+          ? `deal_simfree_${brand.toLowerCase()}_${merchant.slug}`
+          : isSim
+            ? `deal_simonly_${merchant.slug}`
+            : `deal_${brand.toLowerCase()}_${merchant.slug}`;
 
         // PREFER the feed's specific product deep link (lands the user
         // on the exact deal on the merchant's site). Only fall back to
@@ -505,15 +595,18 @@ export async function importFeed(
         const dataFields = {
           name: shortName,
           category: merchant.category,
-          subcategory: isSim ? "sim-only" : "contract",
+          subcategory: isSimFree ? "sim-free" : isSim ? "sim-only" : "contract",
           description: (row.description || "").substring(0, 500),
+          // For sim-free phones, monthCost holds the one-time purchase price
+          // (the UI will detect subcategory==="sim-free" and label it "total"
+          // instead of "/mo").
           monthlyCost: monthCost,
-          annualCost: monthCost * 12,
+          annualCost: isSimFree ? monthCost : monthCost * 12,
           setupFee: initialCost,
-          contractLength: term,
-          dataAllowance: row["Telcos:inc_data"] || null,
-          minutes: row["Telcos:inc_minutes"] || null,
-          texts: row["Telcos:inc_texts"] || null,
+          contractLength: isSimFree ? null : term,
+          dataAllowance: isSimFree ? null : row["Telcos:inc_data"] || null,
+          minutes: isSimFree ? null : row["Telcos:inc_minutes"] || null,
+          texts: isSimFree ? null : row["Telcos:inc_texts"] || null,
           networkType: row["Telcos:connectivity"] || null,
           includesHandset: !isSim,
           handsetModel: isSim ? null : brand,

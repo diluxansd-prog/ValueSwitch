@@ -80,6 +80,21 @@ export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
     },
     category: "mobile",
   },
+  {
+    // Mozillion — UK refurbished phone marketplace + phone contracts.
+    // Approved 2026-04. Stocks all major brands incl. Apple, Samsung, Google,
+    // both SIM-free handsets and pay-monthly contracts.
+    // Active promo (May 1-4 2026): £25 off any phone with code MAYDAY25.
+    slug: "mozillion",
+    name: "Mozillion",
+    awinMerchantId: "31539",
+    feedUrlEnv: "AWIN_MOZILLION_FEED_URL",
+    landingPages: {
+      handset: "https://www.mozillion.com/search-phone",
+      simOnly: "https://www.mozillion.com/search-phone",
+    },
+    category: "mobile",
+  },
   // Future examples — add env vars on Vercel and they auto-onboard:
   // {
   //   slug: "ee", name: "EE", awinMerchantId: "1599",
