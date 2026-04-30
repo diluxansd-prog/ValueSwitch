@@ -29,7 +29,13 @@ export interface MerchantFeedConfig {
     simOnly: string;
   };
   /** Category + subcategory to tag imported plans with */
-  category: "mobile" | "broadband" | "energy";
+  category: "mobile" | "broadband" | "energy" | "automotive";
+  /**
+   * If true, the cron skips this merchant — useful for partners we're
+   * approved with but haven't built UI for yet (e.g. tyres on a phone
+   * comparison site).  Affiliate link generation still works.
+   */
+  cronSkip?: boolean;
 }
 
 export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
@@ -81,6 +87,37 @@ export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
     category: "mobile",
   },
   {
+    // Be Fibre — UK full-fibre broadband ISP. Approved 2026-04.
+    // Fits the "broadband" category that's already in the schema; will
+    // surface on /broadband once we build that listing UI.
+    slug: "be-fibre",
+    name: "Be Fibre",
+    awinMerchantId: "60791",
+    feedUrlEnv: "AWIN_BEFIBRE_FEED_URL",
+    landingPages: {
+      handset: "https://www.befibre.co.uk/",
+      simOnly: "https://www.befibre.co.uk/", // not applicable to broadband
+    },
+    category: "broadband",
+  },
+  {
+    // Tirendo UK — online tyre retailer. Approved 2026-04.
+    // Off-niche for a price comparison site (cars vs household bills),
+    // so cronSkip=true keeps the affiliate relationship alive without
+    // polluting the catalogue.  Use admin /admin/links to generate
+    // ad-hoc Tirendo links manually if a campaign opportunity comes up.
+    slug: "tirendo-uk",
+    name: "Tirendo UK",
+    awinMerchantId: "15112",
+    feedUrlEnv: "AWIN_TIRENDO_FEED_URL",
+    landingPages: {
+      handset: "https://www.tirendo.co.uk/",
+      simOnly: "https://www.tirendo.co.uk/",
+    },
+    category: "automotive",
+    cronSkip: true,
+  },
+  {
     // Mozillion — UK refurbished phone marketplace + phone contracts.
     // Approved 2026-04. Stocks all major brands incl. Apple, Samsung, Google,
     // both SIM-free handsets and pay-monthly contracts.
@@ -109,6 +146,7 @@ export function getActiveMerchantFeeds(): Array<
   MerchantFeedConfig & { feedUrl: string }
 > {
   return MERCHANT_FEEDS.flatMap((m) => {
+    if (m.cronSkip) return [];
     const url = process.env[m.feedUrlEnv];
     return url ? [{ ...m, feedUrl: url }] : [];
   });
