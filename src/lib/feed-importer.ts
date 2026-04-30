@@ -149,11 +149,134 @@ interface FeedRow {
   "Telcos:tariff": string;
 }
 
+/**
+ * Some merchants (e.g. Fonehouse) ship a feed without the Telcos:* schema
+ * — the structured fields are embedded in product_name like:
+ *   "iPhone 16 Pro 128GB Black on Three Contract | £44pm Unlimited Data | £149 upfront cost"
+ *
+ * Parse that into virtual Telcos fields so the rest of the importer can
+ * treat both feed shapes identically.
+ */
+/**
+ * Extract a canonical brand from a product name.  Handles both
+ *   "Apple iPhone 16 Pro"  (brand-prefixed)
+ *   "iPhone 16 Pro 128GB"  (model-prefixed — Fonehouse style)
+ */
+function extractBrand(name: string): string {
+  const n = name.toLowerCase();
+  if (/^(apple|iphone)/.test(n)) return "Apple";
+  if (/^(samsung|galaxy)/.test(n)) return "Samsung";
+  if (/^(google|pixel)/.test(n)) return "Google";
+  if (/^huawei\b/.test(n)) return "Huawei";
+  if (/^honor\b/.test(n)) return "Honor";
+  if (/^(motorola|moto\s|moto-)/.test(n)) return "Motorola";
+  if (/^oneplus\b/.test(n)) return "OnePlus";
+  if (/^(xiaomi|redmi|poco)\b/.test(n)) return "Xiaomi";
+  if (/^sony\b/.test(n)) return "Sony";
+  if (/^nokia\b/.test(n)) return "Nokia";
+  if (/^doro\b/.test(n)) return "Doro";
+  if (/^zte\b/.test(n)) return "ZTE";
+  if (/^vodafone\b/.test(n)) return "Vodafone";
+  if (/^nothing\b/.test(n)) return "Nothing";
+  if (/^asus\b/.test(n)) return "Asus";
+  if (/^realme\b/.test(n)) return "Realme";
+  if (/^oppo\b/.test(n)) return "Oppo";
+  if (/^hmd\b/.test(n)) return "HMD";
+  if (/^cat\b/.test(n)) return "CAT";
+  if (/^tcl\b/.test(n)) return "TCL";
+  if (/^alcatel\b/.test(n)) return "Alcatel";
+  return "Other";
+}
+
+function inferTelcosFromText(row: Record<string, string>): Record<string, string> {
+  const name = row.product_name || "";
+  const desc = row.description || "";
+  const dl = row.merchant_deep_link || "";
+  // Combine name + description + URL — Fonehouse stores contract data in
+  // the URL slug like "vodafone-29pm-unlimited" or "three-unlimited-new-24-month-25.00"
+  const haystack = `${name} ${desc} ${dl}`;
+  const out: Record<string, string> = {};
+
+  // ─── Monthly cost — try multiple patterns ───
+  // 1. "£44pm" / "£44 a month" / "£44/mo" / "£44 per month" (text)
+  let monthMatch = haystack.match(/£\s*(\d+(?:\.\d+)?)\s*(?:pm|\/mo|a\s*month|per\s*month)/i);
+  // 2. URL form: "-29pm-" or "vodafone-29pm-..."
+  if (!monthMatch) monthMatch = dl.match(/-(\d+(?:\.\d+)?)pm[-/]/i);
+  // 3. URL form: "-24-month-44.00/" or "-12-month-25.99-"
+  if (!monthMatch) monthMatch = dl.match(/-\d+-month(?:-upgrade)?-(\d+(?:\.\d+)?)[/-]/i);
+  // 4. URL form ends with price: "...band-d-new-19.50"
+  if (!monthMatch) monthMatch = dl.match(/-(\d+(?:\.\d{1,2}))(?:[/?]|$)/);
+  if (monthMatch) out["Telcos:month_cost"] = monthMatch[1];
+
+  // ─── Upfront cost ───
+  // "£149 upfront cost" / "£0 upfront"
+  let upfrontMatch = haystack.match(/£\s*(\d+(?:\.\d+)?)\s*upfront/i);
+  // search_price column on Fonehouse IS the upfront cost when monthCost was extracted from elsewhere
+  if (!upfrontMatch) {
+    const sp = parseFloat(row.search_price || "");
+    if (isFinite(sp) && sp >= 0 && sp < 1000) {
+      out["Telcos:initial_cost"] = String(sp);
+    }
+  } else {
+    out["Telcos:initial_cost"] = upfrontMatch[1];
+  }
+  if (!out["Telcos:initial_cost"]) out["Telcos:initial_cost"] = "0";
+
+  // ─── Contract length ───
+  const termMatch = haystack.match(/(\d+)[\s-]*month/i);
+  if (termMatch) out["Telcos:term"] = termMatch[1];
+
+  // ─── Network ───
+  // Text form: "on Three Contract"
+  let networkMatch = haystack.match(/\bon\s+(EE|Three|O2|Vodafone|Sky\s*Mobile|iD\s*Mobile|Virgin\s*Media|giffgaff|Tesco\s*Mobile|VOXI|Talkmobile|Lebara|Plusnet|Smarty)\b/i);
+  // URL form: hostname/basket/add/contract/<phone>/<network>-...
+  if (!networkMatch) {
+    networkMatch = dl.match(/\/(?:contract|sim|upgrade)\/[^/]+\/(ee|three|o2|vodafone|sky-mobile|id-mobile|virgin|giffgaff|tesco-mobile|voxi|talkmobile|lebara|plusnet|smarty)[-/]/i);
+  }
+  if (networkMatch) {
+    out["Telcos:network"] = networkMatch[1].replace(/-/g, " ").replace(/\s+/g, " ");
+  }
+
+  // ─── Storage ─── (must come BEFORE data so we don't confuse "128GB" storage with data)
+  // Match the FIRST occurrence in product_name only — that's the device storage.
+  const storageMatch = name.match(/\b(\d+\s*(?:GB|TB))\b/i);
+  const deviceStorage = storageMatch ? storageMatch[1].replace(/\s+/g, "") : null;
+  if (deviceStorage) out["Telcos:storage_size"] = deviceStorage;
+
+  // ─── Data allowance ───
+  // 1. "Unlimited Data" / "300GB Data" (text — explicitly tagged as data)
+  let dataMatch = haystack.match(/(Unlimited|\d+(?:\.\d+)?\s*[GM]B)\s*Data\b/i);
+  // 2. URL form: "vodafone-unlimited-" / "three-300gb-new"
+  if (!dataMatch)
+    dataMatch = dl.match(/-(unlimited|\d+(?:\.\d+)?gb)-(?:new|\d+-month|upgrade|extra)/i);
+  // 3. URL form near end: "vodafone-29pm-100gb"
+  if (!dataMatch) dataMatch = dl.match(/-\d+pm-(unlimited|\d+(?:\.\d+)?gb)/i);
+  if (dataMatch) {
+    let val = dataMatch[1].replace(/\s+/g, "").replace(/Data$/i, "");
+    // Don't accidentally use the device's storage size as data allowance
+    if (val.toLowerCase() === (deviceStorage || "").toLowerCase()) val = "";
+    if (val) out["Telcos:inc_data"] = val;
+  }
+
+  // ─── 5G / 4G ───
+  if (/5G/i.test(haystack)) out["Telcos:connectivity"] = "5G";
+  else if (/4G/i.test(haystack)) out["Telcos:connectivity"] = "4G";
+
+  // ─── SIM-only detection ───
+  const isSimOnly =
+    /\bsim[\s-]?only\b/i.test(haystack) ||
+    /\/basket\/add\/sim/i.test(dl);
+  out["Telcos:contract_type"] = isSimOnly ? "SIM Only" : "Pay Monthly Contract";
+
+  return out;
+}
+
 function parseFeedToPlans(csv: string): Array<FeedRow & { _uniqKey: string }> {
   const lines = csv.split(/\r?\n/);
   if (lines.length < 2) return [];
 
   const headers = parseCSVLine(lines[0]);
+  const hasTelcosCols = headers.some((h) => h.startsWith("Telcos:"));
   const rows: Array<FeedRow & { _uniqKey: string }> = [];
 
   for (let i = 1; i < lines.length; i++) {
@@ -166,9 +289,25 @@ function parseFeedToPlans(csv: string): Array<FeedRow & { _uniqKey: string }> {
 
     if (!row.merchant_product_id) continue;
 
-    // Only import monthly-contract rows, skip outliers
-    const monthCost = parseFloat(row["Telcos:month_cost"] || row.search_price);
+    // If the feed didn't have Telcos columns, infer them from product_name
+    // + description + merchant_deep_link.  Critical for Fonehouse and
+    // similar retailers whose Awin feed schema is just basic.
+    if (!hasTelcosCols) {
+      Object.assign(row, inferTelcosFromText(row));
+    }
+
+    // Pick monthly price.  IMPORTANT: only fall back to search_price for
+    // feeds that DID have Telcos columns (Vodafone-style, where
+    // search_price IS the monthly cost).  For inferred feeds (e.g.
+    // Fonehouse), search_price is the upfront cost — using it would
+    // mis-label every deal.  Require the inferred Telcos:month_cost.
+    const rawMonth = hasTelcosCols
+      ? row["Telcos:month_cost"] || row.search_price || "0"
+      : row["Telcos:month_cost"] || "0";
+    const monthCost = parseFloat(rawMonth);
     if (!isFinite(monthCost) || monthCost <= 0) continue;
+    // Sanity: skip pure accessories (priced above £200/mo are usually misparses)
+    if (monthCost > 200) continue;
 
     rows.push({
       ...(row as unknown as FeedRow),
@@ -193,7 +332,7 @@ function dedupe(
 
   for (const r of rows) {
     const name = r.product_name || "";
-    const brand = (name.match(/^(Apple|Samsung|Google|Huawei|Honor|Motorola|OnePlus|Xiaomi|Sony|Nokia|Doro|ZTE|Vodafone|Nothing|Asus|Realme|Oppo)/i)?.[0] || "Other").toLowerCase();
+    const brand = extractBrand(name).toLowerCase();
     const storage = (r["Telcos:storage_size"] || "").replace(/\s+/g, "");
     const term = r["Telcos:term"] || "";
     const data = (r["Telcos:inc_data"] || "").replace(/\s+/g, "");
@@ -287,16 +426,12 @@ export async function importFeed(
 
     for (const row of deduped) {
       try {
-        // Telcos:month_cost is the preferred field but some rows only
-        // have search_price or display_price populated.
-        const rawMonth =
-          row["Telcos:month_cost"] ||
-          (row as unknown as Record<string, string>).search_price ||
-          "";
-        const monthCost = parseFloat(rawMonth);
+        // parseFeedToPlans already filtered out rows without a valid
+        // monthCost — including the inferred-Telcos / Fonehouse case.
+        const monthCost = parseFloat(row["Telcos:month_cost"]);
         if (!isFinite(monthCost) || monthCost <= 0) {
           result.counts.errors++;
-          continue; // skip this row — no valid price
+          continue;
         }
         const initialCost = parseFloat(row["Telcos:initial_cost"]) || 0;
         const term = parseInt(row["Telcos:term"], 10) || null;
@@ -304,9 +439,7 @@ export async function importFeed(
           /sim[\s-]?only|simo/i.test(row["Telcos:contract_type"]) ||
           /sim[\s-]?only/i.test(row.product_name);
 
-        const brand =
-          (row.product_name || "")
-            .match(/^(Apple|Samsung|Google|Huawei|Honor|Motorola|OnePlus|Xiaomi|Sony|Nokia|Doro|ZTE|Vodafone)/i)?.[0] || "Other";
+        const brand = extractBrand(row.product_name || "");
         const clickref = isSim
           ? `deal_simonly_${merchant.slug}`
           : `deal_${brand.toLowerCase()}_${merchant.slug}`;
