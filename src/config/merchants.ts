@@ -132,13 +132,87 @@ export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
     },
     category: "mobile",
   },
-  // Future examples — add env vars on Vercel and they auto-onboard:
-  // {
-  //   slug: "ee", name: "EE", awinMerchantId: "1599",
-  //   feedUrlEnv: "AWIN_EE_FEED_URL",
-  //   landingPages: { handset: "https://ee.co.uk/mobile", simOnly: "https://ee.co.uk/mobile/sim-only" },
-  //   category: "mobile",
-  // },
+  {
+    // Grade Mobile — biggest catalogue of any partner so far (53k+ rows).
+    // Multi-network phone retailer like Fonehouse but with even more variants.
+    // Approved 2026-05.
+    slug: "grade-mobile",
+    name: "Grade Mobile",
+    awinMerchantId: "22069",
+    feedUrlEnv: "AWIN_GRADE_FEED_URL",
+    landingPages: {
+      handset: "https://www.grademobile.co.uk/",
+      simOnly: "https://www.grademobile.co.uk/sim-only-deals",
+    },
+    category: "mobile",
+  },
+  {
+    // Your Co-op Mobile & Broadband — co-operative provider, ethical brand.
+    // Approved 2026-05.  No CSV product feed yet — provider record exists
+    // for /admin/links generator + future onboarding.
+    slug: "yourcoop",
+    name: "Your Co-op Mobile & Broadband",
+    awinMerchantId: "30943",
+    feedUrlEnv: "AWIN_YOURCOOP_FEED_URL",
+    landingPages: {
+      handset: "https://www.yourcoop.coop/",
+      simOnly: "https://www.yourcoop.coop/mobile/sim-only-plans",
+    },
+    category: "mobile",
+    cronSkip: true, // re-enable when their feed becomes available
+  },
+  {
+    // TTfone — senior-friendly phones (big buttons, simple UI).
+    // Already had provider record from earlier; re-enabled for cron.
+    slug: "ttfone",
+    name: "TTfone",
+    awinMerchantId: "28737",
+    feedUrlEnv: "AWIN_TTFONE_FEED_URL",
+    landingPages: {
+      handset: "https://www.ttfone.com/",
+      simOnly: "https://www.ttfone.com/",
+    },
+    category: "mobile",
+  },
+  {
+    // Sim Local — global travel SIMs.  Niche but valuable for a "travel
+    // SIM" comparison sub-page if we build one.  Skip from main mobile
+    // listings (data-only / international SIMs aren't UK contracts).
+    slug: "sim-local",
+    name: "Sim Local",
+    awinMerchantId: "68844",
+    feedUrlEnv: "AWIN_SIMLOCAL_FEED_URL",
+    landingPages: {
+      handset: "https://www.simlocal.com/",
+      simOnly: "https://www.simlocal.com/",
+    },
+    category: "mobile",
+    cronSkip: true,
+  },
+  {
+    // 1pMobile — pay-as-you-go network on EE.
+    slug: "1pmobile",
+    name: "1pMobile",
+    awinMerchantId: "37738",
+    feedUrlEnv: "AWIN_1PMOBILE_FEED_URL",
+    landingPages: {
+      handset: "https://1pmobile.com/",
+      simOnly: "https://1pmobile.com/sim-card-bundles/",
+    },
+    category: "mobile",
+  },
+  {
+    // Ecotalk — sustainable mobile network, profits to wildlife charities.
+    slug: "ecotalk",
+    name: "Ecotalk",
+    awinMerchantId: "114718",
+    feedUrlEnv: "AWIN_ECOTALK_FEED_URL",
+    landingPages: {
+      handset: "https://www.ecotalk.co.uk/",
+      simOnly: "https://www.ecotalk.co.uk/plans",
+    },
+    category: "mobile",
+  },
 ];
 
 /** Return only merchants whose feed URL is configured in env. */

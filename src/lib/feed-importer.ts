@@ -467,15 +467,39 @@ function dedupe(
   return [...buckets.values()].map((b) => b.row);
 }
 
+/**
+ * Run the import for a single merchant against a CSV that's ALREADY been
+ * fetched + decompressed (so the caller can share one download across many
+ * merchants when using a combined Awin feed).
+ *
+ * Sets durationMs to time-from-csv-parsed-to-done; the fetch time isn't
+ * attributed to any single merchant.
+ */
+export async function importFromCsv(
+  merchant: MerchantFeedConfig,
+  csv: string,
+  source = "(pre-fetched)"
+): Promise<FeedImportResult> {
+  return importInternal(merchant, source, csv);
+}
+
 export async function importFeed(
   merchant: MerchantFeedConfig,
   feedUrl: string
+): Promise<FeedImportResult> {
+  return importInternal(merchant, feedUrl, null);
+}
+
+async function importInternal(
+  merchant: MerchantFeedConfig,
+  source: string,
+  preFetchedCsv: string | null
 ): Promise<FeedImportResult> {
   const started = Date.now();
   const result: FeedImportResult = {
     ok: false,
     merchant: merchant.slug,
-    source: feedUrl,
+    source,
     durationMs: 0,
     counts: {
       totalRows: 0,
@@ -490,13 +514,20 @@ export async function importFeed(
   };
 
   try {
-    console.log(
-      `[feed-importer:${merchant.slug}] fetching ${feedUrl.substring(0, 80)}...`
-    );
-    const { csv, bytes } = await fetchFeed(feedUrl);
-    console.log(
-      `[feed-importer:${merchant.slug}] downloaded ${bytes} bytes, parsing...`
-    );
+    let csv: string;
+    if (preFetchedCsv != null) {
+      csv = preFetchedCsv;
+      console.log(`[feed-importer:${merchant.slug}] using pre-fetched CSV`);
+    } else {
+      console.log(
+        `[feed-importer:${merchant.slug}] fetching ${source.substring(0, 80)}...`
+      );
+      const fetched = await fetchFeed(source);
+      csv = fetched.csv;
+      console.log(
+        `[feed-importer:${merchant.slug}] downloaded ${fetched.bytes} bytes, parsing...`
+      );
+    }
 
     const rows = parseFeedToPlans(csv);
     result.counts.totalRows = rows.length;

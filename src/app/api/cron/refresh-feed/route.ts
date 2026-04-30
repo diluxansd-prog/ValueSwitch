@@ -19,10 +19,15 @@
  */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { importFeed, type FeedImportResult } from "@/lib/feed-importer";
+import {
+  importFeed,
+  importFromCsv,
+  type FeedImportResult,
+} from "@/lib/feed-importer";
 import { pingIndexNow } from "@/lib/indexnow";
 import { auth } from "@/lib/auth";
 import { getActiveMerchantFeeds, MERCHANT_FEEDS } from "@/config/merchants";
+import { gunzipSync } from "zlib";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -67,11 +72,30 @@ async function runJob(
 ): Promise<MultiMerchantResult> {
   const started = Date.now();
   const activeFeeds = getActiveMerchantFeeds();
+
+  // OPTIMISATION: AWIN_COMBINED_FEED_URL = one URL with multiple FIDs.
+  // When set, download the CSV ONCE and dispatch all merchants from it.
+  // This is what every cron run will do once we wire up Awin's combined
+  // download.  Cuts a 6-merchant import from ~30s to ~10s and ships a
+  // single 5-MB request instead of six.
+  const combinedUrl = process.env.AWIN_COMBINED_FEED_URL;
+
+  // Only merchants without their OWN feed URL fall back to combined feed.
+  const merchantsForCombined = combinedUrl
+    ? MERCHANT_FEEDS.filter(
+        (m) => !m.cronSkip && !process.env[m.feedUrlEnv]
+      )
+    : [];
+
   const skipped = MERCHANT_FEEDS.filter(
-    (m) => !activeFeeds.some((af) => af.slug === m.slug)
+    (m) =>
+      !activeFeeds.some((af) => af.slug === m.slug) &&
+      !merchantsForCombined.some((cm) => cm.slug === m.slug)
   ).map((m) => ({
     merchant: m.slug,
-    reason: `${m.feedUrlEnv} env var not set`,
+    reason: m.cronSkip
+      ? "cronSkip flag set"
+      : `${m.feedUrlEnv} env var not set`,
   }));
 
   const run = await prisma.cronRun.create({
@@ -80,7 +104,7 @@ async function runJob(
       ok: false,
       summary: JSON.stringify({
         status: "running",
-        totalMerchants: activeFeeds.length,
+        totalMerchants: activeFeeds.length + merchantsForCombined.length,
       }),
     },
   });
@@ -88,10 +112,60 @@ async function runJob(
   const perMerchant: FeedImportResult[] = [];
   const newUrlsAll: string[] = [];
 
+  // Path 1: per-merchant feeds (each downloads its own CSV)
   for (const m of activeFeeds) {
     const r = await importFeed(m, m.feedUrl);
     perMerchant.push(r);
     if (r.newDealUrls) newUrlsAll.push(...r.newDealUrls);
+  }
+
+  // Path 2: combined feed — fetch once, dispatch many
+  if (combinedUrl && merchantsForCombined.length > 0) {
+    try {
+      console.log(`[cron] fetching combined feed for ${merchantsForCombined.length} merchants...`);
+      const res = await fetch(combinedUrl, {
+        headers: { "User-Agent": "ValueSwitchBot/1.0" },
+      });
+      if (!res.ok) throw new Error(`combined feed fetch HTTP ${res.status}`);
+      const ab = await res.arrayBuffer();
+      const buf = Buffer.from(ab);
+      const csv = (() => {
+        try {
+          return gunzipSync(buf).toString("utf-8");
+        } catch {
+          return buf.toString("utf-8");
+        }
+      })();
+      console.log(`[cron] combined feed = ${(buf.length / 1024 / 1024).toFixed(2)} MB`);
+
+      for (const m of merchantsForCombined) {
+        const r = await importFromCsv(m, csv, "combined-feed");
+        perMerchant.push(r);
+        if (r.newDealUrls) newUrlsAll.push(...r.newDealUrls);
+      }
+    } catch (err) {
+      console.error("[cron] combined feed failed:", err);
+      // mark each merchant as failed
+      for (const m of merchantsForCombined) {
+        perMerchant.push({
+          ok: false,
+          merchant: m.slug,
+          source: "combined-feed",
+          durationMs: 0,
+          counts: {
+            totalRows: 0,
+            uniqueDeals: 0,
+            created: 0,
+            updated: 0,
+            unchanged: 0,
+            priceChanges: 0,
+            errors: 0,
+          },
+          newDealUrls: [],
+          error: err instanceof Error ? err.message : "combined fetch failed",
+        });
+      }
+    }
   }
 
   // Batch-ping IndexNow with all new URLs across all merchants
