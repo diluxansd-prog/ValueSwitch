@@ -135,6 +135,8 @@ interface FeedRow {
   merchant_category: string;
   search_price: string; // display price as-is from feed
   merchant_image_url: string;
+  aw_image_url: string; // Awin-hosted image (productserve.com), reliable
+  aw_thumb_url: string; // Awin-hosted thumbnail
   merchant_deep_link: string;
   "Telcos:contract_type": string;
   "Telcos:term": string; // months
@@ -157,6 +159,29 @@ interface FeedRow {
  * Parse that into virtual Telcos fields so the rest of the importer can
  * treat both feed shapes identically.
  */
+/**
+ * Clean a long marketing-style product name down to the device model only.
+ *
+ *   "iPhone 16 Pro 128GB Black Titanium on Three Contract | £44pm Unlimited Data | £149 upfront cost"
+ *     → "iPhone 16 Pro 128GB"
+ *
+ *   "Samsung Galaxy S25 Ultra 256GB Titanium Black on Three Contract | £43pm 300GB Data | £19 upfront cost"
+ *     → "Samsung Galaxy S25 Ultra 256GB"
+ *
+ *   "iPhone 17 Pro 512GB"   →   "iPhone 17 Pro 512GB"   (already clean)
+ */
+function cleanProductName(raw: string): string {
+  if (!raw) return raw;
+  // Strip everything from the first network indicator onward
+  let cleaned = raw.replace(/\s+(?:on|with)\s+(EE|Three|O2|Vodafone|Sky\s*Mobile|iD\s*Mobile|Virgin|giffgaff|Tesco\s*Mobile|VOXI|Talkmobile|Lebara|Plusnet|Smarty)\b.*$/i, "");
+  // Strip "| £...pm ... | £...upfront..." segments
+  cleaned = cleaned.replace(/\s*\|\s*£.*$/i, "");
+  // Strip trailing colour adjectives that aren't useful for compact display:
+  // keep brand + model + storage, drop colour suffix
+  cleaned = cleaned.replace(/\s+(Black\s*Titanium|White\s*Titanium|Natural\s*Titanium|Desert\s*Titanium|Black|White|Blue|Pink|Green|Yellow|Purple|Red|Orange|Silver|Gold|Graphite|Midnight|Starlight|Onyx\s*Black|Navy|Cream|Lavender|Mint|Coral|Pacific\s*Cyan|Deep\s*Blue|Marble|Slate|Phantom|Titanium)$/i, "");
+  return cleaned.trim().substring(0, 80);
+}
+
 /**
  * Extract a canonical brand from a product name.  Handles both
  *   "Apple iPhone 16 Pro"  (brand-prefixed)
@@ -463,8 +488,11 @@ export async function importFeed(
           clickref,
         });
 
-        // Generate a readable plan name/slug from the feed
-        const shortName = row.product_name.substring(0, 120);
+        // Generate a readable plan name/slug from the feed.
+        // cleanProductName strips marketing tail ("...on Three Contract |
+        // £44pm Unlimited Data | £149 upfront cost") so cards show
+        // just the device model: "iPhone 13 Refurbished 128GB".
+        const shortName = cleanProductName(row.product_name) || row.product_name.substring(0, 80);
         // Append a short hash of merchant_product_id to guarantee uniqueness
         // even when brand/storage/price collide between variants.
         const idSuffix = row.merchant_product_id.toString().slice(-6);
@@ -489,7 +517,14 @@ export async function importFeed(
           networkType: row["Telcos:connectivity"] || null,
           includesHandset: !isSim,
           handsetModel: isSim ? null : brand,
-          imageUrl: row.merchant_image_url || null,
+          // Prefer the Awin-hosted image (productserve.com) — Fonehouse's
+          // own CDN blocks bots/proxies (Cloudflare 403), but the Awin
+          // mirror always works and is already optimised for our 200×200
+          // card size.
+          imageUrl:
+            (row as unknown as Record<string, string>).aw_image_url ||
+            row.merchant_image_url ||
+            null,
           affiliateUrl,
           merchantProductId: row.merchant_product_id,
           merchantDeepLink: merchantDeepLink || null,
