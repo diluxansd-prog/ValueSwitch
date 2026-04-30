@@ -69,10 +69,10 @@ export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
   {
     // Fonehouse (KTM Online Limited) — multi-network phone retailer.
     // Carries deals from EE, O2, Three, Vodafone, Sky Mobile, iD Mobile.
-    // Approved 2026-04 — find MID in Awin Dashboard → Advertisers → Fonehouse.
+    // Approved 2026-04 by Elizabeth Price (Marketing Assistant).
     slug: "fonehouse",
     name: "Fonehouse",
-    awinMerchantId: process.env.AWIN_FONEHOUSE_MID || "0",
+    awinMerchantId: "6224",
     feedUrlEnv: "AWIN_FONEHOUSE_FEED_URL",
     landingPages: {
       handset: "https://www.fonehouse.co.uk/mobile-phones",
