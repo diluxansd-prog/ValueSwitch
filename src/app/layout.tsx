@@ -10,6 +10,7 @@ import { BackToTop } from "@/components/shared/back-to-top";
 import { CompareDrawer } from "@/components/shared/compare-drawer";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/shared/json-ld";
 import { ExitIntentPopup } from "@/components/shared/exit-intent-popup";
+import { PromoBannerServer } from "@/components/shared/promo-banner-server";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { Analytics } from "@vercel/analytics/next";
 import { defaultMetadata } from "@/config/seo";
@@ -54,6 +55,7 @@ export default function RootLayout({
             >
               Skip to main content
             </a>
+            <PromoBannerServer />
             <Header />
             <main id="main-content" className="min-h-screen">{children}</main>
             <Footer />

@@ -353,3 +353,27 @@ model CronRun {
 
   @@index([jobName, startedAt])
 }
+
+// ─── Merchant Promos / Site-wide banners ────────────────────
+
+model MerchantPromo {
+  id          String   @id @default(cuid())
+  providerId  String?  // optional — null = sitewide promo not tied to a merchant
+  title       String   // "May Day Bank Holiday Sale"
+  subtitle    String?  // "Save £25 on any phone — limited time"
+  code        String?  // discount code like "MAYDAY25"
+  ctaLabel    String   @default("Shop now")
+  ctaUrl      String   // Awin cread URL (already tracked)
+  emoji       String?  // 🎉 / 🎁 / 🔥 etc.
+  bgGradient  String?  // tailwind gradient class, e.g. "from-orange-500 to-red-500"
+  startsAt    DateTime
+  endsAt      DateTime
+  isActive    Boolean  @default(true)
+  priority    Int      @default(0) // higher = shows first when multiple active
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, startsAt, endsAt])
+  @@index([providerId])
+}

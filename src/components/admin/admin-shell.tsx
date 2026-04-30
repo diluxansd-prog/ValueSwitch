@@ -20,6 +20,7 @@ import {
   Link2,
   BarChart3,
   Clock,
+  Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -51,6 +52,7 @@ const navItems = [
   { label: "Guides", href: "/admin/guides", icon: BookOpen },
   { label: "Messages", href: "/admin/messages", icon: Mail },
   { label: "Newsletter", href: "/admin/newsletter", icon: Newspaper },
+  { label: "Promo Banners", href: "/admin/promos", icon: Megaphone },
   { label: "Link Generator", href: "/admin/links", icon: Link2 },
   { label: "Scheduled Jobs", href: "/admin/cron", icon: Clock },
 ];
