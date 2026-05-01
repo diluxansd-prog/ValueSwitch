@@ -72,8 +72,8 @@ export const categories: CategoryConfig[] = [
     heroTitle: "Compare Broadband Deals",
     heroDescription: "Find the fastest broadband at the best price.",
     averageSavings: "£329",
-    isActive: false,
-    comingSoon: true,
+    isActive: true,
+    comingSoon: false,
   },
   {
     name: "Insurance",

@@ -257,6 +257,73 @@ function extractBrand(name: string): string {
   return "Other";
 }
 
+/**
+ * Be Fibre / fibre broadband parser.
+ *   product:  "Be150" / "Be500" / "Be150 12m contract"
+ *   desc:     "150Mbps 24m contract"
+ *   price:    21 (monthly cost)
+ */
+function inferBroadbandRow(row: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  const name = row.product_name || "";
+  const desc = row.description || "";
+  const haystack = `${name} ${desc}`;
+
+  // Monthly cost = search_price for fibre
+  if (row.search_price) out["Telcos:month_cost"] = row.search_price;
+
+  // Speed: "150Mbps" / "900 Mbps"
+  const speedMatch = haystack.match(/(\d+)\s*Mbps/i);
+  if (speedMatch) out.downloadSpeed = speedMatch[1];
+
+  // Contract length: "24m contract" / "12m contract"
+  const termMatch = haystack.match(/(\d+)\s*m(?:onth)?\s*contract/i);
+  if (termMatch) out["Telcos:term"] = termMatch[1];
+
+  out["Telcos:contract_type"] = "Broadband";
+  out["Telcos:initial_cost"] = "0";
+  return out;
+}
+
+/**
+ * 1pMobile / prepay PAYG bundle parser.
+ *   product:  "10GB prepay/PAYG SIM"
+ *   desc:     "Prepay/PAYG SIM card with 10GB plus unlimited UK calls and texts"
+ *   price:    8.00 (one-time bundle cost — repeats monthly when used)
+ */
+function inferPrepayRow(row: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  const name = row.product_name || "";
+  if (row.search_price) out["Telcos:month_cost"] = row.search_price;
+  // Data: "10GB" / "100GB" at start of name
+  const dataMatch = name.match(/^(\d+\s*GB)/i);
+  if (dataMatch) out["Telcos:inc_data"] = dataMatch[1].replace(/\s+/g, "");
+  out["Telcos:contract_type"] = "SIM Only";
+  out["Telcos:term"] = "1"; // 1-month rolling bundle
+  out["Telcos:initial_cost"] = "0";
+  out["Telcos:inc_minutes"] = "Unlimited";
+  out["Telcos:inc_texts"] = "Unlimited";
+  return out;
+}
+
+/**
+ * Sim Local / travel data SIM parser.
+ *   product:  "EE 50Gb United Kingdom" / "Orange Holiday EU 50 GB PIN 0000"
+ *   price:    20.0 (one-time)
+ *   category: Travel
+ */
+function inferTravelSimRow(row: Record<string, string>): Record<string, string> {
+  const out: Record<string, string> = {};
+  const name = row.product_name || "";
+  if (row.search_price) out["Telcos:month_cost"] = row.search_price;
+  const dataMatch = name.match(/(\d+)\s*GB/i);
+  if (dataMatch) out["Telcos:inc_data"] = `${dataMatch[1]}GB`;
+  out["Telcos:contract_type"] = "SIM Free"; // one-time travel SIM treated like sim-free purchase
+  out["Telcos:term"] = "0";
+  out["Telcos:initial_cost"] = "0";
+  return out;
+}
+
 function inferTelcosFromText(row: Record<string, string>): Record<string, string> {
   const name = row.product_name || "";
   const desc = row.description || "";
@@ -374,12 +441,39 @@ function shouldSkipRow(row: Record<string, string>): boolean {
   return false;
 }
 
-function parseFeedToPlans(csv: string): Array<FeedRow & { _uniqKey: string }> {
+/**
+ * Per-merchant inference dispatch.  Each merchant's feed has a different
+ * schema — pick the right parser based on slug.
+ */
+function inferRow(
+  row: Record<string, string>,
+  merchantSlug?: string
+): Record<string, string> {
+  switch (merchantSlug) {
+    case "be-fibre":
+      return inferBroadbandRow(row);
+    case "1pmobile":
+      return inferPrepayRow(row);
+    case "sim-local":
+      return inferTravelSimRow(row);
+    default:
+      return inferTelcosFromText(row);
+  }
+}
+
+function parseFeedToPlans(
+  csv: string,
+  merchantSlug?: string
+): Array<FeedRow & { _uniqKey: string }> {
   const lines = splitCSVRows(csv);
   if (lines.length < 2) return [];
 
   const headers = parseCSVLine(lines[0]);
   const hasTelcosCols = headers.some((h) => h.startsWith("Telcos:"));
+  const isCustomMerchant =
+    merchantSlug === "be-fibre" ||
+    merchantSlug === "1pmobile" ||
+    merchantSlug === "sim-local";
   const rows: Array<FeedRow & { _uniqKey: string }> = [];
 
   for (let i = 1; i < lines.length; i++) {
@@ -392,14 +486,14 @@ function parseFeedToPlans(csv: string): Array<FeedRow & { _uniqKey: string }> {
 
     if (!row.merchant_product_id) continue;
 
-    // Skip travel SIMs / broadband / accessories that pollute mobile feeds
-    if (shouldSkipRow(row)) continue;
+    // Standard feeds: skip travel SIMs / broadband / accessories that pollute
+    // mobile feeds. Skip this filter for merchants who LEGITIMATELY ship
+    // those products as their core catalogue (Sim Local, Be Fibre).
+    if (!isCustomMerchant && shouldSkipRow(row)) continue;
 
-    // If the feed didn't have Telcos columns, infer them from product_name
-    // + description + merchant_deep_link.  Critical for Fonehouse and
-    // similar retailers whose Awin feed schema is just basic.
-    if (!hasTelcosCols) {
-      Object.assign(row, inferTelcosFromText(row));
+    // Run the merchant-specific parser if needed
+    if (!hasTelcosCols || isCustomMerchant) {
+      Object.assign(row, inferRow(row, merchantSlug));
     }
 
     // Pick monthly price.  IMPORTANT: only fall back to search_price for
@@ -416,8 +510,10 @@ function parseFeedToPlans(csv: string): Array<FeedRow & { _uniqKey: string }> {
     //   Contract/SIM-only — anything above £200/mo is a parse error
     //   SIM-free          — full handset cost can be £1,500+, allow it
     const isSimFreeRow = /SIM\s*Free/i.test(row["Telcos:contract_type"] || "");
-    if (!isSimFreeRow && monthCost > 200) continue;
-    if (isSimFreeRow && monthCost > 5000) continue; // sanity: no phone above £5k
+    const isBroadbandRow = row["Telcos:contract_type"] === "Broadband";
+    if (!isSimFreeRow && !isBroadbandRow && monthCost > 200) continue;
+    if (isSimFreeRow && monthCost > 5000) continue;
+    if (isBroadbandRow && monthCost > 200) continue; // fibre rarely above £100/mo
 
     rows.push({
       ...(row as unknown as FeedRow),
@@ -442,13 +538,22 @@ function dedupe(
 
   for (const r of rows) {
     const name = r.product_name || "";
-    const brand = extractBrand(name).toLowerCase();
-    const storage = (r["Telcos:storage_size"] || "").replace(/\s+/g, "");
-    const term = r["Telcos:term"] || "";
-    const data = (r["Telcos:inc_data"] || "").replace(/\s+/g, "");
     const ctype = (r["Telcos:contract_type"] || "").toLowerCase().replace(/\s+/g, "");
-    // Extract "Pro Max", "Ultra", etc. from product_name to preserve variants
-    const modelHint = (name.match(/\b(pro max|pro|max|ultra|plus|mini|lite|fold|flip|edge|ace)\b/i)?.[0] || "").toLowerCase();
+    const term = r["Telcos:term"] || "";
+
+    let key: string;
+
+    if (ctype === "broadband") {
+      // Broadband — bucket by speed + term so each fibre tier shows distinctly
+      const speed = (r as unknown as Record<string, string>).downloadSpeed || "";
+      key = `bb|${speed}|${term}`;
+    } else {
+      const brand = extractBrand(name).toLowerCase();
+      const storage = (r["Telcos:storage_size"] || "").replace(/\s+/g, "");
+      const data = (r["Telcos:inc_data"] || "").replace(/\s+/g, "");
+      const modelHint = (name.match(/\b(pro max|pro|max|ultra|plus|mini|lite|fold|flip|edge|ace)\b/i)?.[0] || "").toLowerCase();
+      key = `${brand}|${modelHint}|${storage}|${term}|${data}|${ctype}`;
+    }
 
     const price = parseFloat(
       r["Telcos:month_cost"] ||
@@ -457,7 +562,6 @@ function dedupe(
     );
     if (!isFinite(price) || price <= 0) continue;
 
-    const key = `${brand}|${modelHint}|${storage}|${term}|${data}|${ctype}`;
     const existing = buckets.get(key);
     if (!existing || price < existing.price) {
       buckets.set(key, { key, row: r, price });
@@ -529,7 +633,7 @@ async function importInternal(
       );
     }
 
-    const rows = parseFeedToPlans(csv);
+    const rows = parseFeedToPlans(csv, merchant.slug);
     result.counts.totalRows = rows.length;
 
     // If the CSV contains multiple merchants, keep only rows for THIS
@@ -623,10 +727,21 @@ async function importInternal(
 
         const previous = existingMap.get(row.merchant_product_id);
 
+        const isBroadband =
+          row["Telcos:contract_type"] === "Broadband" ||
+          merchant.category === "broadband";
+        const subcategory = isBroadband
+          ? "fibre"
+          : isSimFree
+            ? "sim-free"
+            : isSim
+              ? "sim-only"
+              : "contract";
+
         const dataFields = {
           name: shortName,
           category: merchant.category,
-          subcategory: isSimFree ? "sim-free" : isSim ? "sim-only" : "contract",
+          subcategory,
           description: (row.description || "").substring(0, 500),
           // For sim-free phones, monthCost holds the one-time purchase price
           // (the UI will detect subcategory==="sim-free" and label it "total"
@@ -639,8 +754,13 @@ async function importInternal(
           minutes: isSimFree ? null : row["Telcos:inc_minutes"] || null,
           texts: isSimFree ? null : row["Telcos:inc_texts"] || null,
           networkType: row["Telcos:connectivity"] || null,
-          includesHandset: !isSim,
-          handsetModel: isSim ? null : brand,
+          // Broadband: Plan.downloadSpeed is a top-level Mbps int
+          downloadSpeed: (() => {
+            const dl = (row as unknown as Record<string, string>).downloadSpeed;
+            return dl ? parseInt(dl, 10) || null : null;
+          })(),
+          includesHandset: !isSim && !isBroadband,
+          handsetModel: isSim || isBroadband ? null : brand,
           // Prefer the Awin-hosted image (productserve.com) — Fonehouse's
           // own CDN blocks bots/proxies (Cloudflare 403), but the Awin
           // mirror always works and is already optimised for our 200×200
