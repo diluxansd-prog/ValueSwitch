@@ -150,6 +150,7 @@ export default async function BroadbandPage() {
                       <div className="flex items-start gap-3 mb-4">
                         <ProviderLogo
                           name={deal.provider.name}
+                          slug={deal.provider.slug}
                           logo={deal.provider.logo}
                           size={40}
                         />

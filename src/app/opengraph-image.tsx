@@ -110,7 +110,7 @@ export default async function Image() {
               display: "flex",
             }}
           >
-            ⭐ 4.7 · Awin Verified
+            ✓ Awin Verified Partner
           </span>
         </div>
 

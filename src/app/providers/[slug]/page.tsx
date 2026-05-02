@@ -11,6 +11,7 @@ import { StarRating } from "@/components/shared/star-rating";
 import { PriceDisplay } from "@/components/shared/price-display";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { LocalBusinessJsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
+import { ReviewForm } from "@/components/shared/review-form";
 import { getProviderBySlug, getAllProviderSlugs } from "@/lib/services/provider.service";
 import { formatPrice } from "@/lib/constants";
 import { siteConfig } from "@/config/seo";
@@ -295,6 +296,12 @@ export default async function ProviderDetailPage({
 
           {/* Reviews Tab */}
           <TabsContent value="reviews">
+            <div className="mb-6">
+              <ReviewForm
+                providerSlug={provider.slug}
+                providerName={provider.name}
+              />
+            </div>
             {provider.reviews.length > 0 ? (
               <div className="space-y-6">
                 {provider.reviews.map((review) => (

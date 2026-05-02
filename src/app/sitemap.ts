@@ -3,6 +3,7 @@ import { siteConfig } from "@/config/seo";
 import { getAllDealSlugs } from "@/lib/services/deal.service";
 import { getAllProviderSlugs } from "@/lib/services/provider.service";
 import { getAllGuideSlugs } from "@/lib/services/guide.service";
+import { prisma } from "@/lib/prisma";
 
 // Regenerate on every request so newly-published deals/guides appear
 // in search engines without requiring a redeploy.
@@ -51,6 +52,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.6,
   }));
 
+  // Programmatic SEO: /best-deals/[brand] auto-pages
+  const brandRows = await prisma.plan
+    .findMany({
+      where: { handsetModel: { not: null }, category: "mobile" },
+      select: { handsetModel: true },
+      distinct: ["handsetModel"],
+    })
+    .catch(() => [] as Array<{ handsetModel: string | null }>);
+  const bestDealsPages: MetadataRoute.Sitemap = brandRows
+    .map((b) => b.handsetModel!.toLowerCase())
+    .filter((b) => b !== "other" && b !== "vodafone")
+    .map((brand) => ({
+      url: `${baseUrl}/best-deals/${brand}`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }));
+
   const guides = await getAllGuideSlugs();
   const guidePages: MetadataRoute.Sitemap = guides.map((g) => ({
     url: `${baseUrl}/guides/${g.category}/${g.slug}`,
@@ -59,5 +78,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticPages, ...dealPages, ...providerPages, ...guidePages];
+  return [
+    ...staticPages,
+    ...dealPages,
+    ...providerPages,
+    ...bestDealsPages,
+    ...guidePages,
+  ];
 }

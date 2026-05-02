@@ -92,7 +92,7 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
           <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
-                <ProviderLogo name={deal.provider.name} logo={deal.provider.logo} size={48} />
+                <ProviderLogo name={deal.provider.name} slug={deal.provider.slug} logo={deal.provider.logo} size={48} />
                 <div>
                   <p className="text-sm text-blue-200">{deal.provider.name}</p>
                   {deal.provider.trustScore !== null && (
@@ -260,7 +260,7 @@ export default async function DealDetailPage({ params }: DealDetailPageProps) {
                 <Separator />
                 {/* Provider mini card */}
                 <div className="flex items-center gap-3">
-                  <ProviderLogo name={deal.provider.name} logo={deal.provider.logo} size={40} />
+                  <ProviderLogo name={deal.provider.name} slug={deal.provider.slug} logo={deal.provider.logo} size={40} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold">{deal.provider.name}</p>
                     {deal.provider.trustScore !== null && (

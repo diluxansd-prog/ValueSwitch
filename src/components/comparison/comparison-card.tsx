@@ -11,10 +11,90 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ProviderLogo } from "@/components/shared/provider-logo";
 import { useComparisonStore } from "@/stores/comparison-store";
 import { cn } from "@/lib/utils";
+import {
+  getOpinionatedBadges,
+  TONE_STYLES,
+} from "@/lib/opinionated-badges";
 import type { PlanWithProvider } from "@/types/comparison";
 
 interface ComparisonCardProps {
   plan: PlanWithProvider;
+}
+
+/**
+ * Render the opinionated "Best for X" badges + structural feature chips
+ * (network, handset model). Only shows the row when at least one item
+ * applies, so cards without any tags don't grow a useless empty strip.
+ */
+function CardBottomBadges({ plan }: { plan: PlanWithProvider }) {
+  const opinionated = getOpinionatedBadges(plan);
+  const hasFeatures = plan.networkType || (plan.includesHandset && plan.handsetModel);
+  if (opinionated.length === 0 && !hasFeatures) return null;
+
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-border/40">
+      {opinionated.map((b) => (
+        <Badge
+          key={b.label}
+          variant="outline"
+          className={cn(
+            "text-[10px] px-2 py-0.5 font-medium border",
+            TONE_STYLES[b.tone]
+          )}
+        >
+          {b.emoji && <span className="mr-1">{b.emoji}</span>}
+          {b.label}
+        </Badge>
+      ))}
+      {plan.networkType && (
+        <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-normal">
+          <Signal className="size-2.5 mr-1" />
+          {plan.networkType}
+        </Badge>
+      )}
+      {plan.includesHandset && plan.handsetModel && (
+        <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-normal">
+          {plan.handsetModel}
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Three-tier image fallback for a plan card thumbnail:
+ *   1. The product image (Awin CDN / merchant CDN), if present and loads.
+ *   2. The provider logo, via ProviderLogo (which itself falls back).
+ *   3. Provider initials in a coloured-gradient avatar.
+ * Never renders a broken-image icon.
+ */
+function PlanThumbnail({ plan }: { plan: PlanWithProvider }) {
+  const [imgErrored, setImgErrored] = useState(false);
+  const showProduct = plan.imageUrl && !imgErrored;
+
+  if (showProduct) {
+    return (
+      <div className="relative size-12 shrink-0 rounded-lg bg-slate-50 dark:bg-slate-800/50 overflow-hidden">
+        <Image
+          src={plan.imageUrl!}
+          alt={plan.name}
+          fill
+          className="object-contain p-1"
+          sizes="48px"
+          onError={() => setImgErrored(true)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <ProviderLogo
+      name={plan.provider.name}
+      slug={plan.provider.slug}
+      logo={plan.provider.logo}
+      size={42}
+    />
+  );
 }
 
 export function ComparisonCard({ plan }: ComparisonCardProps) {
@@ -60,13 +140,12 @@ export function ComparisonCard({ plan }: ComparisonCardProps) {
 
           {/* Provider + Deal name */}
           <div className="flex items-center gap-3 sm:w-[200px] sm:shrink-0">
-            {plan.imageUrl ? (
-              <div className="relative size-12 shrink-0 rounded-lg bg-slate-50 dark:bg-slate-800/50">
-                <Image src={plan.imageUrl} alt={plan.name} fill className="object-contain p-1" sizes="48px" />
-              </div>
-            ) : (
-              <ProviderLogo name={plan.provider.name} logo={plan.provider.logo} size={42} />
-            )}
+            <PlanThumbnail plan={plan} />
+            {/*
+              PlanThumbnail prefers the product image, falls back to the
+              provider logo, and falls back again to a coloured-initials
+              avatar — never renders a broken image.
+            */}
             <div className="min-w-0">
               <p className="text-xs font-medium text-muted-foreground">{plan.provider.name}</p>
               <h3 className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
@@ -151,27 +230,8 @@ export function ComparisonCard({ plan }: ComparisonCardProps) {
           </div>
         </div>
 
-        {/* Bottom feature tags */}
-        {(plan.networkType || plan.includesHandset || plan.handsetModel) && (
-          <div className="flex flex-wrap gap-1.5 mt-4 pt-3 border-t border-border/40">
-            {plan.networkType && (
-              <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-normal">
-                <Signal className="size-2.5 mr-1" />
-                {plan.networkType}
-              </Badge>
-            )}
-            {plan.includesHandset && plan.handsetModel && (
-              <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-normal">
-                {plan.handsetModel}
-              </Badge>
-            )}
-            {!plan.setupFee && (
-              <Badge variant="outline" className="text-[10px] px-2 py-0.5 font-normal text-emerald-600 border-emerald-200 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-800">
-                No upfront cost
-              </Badge>
-            )}
-          </div>
-        )}
+        {/* Opinionated badges + feature tags */}
+        <CardBottomBadges plan={plan} />
       </CardContent>
     </Card>
   );

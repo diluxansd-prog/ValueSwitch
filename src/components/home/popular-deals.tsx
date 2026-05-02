@@ -51,7 +51,7 @@ export async function PopularDeals() {
                           <Image src={deal.imageUrl} alt={deal.name} fill className="object-contain p-1" sizes="48px" />
                         </div>
                       ) : (
-                        <ProviderLogo name={deal.provider.name} logo={deal.provider.logo} size={42} />
+                        <ProviderLogo name={deal.provider.name} slug={deal.provider.slug} logo={deal.provider.logo} size={42} />
                       )}
                       <div className="min-w-0">
                         <p className="text-xs font-medium text-muted-foreground">{deal.provider.name}</p>

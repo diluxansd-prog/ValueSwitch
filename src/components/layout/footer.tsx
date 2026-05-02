@@ -51,9 +51,9 @@ export function Footer() {
                 <Star className="size-5 text-yellow-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold">TrustPilot 4.7/5</p>
+                <p className="text-sm font-semibold">Real prices, real deals</p>
                 <p className="text-xs text-white/60">
-                  Based on 35,000+ reviews
+                  Live-imported weekly from partner feeds
                 </p>
               </div>
             </div>
