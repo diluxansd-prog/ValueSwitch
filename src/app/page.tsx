@@ -1,5 +1,6 @@
 import { Suspense } from "react";
-import { HeroSection } from "@/components/home/hero-section";
+import { HeroSectionServer } from "@/components/home/hero-section-server";
+import { LiveStats } from "@/components/home/live-stats";
 import { CategoryCards } from "@/components/home/category-cards";
 import { TrustIndicators } from "@/components/home/trust-indicators";
 import { PopularDeals } from "@/components/home/popular-deals";
@@ -29,8 +30,25 @@ function GridSkeleton({ count = 4 }: { count?: number }) {
 export default function Home() {
   return (
     <>
-      <HeroSection />
-      <CategoryCards />
+      <Suspense fallback={<div className="h-[600px] bg-[#08152d]" />}>
+        <HeroSectionServer />
+      </Suspense>
+      <Suspense fallback={null}>
+        <LiveStats />
+      </Suspense>
+      <Suspense
+        fallback={
+          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-64 animate-pulse rounded-2xl bg-muted" />
+              ))}
+            </div>
+          </div>
+        }
+      >
+        <CategoryCards />
+      </Suspense>
       <TrustIndicators />
       <Suspense fallback={<GridSkeleton count={8} />}>
         <LatestPhones />
