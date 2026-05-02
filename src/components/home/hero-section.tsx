@@ -2,112 +2,125 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Smartphone, CardSim, ArrowRight, Phone } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Smartphone, CardSim, Recycle, Wifi, ShieldCheck, Sparkles } from "lucide-react";
+import { SiteSearch } from "@/components/layout/site-search";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.12, duration: 0.5, ease: "easeOut" as const },
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.5, ease: "easeOut" as const },
   }),
 };
 
+const HERO_TILES = [
+  { label: "Mobile contracts", href: "/mobile/contracts", icon: Smartphone },
+  { label: "SIM only", href: "/mobile/sim-only", icon: CardSim },
+  { label: "Refurbished", href: "/refurbished", icon: Recycle },
+  { label: "Broadband", href: "/broadband", icon: Wifi },
+];
+
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-[#1a365d]">
-      <div className="absolute inset-0 opacity-[0.05]">
-        <div className="absolute inset-0" style={{
-          backgroundImage: "radial-gradient(circle at 30% 40%, rgba(56, 161, 105, 0.5) 0%, transparent 50%), radial-gradient(circle at 70% 60%, rgba(66, 153, 225, 0.3) 0%, transparent 50%)",
-        }} />
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#0f1f3d] via-[#1a365d] to-[#1e2a47]">
+      {/* Decorative blobs */}
+      <div className="absolute inset-0 opacity-25 pointer-events-none">
+        <div
+          className="absolute -top-32 -left-20 w-[500px] h-[500px] rounded-full blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(72,187,120,0.5), transparent 60%)" }}
+        />
+        <div
+          className="absolute -bottom-40 right-0 w-[600px] h-[600px] rounded-full blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(66,153,225,0.4), transparent 60%)" }}
+        />
       </div>
 
-      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20 lg:py-28">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-12">
-          {/* Left: Text */}
-          <div className="max-w-xl">
-            <motion.h1
-              className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.1]"
-              initial="hidden" animate="visible" variants={fadeUp} custom={0}
-            >
-              We help you{" "}
-              <span className="text-[#48bb78]">save money</span>
-            </motion.h1>
-
-            <motion.p
-              className="mt-5 text-lg text-blue-100/80 leading-relaxed"
-              initial="hidden" animate="visible" variants={fadeUp} custom={1}
-            >
-              Compare real mobile phone deals from Vodafone, Talkmobile and Lebara.
-              Find the best SIM only and contract deals.
-            </motion.p>
-
-            {/* Category Buttons - like Uswitch */}
-            <motion.div
-              className="mt-8 grid grid-cols-2 gap-3 max-w-sm"
-              initial="hidden" animate="visible" variants={fadeUp} custom={2}
-            >
-              <Link href="/mobile/compare?subcategory=sim-only" className="group">
-                <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3.5 text-white hover:bg-white/20 transition-all">
-                  <CardSim className="size-5 shrink-0" />
-                  <span className="text-sm font-semibold">SIM Only</span>
-                </div>
-              </Link>
-              <Link href="/mobile/compare?subcategory=contracts" className="group">
-                <div className="flex items-center gap-3 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-3.5 text-white hover:bg-white/20 transition-all">
-                  <Smartphone className="size-5 shrink-0" />
-                  <span className="text-sm font-semibold">Mobile phones</span>
-                </div>
-              </Link>
-            </motion.div>
-
-            <motion.div
-              className="mt-6"
-              initial="hidden" animate="visible" variants={fadeUp} custom={3}
-            >
-              <Button size="lg" asChild className="bg-[#48bb78] text-white hover:bg-[#38a169] font-semibold px-8 text-base">
-                <Link href="/mobile/compare">
-                  Compare all deals
-                  <ArrowRight className="size-5" />
-                </Link>
-              </Button>
-            </motion.div>
-          </div>
-
-          {/* Right: Stats / Trust */}
+      <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24 lg:py-28">
+        <div className="text-center max-w-3xl mx-auto">
           <motion.div
-            className="hidden lg:flex flex-col gap-4 w-[320px]"
-            initial="hidden" animate="visible" variants={fadeUp} custom={3}
+            className="inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm px-3 py-1.5 mb-6"
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={0}
           >
-            <div className="rounded-2xl bg-white/10 backdrop-blur-sm border border-white/10 p-6">
-              <div className="text-center">
-                <p className="text-4xl font-bold text-white">106</p>
-                <p className="text-sm text-blue-100/70 mt-1">Real deals to compare</p>
-              </div>
-              <div className="mt-4 grid grid-cols-3 gap-3">
-                <div className="text-center">
-                  <p className="text-lg font-bold text-[#48bb78]">3</p>
-                  <p className="text-[10px] text-blue-100/60">Providers</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-[#48bb78]">£4.50</p>
-                  <p className="text-[10px] text-blue-100/60">From/mo</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-lg font-bold text-[#48bb78]">5G</p>
-                  <p className="text-[10px] text-blue-100/60">Networks</p>
-                </div>
-              </div>
+            <Sparkles className="size-3.5 text-emerald-300" />
+            <span className="text-xs font-medium text-white">
+              Live prices · Awin verified · Updated daily
+            </span>
+          </motion.div>
+
+          <motion.h1
+            className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl leading-[1.05]"
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={1}
+          >
+            UK's smarter way to{" "}
+            <span className="bg-gradient-to-r from-emerald-300 to-emerald-500 bg-clip-text text-transparent">
+              save on mobile &amp; broadband
+            </span>
+          </motion.h1>
+
+          <motion.p
+            className="mt-5 text-lg text-blue-100/80 leading-relaxed max-w-2xl mx-auto"
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={2}
+          >
+            Compare iPhone 17 Pro Max contracts, refurbished Galaxy S25, full-fibre broadband and SIM-only deals — all in one place. Real prices from Vodafone, Mozillion, Be Fibre and more.
+          </motion.p>
+
+          {/* Search bar — front and centre */}
+          <motion.div
+            className="mt-9"
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={3}
+          >
+            <SiteSearch />
+          </motion.div>
+
+          {/* Quick category tiles */}
+          <motion.div
+            className="mt-7 flex flex-wrap justify-center gap-2"
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={4}
+          >
+            {HERO_TILES.map((t) => (
+              <Link
+                key={t.href}
+                href={t.href}
+                className="inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white transition-colors"
+              >
+                <t.icon className="size-4" />
+                {t.label}
+              </Link>
+            ))}
+          </motion.div>
+
+          {/* Trust strip */}
+          <motion.div
+            className="mt-10 flex flex-wrap justify-center items-center gap-x-6 gap-y-2 text-xs text-blue-100/70"
+            initial="hidden"
+            animate="visible"
+            variants={fadeUp}
+            custom={5}
+          >
+            <div className="flex items-center gap-1.5">
+              <ShieldCheck className="size-4 text-emerald-300" />
+              <span>Companies House #17108611</span>
             </div>
-            <div className="flex items-center gap-3 rounded-xl bg-white/10 backdrop-blur-sm border border-white/10 px-5 py-3.5">
-              <div className="flex size-10 items-center justify-center rounded-full bg-[#48bb78]/20">
-                <Phone className="size-5 text-[#48bb78]" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white">Awin Verified</p>
-                <p className="text-xs text-blue-100/60">Official affiliate partner</p>
-              </div>
-            </div>
+            <div className="hidden sm:block w-1 h-1 rounded-full bg-blue-100/40" />
+            <span>Affiliate links — never affects deal pricing</span>
+            <div className="hidden sm:block w-1 h-1 rounded-full bg-blue-100/40" />
+            <span>No data sold</span>
           </motion.div>
         </div>
       </div>

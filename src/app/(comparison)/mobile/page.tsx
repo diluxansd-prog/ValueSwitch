@@ -9,11 +9,14 @@ import {
   Clock,
   CardSim,
   Phone,
+  Recycle,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
+import { LatestPhones } from "@/components/home/latest-phones";
+import { scorePhoneRecency } from "@/lib/utils/phone-recency";
 
 export const metadata: Metadata = {
   title: "Compare Mobile Deals - Phone Contracts & SIM Only",
@@ -29,19 +32,53 @@ async function getPhoneModels() {
     orderBy: { monthlyCost: "asc" },
   });
 
-  const byBrand = new Map<string, { brand: string; image: string; cheapest: number; setupFee: number; count: number; sampleName: string }>();
+  const byBrand = new Map<
+    string,
+    {
+      brand: string;
+      image: string;
+      cheapest: number;
+      setupFee: number;
+      count: number;
+      sampleName: string;
+      // Highest recency score across all plans for this brand — drives "newest-first" ordering.
+      topRecency: number;
+      topModelLabel: string;
+    }
+  >();
   for (const p of plans) {
     const brand = p.handsetModel || "Unknown";
     if (brand === "Unknown" || brand === "Vodafone") continue;
-    if (!byBrand.has(brand)) {
-      // Extract a cleaner model name from the deal name
+    const recency = scorePhoneRecency(p.name);
+    const existing = byBrand.get(brand);
+    if (!existing) {
       const modelMatch = p.name.match(/^(.+?)(?:\s*(?:Dual SIM|5G)?\s*\()/);
       const sampleName = modelMatch ? modelMatch[1].trim() : brand;
-      byBrand.set(brand, { brand, image: p.imageUrl!, cheapest: p.monthlyCost, setupFee: p.setupFee, count: 0, sampleName });
+      byBrand.set(brand, {
+        brand,
+        image: p.imageUrl!,
+        cheapest: p.monthlyCost,
+        setupFee: p.setupFee,
+        count: 1,
+        sampleName,
+        topRecency: recency.score,
+        topModelLabel: recency.modelLabel,
+      });
+    } else {
+      existing.count++;
+      // If we found a more recent model in this brand, swap the headline image to it
+      if (recency.score > existing.topRecency) {
+        existing.topRecency = recency.score;
+        existing.topModelLabel = recency.modelLabel;
+        existing.image = p.imageUrl!;
+      }
     }
-    byBrand.get(brand)!.count++;
   }
-  return [...byBrand.values()].sort((a, b) => b.count - a.count);
+  // Newest-flagship-first → then catalogue size as tiebreaker
+  return [...byBrand.values()].sort((a, b) => {
+    if (a.topRecency !== b.topRecency) return b.topRecency - a.topRecency;
+    return b.count - a.count;
+  });
 }
 
 async function getTopDeals() {
@@ -105,13 +142,16 @@ export default async function MobilePage() {
         </div>
       </section>
 
-      {/* Phone Gallery - like Uswitch "Brands" section */}
+      {/* Latest flagships strip — newest models first */}
+      <LatestPhones />
+
+      {/* Brand Gallery — newest-flagship-bearing brands first */}
       {phones.length > 0 && (
         <section className="bg-background">
           <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-16">
-            <h2 className="text-2xl font-bold mb-2">Brands</h2>
+            <h2 className="text-2xl font-bold mb-2">Browse by brand</h2>
             <p className="text-sm text-muted-foreground mb-8">
-              Browse phone deals by brand
+              Each tile shows the latest model we have in stock for that brand.
             </p>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
@@ -130,15 +170,25 @@ export default async function MobilePage() {
                         className="object-contain p-3 group-hover:scale-110 transition-transform duration-500"
                         sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 20vw"
                       />
+                      {phone.topModelLabel && (
+                        <Badge className="absolute top-2 left-2 bg-[#1a365d] text-white border-0 text-[10px]">
+                          {phone.topModelLabel.split(" ").slice(0, 2).join(" ")}
+                        </Badge>
+                      )}
                     </div>
                     <div className="p-4 text-center border-t border-border/40">
-                      <p className="text-xs text-muted-foreground">{phone.brand}</p>
-                      <p className="text-base font-bold mt-0.5">{phone.brand}</p>
-                      <p className="text-xs text-muted-foreground mt-1.5">
-                        {phone.setupFee === 0 ? "No upfront cost from" : `From`}
+                      <p className="text-base font-bold">{phone.brand}</p>
+                      {phone.topModelLabel && (
+                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                          Latest: {phone.topModelLabel}
+                        </p>
+                      )}
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {phone.setupFee === 0 ? "No upfront cost from" : "From"}
                       </p>
                       <p className="text-lg font-bold text-[#1a365d] dark:text-[#48bb78]">
-                        £{phone.cheapest.toFixed(2)}<span className="text-xs font-normal text-muted-foreground"> /month</span>
+                        £{phone.cheapest.toFixed(2)}
+                        <span className="text-xs font-normal text-muted-foreground"> /month</span>
                       </p>
                       <div className="mt-3 rounded-lg bg-slate-50 dark:bg-slate-700/50 py-2 text-xs font-semibold text-muted-foreground group-hover:bg-[#1a365d] group-hover:text-white transition-colors">
                         See all {phone.count} deals
@@ -228,15 +278,15 @@ export default async function MobilePage() {
       <section className="bg-background">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:py-16">
           <h2 className="text-2xl font-bold mb-8">Explore our products</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link href="/mobile/compare?subcategory=contracts">
               <Card className="group hover:shadow-lg hover:-translate-y-0.5 transition-all h-full">
                 <CardContent className="p-6">
                   <Smartphone className="size-8 text-[#1a365d] mb-3" />
-                  <h3 className="font-bold text-lg">Phone Contracts</h3>
+                  <h3 className="font-bold text-lg">Phone contracts</h3>
                   <p className="text-sm text-muted-foreground mt-1">New phone with a monthly plan</p>
                   <span className="mt-4 flex items-center text-sm font-semibold text-[#1a365d] group-hover:underline">
-                    Compare deals <ArrowRight className="ml-1 size-4 group-hover:translate-x-1 transition-transform" />
+                    Compare <ArrowRight className="ml-1 size-4 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </CardContent>
               </Card>
@@ -245,10 +295,22 @@ export default async function MobilePage() {
               <Card className="group hover:shadow-lg hover:-translate-y-0.5 transition-all h-full">
                 <CardContent className="p-6">
                   <CardSim className="size-8 text-[#1a365d] mb-3" />
-                  <h3 className="font-bold text-lg">SIM Only Deals</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Keep your phone, get a cheaper SIM</p>
+                  <h3 className="font-bold text-lg">SIM only</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Keep your phone, save on your bill</p>
                   <span className="mt-4 flex items-center text-sm font-semibold text-[#1a365d] group-hover:underline">
-                    Compare deals <ArrowRight className="ml-1 size-4 group-hover:translate-x-1 transition-transform" />
+                    Compare <ArrowRight className="ml-1 size-4 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </CardContent>
+              </Card>
+            </Link>
+            <Link href="/refurbished">
+              <Card className="group hover:shadow-lg hover:-translate-y-0.5 transition-all h-full">
+                <CardContent className="p-6">
+                  <Recycle className="size-8 text-emerald-600 mb-3" />
+                  <h3 className="font-bold text-lg">Refurbished</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Like-new iPhone &amp; Galaxy from Mozillion</p>
+                  <span className="mt-4 flex items-center text-sm font-semibold text-emerald-700 group-hover:underline">
+                    Browse <ArrowRight className="ml-1 size-4 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </CardContent>
               </Card>
@@ -257,10 +319,10 @@ export default async function MobilePage() {
               <Card className="group hover:shadow-lg hover:-translate-y-0.5 transition-all h-full">
                 <CardContent className="p-6">
                   <ShieldCheck className="size-8 text-[#1a365d] mb-3" />
-                  <h3 className="font-bold text-lg">All Providers</h3>
-                  <p className="text-sm text-muted-foreground mt-1">Vodafone, Talkmobile, Lebara</p>
+                  <h3 className="font-bold text-lg">All providers</h3>
+                  <p className="text-sm text-muted-foreground mt-1">Vodafone, Mozillion, Be Fibre &amp; more</p>
                   <span className="mt-4 flex items-center text-sm font-semibold text-[#1a365d] group-hover:underline">
-                    View providers <ArrowRight className="ml-1 size-4 group-hover:translate-x-1 transition-transform" />
+                    View <ArrowRight className="ml-1 size-4 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </CardContent>
               </Card>

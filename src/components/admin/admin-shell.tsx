@@ -21,6 +21,7 @@ import {
   BarChart3,
   Clock,
   Megaphone,
+  PoundSterling,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -45,6 +46,7 @@ interface AdminUser {
 
 const navItems = [
   { label: "Overview", href: "/admin", icon: LayoutDashboard },
+  { label: "Revenue", href: "/admin/revenue", icon: PoundSterling },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Providers", href: "/admin/providers", icon: Building2 },

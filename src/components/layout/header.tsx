@@ -37,6 +37,7 @@ import { mainNavItems } from "@/config/navigation";
 import { categories } from "@/config/categories";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { SiteSearch } from "@/components/layout/site-search";
 import { cn } from "@/lib/utils";
 
 export function Header() {
@@ -167,9 +168,14 @@ export function Header() {
           </NavigationMenuList>
         </NavigationMenu>
 
+        {/* Inline search (desktop only — mobile uses the icon below) */}
+        <div className="hidden xl:block flex-1 max-w-sm mx-6">
+          <SiteSearch variant="inline" />
+        </div>
+
         {/* Right side actions */}
         <div className="flex items-center gap-1 sm:gap-2">
-          <Button variant="ghost" size="icon" asChild className="hidden sm:inline-flex">
+          <Button variant="ghost" size="icon" asChild className="xl:hidden hidden sm:inline-flex">
             <Link href="/search" aria-label="Search">
               <Search className="size-4" />
             </Link>

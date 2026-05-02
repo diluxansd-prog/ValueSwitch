@@ -4,6 +4,14 @@
     {
       "path": "/api/cron/refresh-feed",
       "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/cron/price-alerts",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-digest",
+      "schedule": "0 9 * * 0"
     }
   ]
 }

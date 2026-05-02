@@ -3,6 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { sendEmail } from "@/lib/email/send";
+import { welcomeEmail } from "@/lib/email/templates/welcome";
 
 export async function registerUser(data: {
   name: string;
@@ -42,6 +44,19 @@ export async function registerUser(data: {
         postcode: data.postcode?.trim() || null,
       },
     });
+
+    // Fire welcome email — non-blocking, don't fail registration if Resend hiccups.
+    const tmpl = welcomeEmail({
+      email,
+      name: user.name,
+      audience: "user",
+    });
+    sendEmail({
+      to: email,
+      subject: tmpl.subject,
+      html: tmpl.html,
+      text: tmpl.text,
+    }).catch((err) => console.error("[register] welcome email failed:", err));
 
     return { success: true, userId: user.id };
   } catch (err) {
