@@ -78,11 +78,78 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
+  // Programmatic SIM-only landing pages — keep this list in sync with
+  // FILTER_CONFIG in /sim-only/[filter]/page.tsx
+  const simOnlyFilters = [
+    "under-10",
+    "under-15",
+    "unlimited",
+    "100gb-plus",
+    "30-day-rolling",
+  ];
+  const simOnlyPages: MetadataRoute.Sitemap = simOnlyFilters.map((f) => ({
+    url: `${baseUrl}/sim-only/${f}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  // Head-to-head comparison pages — keep in sync with MATCHUPS in
+  // /compare/[matchup]/page.tsx
+  const matchups = [
+    "vodafone-vs-talkmobile",
+    "lebara-vs-talkmobile",
+    "be-fibre-vs-bt-broadband",
+  ];
+  const matchupPages: MetadataRoute.Sitemap = matchups.map((m) => ({
+    url: `${baseUrl}/compare/${m}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.8,
+  }));
+
+  // Sub-category landing pages we've built
+  const subcategoryPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/mobile/contracts`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/mobile/sim-only`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.85,
+    },
+    {
+      url: `${baseUrl}/refurbished`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/broadband/fibre`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/broadband/tv-packages`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    },
+  ];
+
   return [
     ...staticPages,
+    ...subcategoryPages,
     ...dealPages,
     ...providerPages,
     ...bestDealsPages,
+    ...simOnlyPages,
+    ...matchupPages,
     ...guidePages,
   ];
 }

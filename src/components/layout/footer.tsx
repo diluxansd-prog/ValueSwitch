@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Zap, ShieldCheck, Star, Lock, Phone, Mail, MapPin } from "lucide-react";
 import { Newsletter } from "@/components/shared/newsletter";
+import { SeoLinkBlock } from "@/components/layout/seo-link-block";
 import { footerLinks } from "@/config/navigation";
 import { COMPANY } from "@/lib/constants";
 
@@ -31,6 +32,11 @@ function LinkedInIcon({ className }: { className?: string }) {
 export function Footer() {
   return (
     <footer className="border-t bg-[#1a365d] text-white">
+      {/* SEO internal-link block — every page links to programmatic
+          landing pages and top guides, distributing PageRank from the
+          home page down to long-tail destinations. */}
+      <SeoLinkBlock />
+
       {/* Trust badges section */}
       <div className="border-b border-white/10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">

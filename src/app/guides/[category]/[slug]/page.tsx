@@ -8,10 +8,21 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { ShareButtons } from "@/components/shared/share-buttons";
-import { BreadcrumbJsonLd, ArticleJsonLd } from "@/components/shared/json-ld";
+import {
+  BreadcrumbJsonLd,
+  ArticleJsonLd,
+  FAQPageJsonLd,
+  HowToJsonLd,
+  SpeakableJsonLd,
+} from "@/components/shared/json-ld";
 import { AuthorByline } from "@/components/shared/author-byline";
-import { getGuideBySlug, getGuides, getAllGuideSlugs } from "@/lib/services/guide.service";
+import {
+  getGuideBySlug,
+  getGuides,
+  getAllGuideSlugs,
+} from "@/lib/services/guide.service";
 import { siteConfig } from "@/config/seo";
+import { extractFAQs, extractHowToSteps } from "@/lib/seo/faq-extractor";
 
 interface GuidePageProps {
   params: Promise<{ category: string; slug: string }>;
@@ -66,6 +77,16 @@ export default async function GuidePage({ params }: GuidePageProps) {
     .filter((g) => g.id !== guide.id)
     .slice(0, 3);
 
+  // Auto-extract FAQ pairs from H2/H3 questions for FAQPage schema.
+  // Articles consistently have ~5-10 question-style headers (e.g.
+  // "How does it work?"); we promote those into the FAQ rich result.
+  const faqs = extractFAQs(guide.content);
+
+  // For numbered-step guides, extract HowTo schema. We only emit it
+  // if there are genuine numbered steps so we don't false-positive.
+  const howToSteps = extractHowToSteps(guide.content);
+  const url = `${siteConfig.url}/guides/${category}/${slug}`;
+
   return (
     <div className="min-h-screen">
       <BreadcrumbJsonLd
@@ -79,12 +100,27 @@ export default async function GuidePage({ params }: GuidePageProps) {
       <ArticleJsonLd
         title={guide.title}
         description={guide.excerpt ?? undefined}
-        url={`${siteConfig.url}/guides/${category}/${slug}`}
+        url={url}
         author={guide.author}
         publishedAt={guide.publishedAt}
         updatedAt={guide.updatedAt}
         imageUrl={guide.coverImage}
       />
+      {/* FAQ rich snippet — only emit when we have at least 2 valid Q/A pairs.
+          Single-Q FAQ schema looks spammy in Search Console. */}
+      {faqs.length >= 2 && <FAQPageJsonLd faqs={faqs} />}
+      {/* HowTo rich result — only when we detected real numbered steps */}
+      {howToSteps.length >= 3 && (
+        <HowToJsonLd
+          name={guide.title}
+          description={guide.excerpt ?? undefined}
+          url={url}
+          steps={howToSteps}
+          totalTime={guide.readTime ? `PT${guide.readTime}M` : undefined}
+        />
+      )}
+      {/* Voice-search optimisation */}
+      <SpeakableJsonLd url={url} cssSelectors={["h1", "article p:first-of-type"]} />
 
       {/* Article Header */}
       <section className="bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-12 text-white">

@@ -205,6 +205,109 @@ export function ProductJsonLd({
   );
 }
 
+/**
+ * HowTo schema for step-by-step guides. Eligible for Google's "How-to"
+ * rich result with numbered steps.
+ */
+export function HowToJsonLd({
+  name,
+  description,
+  url,
+  steps,
+  totalTime,
+}: {
+  name: string;
+  description?: string;
+  url: string;
+  steps: { name: string; text: string }[];
+  /** ISO 8601 duration, e.g. "PT5M" for 5 minutes */
+  totalTime?: string;
+}) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name,
+        description,
+        ...(totalTime && { totalTime }),
+        step: steps.map((s, i) => ({
+          "@type": "HowToStep",
+          position: i + 1,
+          name: s.name,
+          text: s.text,
+          url: `${url}#step-${i + 1}`,
+        })),
+      }}
+    />
+  );
+}
+
+/**
+ * ItemList schema — used on programmatic landing pages so Google
+ * understands the page is a curated list of products/deals.
+ */
+export function ItemListJsonLd({
+  name,
+  url,
+  items,
+}: {
+  name: string;
+  url: string;
+  items: { name: string; url: string; price?: number }[];
+}) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        name,
+        url,
+        numberOfItems: items.length,
+        itemListElement: items.map((item, i) => ({
+          "@type": "ListItem",
+          position: i + 1,
+          name: item.name,
+          url: item.url,
+          ...(item.price !== undefined && {
+            offers: {
+              "@type": "Offer",
+              price: item.price.toFixed(2),
+              priceCurrency: "GBP",
+            },
+          }),
+        })),
+      }}
+    />
+  );
+}
+
+/**
+ * Speakable schema — flags article sections suitable for voice
+ * assistants (Alexa, Google Home, Siri).  Improves voice-search ranking.
+ */
+export function SpeakableJsonLd({
+  url,
+  cssSelectors = ["h1", ".speakable-summary"],
+}: {
+  url: string;
+  cssSelectors?: string[];
+}) {
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        url,
+        speakable: {
+          "@type": "SpeakableSpecification",
+          cssSelector: cssSelectors,
+        },
+      }}
+    />
+  );
+}
+
 export function LocalBusinessJsonLd({
   name,
   description,
