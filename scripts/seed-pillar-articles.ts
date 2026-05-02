@@ -21,6 +21,13 @@ const ARTICLES = [
   "be-fibre-vs-bt-broadband",
   "mobile-contracts-bad-credit-uk",
   "best-phone-for-elderly-uk-2026",
+  // Second pillar batch — May 2026
+  "cheapest-broadband-students-uk-2026",
+  "how-to-switch-mobile-network-uk-2026",
+  "vodafone-vs-talkmobile-2026",
+  "mid-contract-price-rises-uk-2026",
+  "best-10-pound-sim-only-uk-2026",
+  "fibre-broadband-postcode-checker-uk-2026",
 ];
 
 interface Frontmatter {
