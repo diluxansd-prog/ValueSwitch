@@ -51,6 +51,7 @@ export const footerLinks = {
   company: [
     { label: "About Us", href: "/about" },
     { label: "How It Works", href: "/how-it-works" },
+    { label: "For Advertisers", href: "/for-advertisers" },
     { label: "Contact", href: "/contact" },
     { label: "FAQ", href: "/faq" },
   ],
