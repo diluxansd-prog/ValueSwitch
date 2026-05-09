@@ -20,6 +20,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MERCHANT_FEEDS } from "@/config/merchants";
 import { importFeed } from "@/lib/feed-importer";
+import { reapOrphanedRunsByPrefix } from "@/lib/cron-reaper";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -82,6 +83,9 @@ export async function POST(
       { status: 412 }
     );
   }
+
+  // Reap any prior stuck runs first
+  await reapOrphanedRunsByPrefix("refresh-feed").catch(() => 0);
 
   // Record this manual run as a CronRun row so the admin run-history
   // includes it next to the scheduled ones — same shape, same UI.

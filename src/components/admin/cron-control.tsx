@@ -154,6 +154,12 @@ export function CronControlClient({
   }
 
   const lastSuccess = runs.find((r) => r.ok);
+  // Orphaned = unfinished AND older than 5 mins.  These are runs killed
+  // by the Vercel function timeout that never wrote their final state.
+  const orphanedRuns = runs.filter((r) => {
+    if (r.finishedAt) return false;
+    return Date.now() - Date.parse(r.startedAt) > 5 * 60 * 1000;
+  });
   const consecutiveFailures = (() => {
     let n = 0;
     for (const r of runs) {
@@ -191,6 +197,39 @@ export function CronControlClient({
           )}
         </Button>
       </div>
+
+      {/* Stuck-run banner — shown when previous runs orphaned and
+          haven't yet been auto-reaped.  The next cron invocation
+          will mark them failed; this just makes the situation visible
+          immediately rather than after the next run. */}
+      {orphanedRuns.length > 0 && (
+        <Card className="border-orange-500/40 bg-orange-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="size-5 shrink-0 text-orange-500 mt-0.5" />
+              <div className="text-sm space-y-1">
+                <p className="font-semibold">
+                  {orphanedRuns.length} run
+                  {orphanedRuns.length === 1 ? "" : "s"} timed out without
+                  recording an outcome
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  These runs hit the Vercel 60-second function timeout (or
+                  crashed) before they could finalize their CronRun row.
+                  The next scheduled run will auto-reap them. Click
+                  &ldquo;Run now&rdquo; above to trigger the reaper
+                  immediately. Most-affected job:{" "}
+                  <code className="text-xs">{orphanedRuns[0].jobName}</code>
+                  {orphanedRuns.length > 1
+                    ? ` (and ${orphanedRuns.length - 1} other${orphanedRuns.length === 2 ? "" : "s"})`
+                    : ""}
+                  .
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <MerchantDiagnostics merchants={merchants} />
 
@@ -288,6 +327,15 @@ export function CronControlClient({
                     { created: 0, updated: 0, priceChanges: 0, errors: 0 }
                   )
                 : null;
+              // Detect orphaned rows — no finishedAt AND startedAt is
+              // older than 5 mins.  These are runs that crashed or got
+              // killed by Vercel's 60s function timeout before recording
+              // their outcome.  The next cron invocation auto-reaps them
+              // (mutates this row to ok=false), but until then we render
+              // them as "timed out" rather than a hopeful spinner.
+              const startedMs = Date.parse(run.startedAt);
+              const isOrphaned =
+                !run.finishedAt && Date.now() - startedMs > 5 * 60 * 1000;
               return (
                 <div key={run.id} className="flex items-start gap-3 p-4">
                   <div className="mt-0.5 shrink-0">
@@ -297,6 +345,8 @@ export function CronControlClient({
                       ) : (
                         <XCircle className="size-5 text-red-500" />
                       )
+                    ) : isOrphaned ? (
+                      <AlertTriangle className="size-5 text-orange-500" />
                     ) : (
                       <Loader2 className="size-5 text-blue-500 animate-spin" />
                     )}
@@ -307,9 +357,17 @@ export function CronControlClient({
                       <Badge variant="outline" className="text-xs">
                         {relTime(run.startedAt)}
                       </Badge>
+                      {isOrphaned && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs bg-orange-500/10 border-orange-500/40 text-orange-700 dark:text-orange-400"
+                        >
+                          Timed out / crashed
+                        </Badge>
+                      )}
                       {summary?.totalMerchants != null && (
                         <Badge variant="secondary" className="text-xs">
-                          {summary.totalSucceeded}/{summary.totalMerchants} merchants
+                          {summary.totalSucceeded ?? "?"}/{summary.totalMerchants} merchants
                         </Badge>
                       )}
                       {run.durationMs != null && (
