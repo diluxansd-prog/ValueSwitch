@@ -74,15 +74,33 @@ const BLOCKS = [
     ],
   },
   {
-    title: "Brand pages",
+    title: "Editor's picks",
     links: [
-      { href: "/best-deals/iphone", label: "Best iPhone deals" },
-      { href: "/best-deals/samsung", label: "Best Samsung deals" },
-      { href: "/best-deals/google", label: "Best Pixel deals" },
-      { href: "/best-deals/oneplus", label: "Best OnePlus deals" },
-      { href: "/best-deals/xiaomi", label: "Best Xiaomi deals" },
-      { href: "/best-deals/motorola", label: "Best Motorola deals" },
-      { href: "/best-deals/nokia", label: "Best Nokia deals" },
+      { href: "/best/cheapest-iphone-uk", label: "Cheapest iPhone UK" },
+      {
+        href: "/best/cheapest-samsung-galaxy-uk",
+        label: "Cheapest Samsung Galaxy",
+      },
+      { href: "/best/best-pixel-deal-uk", label: "Best Pixel deal UK" },
+      { href: "/best/unlimited-data-sim-uk", label: "Unlimited data SIMs" },
+      {
+        href: "/best/no-credit-check-mobile-uk",
+        label: "No credit check mobile",
+      },
+      { href: "/best/cheapest-broadband-uk", label: "Cheapest broadband UK" },
+      { href: "/refurbished", label: "Refurbished phones" },
+    ],
+  },
+  {
+    title: "Broadband by city",
+    links: [
+      { href: "/broadband/london", label: "London broadband" },
+      { href: "/broadband/manchester", label: "Manchester broadband" },
+      { href: "/broadband/birmingham", label: "Birmingham broadband" },
+      { href: "/broadband/leeds", label: "Leeds broadband" },
+      { href: "/broadband/glasgow", label: "Glasgow broadband" },
+      { href: "/broadband/edinburgh", label: "Edinburgh broadband" },
+      { href: "/broadband/bristol", label: "Bristol broadband" },
     ],
   },
 ];

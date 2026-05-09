@@ -4,6 +4,7 @@ import { getAllDealSlugs } from "@/lib/services/deal.service";
 import { getAllProviderSlugs } from "@/lib/services/provider.service";
 import { getAllGuideSlugs } from "@/lib/services/guide.service";
 import { prisma } from "@/lib/prisma";
+import { UK_CITIES } from "@/lib/seo/uk-cities";
 
 // Regenerate on every request so newly-published deals/guides appear
 // in search engines without requiring a redeploy.
@@ -108,6 +109,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
+  // City-level broadband pages — programmatic UK city footprint
+  const cityBroadbandPages: MetadataRoute.Sitemap = UK_CITIES.map((c) => ({
+    url: `${baseUrl}/broadband/${c.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.75,
+  }));
+
+  // Curated commercial-intent landing pages — keep in sync with PICKS
+  // in /best/[type]/page.tsx
+  const bestPicks = [
+    "cheapest-iphone-uk",
+    "cheapest-samsung-galaxy-uk",
+    "best-pixel-deal-uk",
+    "unlimited-data-sim-uk",
+    "no-credit-check-mobile-uk",
+    "cheapest-broadband-uk",
+  ];
+  const bestPickPages: MetadataRoute.Sitemap = bestPicks.map((p) => ({
+    url: `${baseUrl}/best/${p}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.85,
+  }));
+
   // Sub-category landing pages we've built
   const subcategoryPages: MetadataRoute.Sitemap = [
     {
@@ -150,6 +176,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...bestDealsPages,
     ...simOnlyPages,
     ...matchupPages,
+    ...cityBroadbandPages,
+    ...bestPickPages,
     ...guidePages,
   ];
 }
