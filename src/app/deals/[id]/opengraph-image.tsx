@@ -11,7 +11,11 @@ import { getBrandColor } from "@/config/brand-colors";
  * card instead of crashing the build.
  */
 
-export const runtime = "edge";
+// Node runtime instead of edge — `getDealBySlug` pulls in the Prisma
+// client, which exceeds Vercel's 1 MB Edge Function size limit on
+// Hobby/Pro plans. Node functions have a 50 MB limit so we stay well
+// within budget while keeping the dynamic per-deal OG image.
+export const runtime = "nodejs";
 export const alt = "ValueSwitch — Real UK affiliate deals";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
