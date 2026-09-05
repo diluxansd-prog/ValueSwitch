@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const siteConfig = {
   name: "ValueSwitch",
-  description: "Compare real mobile phone deals from Vodafone, Talkmobile, TTfone and Lebara. Real prices, verified affiliate links. UK price comparison.",
+  description: "Compare real UK mobile & broadband deals from Vodafone, VOXI, Lebara, Talkmobile and 13 more partners. Real prices, verified links, live voucher codes.",
   url: "https://valueswitch.co.uk",
   ogImage: "/images/og-default.png",
 };
@@ -11,7 +11,7 @@ export const siteConfig = {
 // display on Facebook, X, LinkedIn, WhatsApp, Discord, iMessage, Slack.
 const SHARE_TITLE = "Compare UK Mobile Phone Deals & SIM Only | ValueSwitch"; // 54 chars
 const SHARE_DESC =
-  "Compare real Vodafone, Talkmobile & Lebara mobile deals. Save £300+/year on your UK mobile phone contract. Free, unbiased comparison updated daily.";
+  "Compare real Vodafone, VOXI, Lebara & Talkmobile deals plus live voucher codes. Save £300+/year on UK mobile & broadband. Free comparison, updated daily.";
 
 export const defaultMetadata: Metadata = {
   title: {
@@ -22,6 +22,7 @@ export const defaultMetadata: Metadata = {
   keywords: [
     "mobile phone deals", "compare mobile deals", "Vodafone deals", "phone contracts UK",
     "SIM only deals", "cheap mobile deals", "Talkmobile", "Lebara deals", "UK mobile comparison",
+    "VOXI deals", "voucher codes mobile", "broadband deals UK",
   ],
   authors: [{ name: "ValueSwitch" }],
   creator: "ValueSwitch",

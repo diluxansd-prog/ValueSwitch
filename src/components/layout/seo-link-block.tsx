@@ -88,7 +88,7 @@ const BLOCKS = [
         label: "No credit check mobile",
       },
       { href: "/best/cheapest-broadband-uk", label: "Cheapest broadband UK" },
-      { href: "/refurbished", label: "Refurbished phones" },
+      { href: "/offers", label: "Offers & voucher codes" },
     ],
   },
   {

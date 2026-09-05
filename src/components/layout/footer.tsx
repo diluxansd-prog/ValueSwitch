@@ -93,9 +93,9 @@ export function Footer() {
               Compare. Switch. Save.
             </p>
             <p className="text-sm text-white/60 leading-relaxed mb-6">
-              Compare real mobile phone deals from trusted UK networks.
-              Real prices from Vodafone, Talkmobile, TTfone and Lebara.
-              More categories coming soon.
+              Compare real mobile and broadband deals from trusted UK
+              providers — Vodafone, VOXI, Lebara, Talkmobile, Quickline
+              and a dozen more Awin-verified partners.
             </p>
 
             <Newsletter />
