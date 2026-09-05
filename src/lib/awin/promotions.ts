@@ -100,32 +100,59 @@ export async function fetchAutoPromotions(): Promise<AutoPromotion[]> {
   if (!token || !publisherId) return [];
 
   try {
-    const res = await fetch(`${BASE}/publishers/${publisherId}/promotions/`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({
-        filters: {
-          exclusiveOnly: false,
-          membership: "joined",
-          status: "active",
-          type: "all",
+    // Docs use the singular "publisher" segment for this endpoint (the
+    // reports API uses plural) — try singular first, then plural, then a
+    // minimal body, so a docs discrepancy can't silently disable the feed.
+    const attempts: { path: string; body: unknown }[] = [
+      {
+        path: `${BASE}/publisher/${publisherId}/promotions`,
+        body: {
+          filters: { membership: "joined", status: "active", type: "all" },
+          pagination: { page: 1, pageSize: 200 },
         },
-        pagination: { page: 1, pageSize: 200 },
-      }),
-      // Re-fetch every 6h; the page's own revalidate controls render cadence.
-      next: { revalidate: 21600 },
-    });
-    if (!res.ok) {
-      console.error(`[awin promotions] HTTP ${res.status}`);
-      return [];
-    }
+      },
+      {
+        path: `${BASE}/publishers/${publisherId}/promotions`,
+        body: {
+          filters: { membership: "joined", status: "active", type: "all" },
+          pagination: { page: 1, pageSize: 200 },
+        },
+      },
+      {
+        path: `${BASE}/publisher/${publisherId}/promotions`,
+        body: { pagination: { page: 1, pageSize: 200 } },
+      },
+    ];
 
-    const json = (await res.json()) as { data?: ApiPromotion[] };
-    const rows = Array.isArray(json?.data) ? json.data : [];
+    let rows: ApiPromotion[] = [];
+    let lastStatus = 0;
+    for (const attempt of attempts) {
+      const res = await fetch(attempt.path, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(attempt.body),
+        // Re-fetch every 6h; the page's revalidate controls render cadence.
+        next: { revalidate: 21600 },
+      });
+      lastStatus = res.status;
+      if (!res.ok) continue;
+      const json = (await res.json()) as
+        | { data?: ApiPromotion[] }
+        | ApiPromotion[];
+      rows = Array.isArray(json)
+        ? json
+        : Array.isArray(json?.data)
+          ? json.data
+          : [];
+      if (rows.length > 0) break;
+    }
+    if (rows.length === 0) {
+      console.error(`[awin promotions] no rows (last HTTP ${lastStatus})`);
+    }
     const now = new Date();
     const out: AutoPromotion[] = [];
 
