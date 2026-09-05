@@ -1,56 +1,49 @@
 /**
- * Weekly multi-merchant Awin feed refresh (Vercel cron).
+ * Weekly multi-merchant Awin feed refresh (Vercel cron) — DISPATCHER.
  *
  * Schedule: Sunday 03:00 UTC (see vercel.json)
  * Auth: Authorization: Bearer <CRON_SECRET>  (Vercel sends automatically)
  *       OR admin session cookie.
  *
- * Iterates every merchant in src/config/merchants.ts whose feed URL env
- * var is set (see getActiveMerchantFeeds). Imports them sequentially so
- * the serverless function stays well under the 60s Hobby-tier budget
- * even with 4-5 partners configured.
+ * One 60s function cannot import 10 merchant feeds (a single large
+ * import can eat the whole budget — feeds starved for months because
+ * of this). Instead, this route FANS OUT: it POSTs each merchant to
+ * /api/admin/refresh-merchant/[slug], so every import runs in its own
+ * 60-second function invocation. Merchants are dispatched stalest-first
+ * with limited concurrency; whatever cannot be dispatched inside the
+ * budget is recorded as deferred and, being stalest, goes first next
+ * run. Each sub-invocation also records its own refresh-feed:<slug>
+ * CronRun row, so the admin history shows per-merchant ground truth.
  *
- * Side effects per merchant:
- *   - Imports new deals with stable affiliate URLs
- *   - Updates prices + snapshots PriceHistory on every change
- *   - Pings IndexNow for brand-new deal pages
- *
- * All runs recorded to CronRun with per-merchant summary JSON.
+ * A soft-deadline finalizer guarantees this run's CronRun row is
+ * finalized before Vercel's 60s kill — no more orphaned "running" rows.
  */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import {
-  importFeed,
-  importFromCsv,
-  type FeedImportResult,
-} from "@/lib/feed-importer";
+import type { FeedImportResult } from "@/lib/feed-importer";
 import { pingIndexNow } from "@/lib/indexnow";
 import { auth } from "@/lib/auth";
 import { getActiveMerchantFeeds, MERCHANT_FEEDS } from "@/config/merchants";
 import { reapOrphanedRunsByPrefix } from "@/lib/cron-reaper";
-import { gunzipSync } from "zlib";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-/** Stop starting new merchant imports after this much elapsed time.
- *  Whatever doesn't fit is recorded as deferred and — because merchants
- *  are processed stalest-first — goes to the FRONT of the queue next
- *  run, so every feed converges instead of the same two big feeds
- *  eating the whole 60s budget forever. */
-const IMPORT_BUDGET_MS = 42_000;
+/** Don't START a new merchant dispatch after this much elapsed time. */
+const DISPATCH_CUTOFF_MS = 25_000;
+/** Abort in-flight sub-requests and finalize by this point. */
+const SOFT_DEADLINE_MS = 52_000;
+/** Parallel sub-invocations. */
+const CONCURRENCY = 3;
 
 async function isAuthorized(
   req: Request
 ): Promise<{ ok: boolean; source: "cron" | "admin" | "denied" }> {
-  // Vercel Cron: Bearer <CRON_SECRET>
   const authHeader = req.headers.get("authorization") || "";
   const cronSecret = process.env.CRON_SECRET;
   if (cronSecret && authHeader === `Bearer ${cronSecret}`) {
     return { ok: true, source: "cron" };
   }
-
-  // Admin manual trigger via session
   const session = await auth();
   if (session?.user?.id) {
     const user = await prisma.user.findUnique({
@@ -59,7 +52,6 @@ async function isAuthorized(
     });
     if (user?.role === "admin") return { ok: true, source: "admin" };
   }
-
   return { ok: false, source: "denied" };
 }
 
@@ -72,72 +64,15 @@ interface MultiMerchantResult {
   totalFailed: number;
   perMerchant: FeedImportResult[];
   skipped: Array<{ merchant: string; reason: string }>;
+  deferred: string[];
   durationMs: number;
 }
 
-async function runJob(
-  source: "cron" | "admin" | "denied"
-): Promise<MultiMerchantResult> {
-  const started = Date.now();
-
-  // Reap any previously-orphaned refresh-feed* runs so the UI doesn't
-  // show stale spinners.  Anything that's been "running" for >5 mins
-  // got killed by Vercel's function timeout and never recorded its
-  // outcome — mark it as failed so the operator can see something
-  // actually went wrong.
-  await reapOrphanedRunsByPrefix("refresh-feed").catch(() => 0);
-
-  const activeFeeds = getActiveMerchantFeeds();
-
-  // OPTIMISATION: AWIN_COMBINED_FEED_URL = one URL with multiple FIDs.
-  // When set, download the CSV ONCE and dispatch all merchants from it.
-  // This is what every cron run will do once we wire up Awin's combined
-  // download.  Cuts a 6-merchant import from ~30s to ~10s and ships a
-  // single 5-MB request instead of six.
-  const combinedUrl = process.env.AWIN_COMBINED_FEED_URL;
-
-  // Only merchants without their OWN feed URL fall back to combined feed.
-  const merchantsForCombined = combinedUrl
-    ? MERCHANT_FEEDS.filter(
-        (m) => !m.cronSkip && !process.env[m.feedUrlEnv]
-      )
-    : [];
-
-  const skipped = MERCHANT_FEEDS.filter(
-    (m) =>
-      !activeFeeds.some((af) => af.slug === m.slug) &&
-      !merchantsForCombined.some((cm) => cm.slug === m.slug)
-  ).map((m) => ({
-    merchant: m.slug,
-    reason: m.cronSkip
-      ? "cronSkip flag set"
-      : `${m.feedUrlEnv} env var not set`,
-  }));
-
-  const run = await prisma.cronRun.create({
-    data: {
-      jobName: "refresh-feed",
-      ok: false,
-      summary: JSON.stringify({
-        status: "running",
-        totalMerchants: activeFeeds.length + merchantsForCombined.length,
-      }),
-    },
-  });
-
-  const perMerchant: FeedImportResult[] = [];
-  const newUrlsAll: string[] = [];
-  const deferred: string[] = [];
-  let topLevelError: string | null = null;
-
-  const emptyResult = (
-    slug: string,
-    source: string,
-    error: string
-  ): FeedImportResult => ({
+function emptyResult(slug: string, error: string): FeedImportResult {
+  return {
     ok: false,
     merchant: slug,
-    source: source as FeedImportResult["source"],
+    source: "fan-out",
     durationMs: 0,
     counts: {
       totalRows: 0,
@@ -150,17 +85,112 @@ async function runJob(
     },
     newDealUrls: [],
     error,
+  };
+}
+
+async function runJob(
+  source: "cron" | "admin" | "denied",
+  origin: string
+): Promise<MultiMerchantResult> {
+  const started = Date.now();
+
+  await reapOrphanedRunsByPrefix("refresh-feed").catch(() => 0);
+
+  const combinedUrl = process.env.AWIN_COMBINED_FEED_URL;
+  const activeFeeds = getActiveMerchantFeeds();
+
+  // Importable = own feed URL, or the combined feed covers it.
+  const importable = MERCHANT_FEEDS.filter(
+    (m) =>
+      !m.cronSkip &&
+      (activeFeeds.some((af) => af.slug === m.slug) || Boolean(combinedUrl))
+  );
+  const skipped = MERCHANT_FEEDS.filter(
+    (m) => !importable.some((im) => im.slug === m.slug)
+  ).map((m) => ({
+    merchant: m.slug,
+    reason: m.cronSkip
+      ? "cronSkip flag set"
+      : `${m.feedUrlEnv} env var not set (and no combined feed)`,
+  }));
+
+  const run = await prisma.cronRun.create({
+    data: {
+      jobName: "refresh-feed",
+      ok: false,
+      summary: JSON.stringify({
+        status: "running",
+        totalMerchants: importable.length,
+      }),
+    },
   });
 
-  // CRITICAL: wrap the whole import loop in try/finally so the
-  // CronRun row ALWAYS gets finalized — even if a merchant import
-  // throws or the function gets killed by the Vercel timeout.  Without
-  // this, the row stays "running" forever and the admin UI shows a
-  // hopeful spinner that never resolves.
+  const perMerchant: FeedImportResult[] = [];
+  const deferred: string[] = [];
+  const newUrlsAll: string[] = [];
+  let topLevelError: string | null = null;
+
+  // Guaranteed finalize — soft-deadline timer wins if the work overruns.
+  let finalized = false;
+  async function finalize(note: string | null) {
+    if (finalized) return;
+    finalized = true;
+    const totalSucceeded = perMerchant.filter((r) => r.ok).length;
+    const totalFailed = perMerchant.filter((r) => !r.ok).length;
+    const errorParts = [
+      note,
+      topLevelError ? `Top-level: ${topLevelError}` : null,
+      importable.length === 0
+        ? "No merchant feeds configured. Set *_FEED_URL or AWIN_COMBINED_FEED_URL."
+        : null,
+      totalFailed > 0
+        ? perMerchant
+            .filter((r) => !r.ok)
+            .map((r) => `${r.merchant}: ${r.error}`)
+            .join("; ")
+        : null,
+      deferred.length > 0
+        ? `deferred (stalest-first next run): ${deferred.join(", ")}`
+        : null,
+    ].filter(Boolean) as string[];
+    await prisma.cronRun
+      .update({
+        where: { id: run.id },
+        data: {
+          finishedAt: new Date(),
+          durationMs: Date.now() - started,
+          ok:
+            !note &&
+            !topLevelError &&
+            totalFailed === 0 &&
+            importable.length > 0,
+          error: errorParts.length > 0 ? errorParts.join(" | ") : null,
+          summary: JSON.stringify({
+            totalMerchants: importable.length,
+            totalSucceeded,
+            totalFailed,
+            deferred,
+            skipped,
+            perMerchant: perMerchant.map((r) => ({
+              merchant: r.merchant,
+              ok: r.ok,
+              counts: r.counts,
+              error: r.error,
+            })),
+          }),
+        },
+      })
+      .catch((err) => {
+        console.error("[cron] failed to finalize CronRun:", err);
+      });
+  }
+  const softDeadline = setTimeout(() => {
+    void finalize("soft-deadline finalize at 52s — dispatches overran");
+  }, SOFT_DEADLINE_MS);
+
   try {
-    // Stalest-first ordering: merchants whose live plans were updated
-    // longest ago run first, so feeds starved by a previous timed-out
-    // run get priority instead of starving forever.
+    // Stalest-first: merchants whose plans were updated longest ago go
+    // first, so a feed starved by one run leads the queue next time.
     const providerFreshness = await prisma.provider
       .findMany({
         select: {
@@ -179,137 +209,83 @@ async function runJob(
         p.plans[0]?.updatedAt?.getTime() ?? 0,
       ])
     );
-    const stalest = (slug: string) => lastImportBySlug.get(slug) ?? 0;
+    const queue = importable
+      .map((m) => m.slug)
+      .sort((a, b) => (lastImportBySlug.get(a) ?? 0) - (lastImportBySlug.get(b) ?? 0));
 
-    type Task =
-      | { kind: "own"; m: (typeof activeFeeds)[number] }
-      | { kind: "combined"; m: (typeof merchantsForCombined)[number] };
-    const tasks: Task[] = [
-      ...activeFeeds.map((m) => ({ kind: "own" as const, m })),
-      ...merchantsForCombined.map((m) => ({ kind: "combined" as const, m })),
-    ].sort((a, b) => stalest(a.m.slug) - stalest(b.m.slug));
-
-    // Combined CSV is downloaded lazily on the first combined-feed task
-    // so per-merchant-only runs never pay for it.
-    let combinedCsv: string | null = null;
-    const loadCombinedCsv = async (): Promise<string> => {
-      if (combinedCsv !== null) return combinedCsv;
-      console.log(`[cron] fetching combined feed...`);
-      const res = await fetch(combinedUrl!, {
-        headers: { "User-Agent": "ValueSwitchBot/1.0" },
-      });
-      if (!res.ok) throw new Error(`combined feed fetch HTTP ${res.status}`);
-      const buf = Buffer.from(await res.arrayBuffer());
+    const cronSecret = process.env.CRON_SECRET;
+    const dispatchOne = async (slug: string): Promise<FeedImportResult> => {
       try {
-        combinedCsv = gunzipSync(buf).toString("utf-8");
-      } catch {
-        combinedCsv = buf.toString("utf-8");
-      }
-      console.log(
-        `[cron] combined feed = ${(buf.length / 1024 / 1024).toFixed(2)} MB`
-      );
-      return combinedCsv;
-    };
-
-    for (const t of tasks) {
-      if (Date.now() - started > IMPORT_BUDGET_MS) {
-        deferred.push(t.m.slug);
-        continue;
-      }
-      try {
-        const r =
-          t.kind === "own"
-            ? await importFeed(t.m, t.m.feedUrl)
-            : await importFromCsv(t.m, await loadCombinedCsv(), "combined-feed");
-        perMerchant.push(r);
-        if (r.newDealUrls) newUrlsAll.push(...r.newDealUrls);
+        const remaining = Math.max(5_000, SOFT_DEADLINE_MS - (Date.now() - started) - 2_000);
+        const res = await fetch(`${origin}/api/admin/refresh-merchant/${slug}`, {
+          method: "POST",
+          headers: cronSecret ? { Authorization: `Bearer ${cronSecret}` } : {},
+          signal: AbortSignal.timeout(remaining),
+        });
+        const j = (await res.json().catch(() => null)) as
+          | (FeedImportResult & { counts?: unknown })
+          | { error?: string }
+          | null;
+        if (j && typeof j === "object" && "counts" in j && j.counts) {
+          return j as FeedImportResult;
+        }
+        return emptyResult(
+          slug,
+          (j as { error?: string } | null)?.error || `sub-request HTTP ${res.status}`
+        );
       } catch (err) {
-        perMerchant.push(
-          emptyResult(
-            t.m.slug,
-            t.kind === "own" ? "per-merchant" : "combined-feed",
-            err instanceof Error ? err.message : "import threw"
-          )
+        // Timeout abort: the sub-invocation usually keeps running server-
+        // side and records its own refresh-feed:<slug> row — check there.
+        return emptyResult(
+          slug,
+          err instanceof Error && err.name === "TimeoutError"
+            ? "dispatcher stopped waiting (sub-import may still complete — see its own run row)"
+            : err instanceof Error
+              ? err.message
+              : "dispatch failed"
         );
       }
-    }
+    };
 
-    // Batch-ping IndexNow with all new URLs across all merchants
+    const workers = Array.from({ length: CONCURRENCY }, async () => {
+      while (queue.length > 0) {
+        if (Date.now() - started > DISPATCH_CUTOFF_MS) {
+          deferred.push(...queue.splice(0, queue.length));
+          break;
+        }
+        const slug = queue.shift();
+        if (!slug) break;
+        const r = await dispatchOne(slug);
+        perMerchant.push(r);
+        if (r.newDealUrls) newUrlsAll.push(...r.newDealUrls);
+      }
+    });
+    await Promise.all(workers);
+
     if (newUrlsAll.length > 0) {
       pingIndexNow(newUrlsAll).catch(() => null);
     }
   } catch (err) {
-    // Should not reach here under normal conditions — per-merchant
-    // errors are absorbed above. This is the catastrophic fallback
-    // (DB connection lost, OOM, etc).
     topLevelError = err instanceof Error ? err.message : String(err);
     console.error("[cron] catastrophic refresh-feed error:", err);
   }
 
+  clearTimeout(softDeadline);
+  await finalize(null);
+
   const totalSucceeded = perMerchant.filter((r) => r.ok).length;
   const totalFailed = perMerchant.filter((r) => !r.ok).length;
-  const overallOk =
-    !topLevelError &&
-    totalFailed === 0 &&
-    activeFeeds.length + merchantsForCombined.length > 0;
-  const durationMs = Date.now() - started;
-
-  // ALWAYS finalize the CronRun, even if everything above threw.
-  await prisma.cronRun
-    .update({
-      where: { id: run.id },
-      data: {
-        finishedAt: new Date(),
-        durationMs,
-        ok: overallOk,
-        error: topLevelError
-          ? `Top-level: ${topLevelError}`
-          : activeFeeds.length + merchantsForCombined.length === 0
-            ? "No merchant feeds configured. Set at least one *_FEED_URL env var."
-            : [
-                totalFailed > 0
-                  ? perMerchant
-                      .filter((r) => !r.ok)
-                      .map((r) => `${r.merchant}: ${r.error}`)
-                      .join("; ")
-                  : null,
-                deferred.length > 0
-                  ? `deferred (time budget, stalest-first next run): ${deferred.join(", ")}`
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" | ") || null,
-        summary: JSON.stringify({
-          totalMerchants: activeFeeds.length + merchantsForCombined.length,
-          totalSucceeded,
-          totalFailed,
-          deferred,
-          skipped,
-          perMerchant: perMerchant.map((r) => ({
-            merchant: r.merchant,
-            ok: r.ok,
-            counts: r.counts,
-            error: r.error,
-          })),
-        }),
-      },
-    })
-    .catch((err) => {
-      // If even the finalize fails, log loudly — but don't throw
-      // out of runJob since the orphan reaper will catch it next time.
-      console.error("[cron] failed to finalize CronRun:", err);
-    });
-
   return {
-    ok: overallOk,
+    ok: !topLevelError && totalFailed === 0 && importable.length > 0,
     source,
     runId: run.id,
-    totalMerchants: activeFeeds.length,
+    totalMerchants: importable.length,
     totalSucceeded,
     totalFailed,
     perMerchant,
     skipped,
-    durationMs,
+    deferred,
+    durationMs: Date.now() - started,
   };
 }
 
@@ -318,7 +294,9 @@ export async function GET(req: Request) {
   if (!authResult.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json(await runJob(authResult.source));
+  return NextResponse.json(
+    await runJob(authResult.source, new URL(req.url).origin)
+  );
 }
 
 export async function POST(req: Request) {
@@ -326,5 +304,7 @@ export async function POST(req: Request) {
   if (!authResult.ok) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json(await runJob(authResult.source));
+  return NextResponse.json(
+    await runJob(authResult.source, new URL(req.url).origin)
+  );
 }

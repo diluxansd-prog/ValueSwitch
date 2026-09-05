@@ -70,7 +70,11 @@ export default async function AdminCronPage() {
         slug: m.slug,
         name: m.name,
         envVar: m.feedUrlEnv,
-        configured: Boolean(process.env[m.feedUrlEnv]),
+        // A merchant is importable with its own feed URL OR via the
+        // combined multi-FID feed (refresh-merchant falls back to it).
+        configured:
+          Boolean(process.env[m.feedUrlEnv]) ||
+          Boolean(process.env.AWIN_COMBINED_FEED_URL),
         cronSkip: Boolean(m.cronSkip),
         category: m.category,
         awinMerchantId: m.awinMerchantId,

@@ -19,13 +19,21 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { MERCHANT_FEEDS } from "@/config/merchants";
-import { importFeed } from "@/lib/feed-importer";
+import { importFeed, importFromCsv } from "@/lib/feed-importer";
 import { reapOrphanedRunsByPrefix } from "@/lib/cron-reaper";
+import { gunzipSync } from "zlib";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-async function isAdmin(): Promise<boolean> {
+/** Admin session OR the cron secret — the weekly refresh-feed job
+ *  fans out to this endpoint so each merchant imports in its own
+ *  60s function invocation instead of sharing one budget. */
+async function isAuthorized(req: Request): Promise<boolean> {
+  const authHeader = req.headers.get("authorization") || "";
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret && authHeader === `Bearer ${cronSecret}`) return true;
+
   const session = await auth();
   if (!session?.user?.id) return false;
   const user = await prisma.user.findUnique({
@@ -36,10 +44,10 @@ async function isAdmin(): Promise<boolean> {
 }
 
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ slug: string }> }
 ) {
-  if (!(await isAdmin())) {
+  if (!(await isAuthorized(req))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -52,14 +60,18 @@ export async function POST(
     );
   }
 
-  // Whether or not cronSkip is set, allow manual refresh
+  // Whether or not cronSkip is set, allow manual refresh.
+  // Merchants without their own feed URL fall back to the combined
+  // multi-FID feed (AWIN_COMBINED_FEED_URL) — same behaviour as the
+  // weekly cron, but scoped to one merchant per invocation.
   const feedUrl = process.env[merchant.feedUrlEnv];
-  if (!feedUrl) {
+  const combinedUrl = process.env.AWIN_COMBINED_FEED_URL;
+  if (!feedUrl && !combinedUrl) {
     return NextResponse.json(
       {
         ok: false,
         merchant: slug,
-        error: `Env var ${merchant.feedUrlEnv} not set on Vercel. Get the feed URL from Awin Dashboard → Toolbox → Create-A-Feed → ${merchant.name} → "Download URL" and add it to your Vercel project's Environment Variables.`,
+        error: `Neither ${merchant.feedUrlEnv} nor AWIN_COMBINED_FEED_URL is set on Vercel. Get the feed URL from Awin Dashboard → Toolbox → Create-A-Feed → ${merchant.name} → "Download URL" and add it to your Vercel project's Environment Variables.`,
         kind: "missing_env_var",
       },
       { status: 422 }
@@ -98,7 +110,23 @@ export async function POST(
   });
 
   try {
-    const result = await importFeed(merchant, feedUrl);
+    let result;
+    if (feedUrl) {
+      result = await importFeed(merchant, feedUrl);
+    } else {
+      const res = await fetch(combinedUrl!, {
+        headers: { "User-Agent": "ValueSwitchBot/1.0" },
+      });
+      if (!res.ok) throw new Error(`combined feed fetch HTTP ${res.status}`);
+      const buf = Buffer.from(await res.arrayBuffer());
+      let csv: string;
+      try {
+        csv = gunzipSync(buf).toString("utf-8");
+      } catch {
+        csv = buf.toString("utf-8");
+      }
+      result = await importFromCsv(merchant, csv, "combined-feed");
+    }
     await prisma.cronRun.update({
       where: { id: run.id },
       data: {
