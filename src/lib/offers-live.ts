@@ -81,7 +81,13 @@ function isDuplicate(
   );
 }
 
-export async function getDisplayOffers(): Promise<DisplayOffer[]> {
+export interface DisplayOffersResult {
+  offers: DisplayOffer[];
+  /** Non-secret diagnostic from the promotions fetch (e.g. "ok:34:kept:12") */
+  note: string;
+}
+
+export async function getDisplayOffers(): Promise<DisplayOffersResult> {
   const curated: DisplayOffer[] = getActiveOffers().map((o) => ({
     id: o.id,
     merchant: o.merchant,
@@ -97,8 +103,8 @@ export async function getDisplayOffers(): Promise<DisplayOffer[]> {
     source: "curated",
   }));
 
-  const auto = await fetchAutoPromotions();
-  const extras: DisplayOffer[] = auto
+  const { promos, note } = await fetchAutoPromotions();
+  const extras: DisplayOffer[] = promos
     .filter((a) => !isDuplicate(a, curated))
     .map((a) => ({
       id: a.id,
@@ -117,7 +123,8 @@ export async function getDisplayOffers(): Promise<DisplayOffer[]> {
 
   // Newest promotions first — offers without a known start date sink to
   // the end of their recency band rather than jumping the queue.
-  return [...curated, ...extras].sort((a, b) =>
+  const offers = [...curated, ...extras].sort((a, b) =>
     (b.startsAt ?? "0000").localeCompare(a.startsAt ?? "0000")
   );
+  return { offers, note };
 }

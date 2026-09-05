@@ -91,15 +91,25 @@ function toIsoDate(s?: string): string | undefined {
   return isNaN(d.getTime()) ? undefined : d.toISOString().slice(0, 10);
 }
 
+export interface AutoPromotionResult {
+  promos: AutoPromotion[];
+  /**
+   * Non-secret one-word diagnostic for the page to expose, e.g.
+   * "ok:34", "no-creds", "http:401", "empty:200", "error". Lets us
+   * debug the production fetch from the rendered HTML without log access.
+   */
+  note: string;
+}
+
 /**
  * Fetch active promotions for our joined UK-relevant partners.
- * Returns [] on any failure (no creds, API change, network) so the
- * offers page can always fall back to the curated static list.
+ * Returns promos: [] on any failure (no creds, API change, network) so
+ * the offers page can always fall back to the curated static list.
  */
-export async function fetchAutoPromotions(): Promise<AutoPromotion[]> {
+export async function fetchAutoPromotions(): Promise<AutoPromotionResult> {
   const token = process.env.AWIN_API_TOKEN;
   const publisherId = process.env.AWIN_PUBLISHER_ID;
-  if (!token || !publisherId) return [];
+  if (!token || !publisherId) return { promos: [], note: "no-creds" };
 
   try {
     // Docs use the singular "publisher" segment for this endpoint (the
@@ -197,9 +207,15 @@ export async function fetchAutoPromotions(): Promise<AutoPromotion[]> {
         badge: deriveBadge(title, !!code),
       });
     }
-    return out;
+    const note =
+      rows.length === 0
+        ? lastStatus === 200
+          ? "empty:200"
+          : `http:${lastStatus}`
+        : `ok:${rows.length}:kept:${out.length}`;
+    return { promos: out, note };
   } catch (err) {
     console.error("[awin promotions] fetch failed:", err);
-    return [];
+    return { promos: [], note: "error" };
   }
 }

@@ -65,7 +65,7 @@ function formatEnds(iso: string): string {
 export default async function OffersPage() {
   // Curated offers + any extra live promotions from the Awin Promotions
   // API — new partner offers appear automatically on revalidate.
-  const offers = await getDisplayOffers();
+  const { offers, note } = await getDisplayOffers();
 
   const newCutoff = new Date(Date.now() - 14 * 86400_000)
     .toISOString()
@@ -143,8 +143,10 @@ export default async function OffersPage() {
         </div>
       </section>
 
-      {/* Coupon grid with category filter */}
-      <section className="bg-slate-50 dark:bg-slate-950">
+      {/* Coupon grid with category filter. data-awin carries a non-secret
+          fetch diagnostic (e.g. "ok:34:kept:12" / "http:401") so the live
+          promotions pipeline can be checked from the rendered HTML. */}
+      <section className="bg-slate-50 dark:bg-slate-950" data-awin={note}>
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
           <OffersGrid offers={cards} />
         </div>
