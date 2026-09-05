@@ -32,6 +32,7 @@ const BLOCKS = [
     title: "Compare providers",
     links: [
       { href: "/compare/vodafone-vs-talkmobile", label: "Vodafone vs Talkmobile" },
+      { href: "/compare/voxi-vs-vodafone", label: "VOXI vs Vodafone" },
       { href: "/compare/lebara-vs-talkmobile", label: "Lebara vs Talkmobile" },
       { href: "/compare/be-fibre-vs-bt-broadband", label: "Be Fibre vs BT" },
       { href: "/providers/vodafone", label: "Vodafone plans & reviews" },

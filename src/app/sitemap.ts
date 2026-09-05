@@ -101,6 +101,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // /compare/[matchup]/page.tsx
   const matchups = [
     "vodafone-vs-talkmobile",
+    "voxi-vs-vodafone",
     "lebara-vs-talkmobile",
     "be-fibre-vs-bt-broadband",
   ];

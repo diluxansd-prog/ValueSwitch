@@ -152,6 +152,94 @@ const MATCHUPS: Record<string, Matchup> = {
       },
     ],
   },
+  "voxi-vs-vodafone": {
+    slug: "voxi-vs-vodafone",
+    providerA: { slug: "voxi", name: "VOXI" },
+    providerB: { slug: "vodafone", name: "Vodafone" },
+    title: "VOXI vs Vodafone 2026 — Same Network, Which Wins?",
+    description:
+      "VOXI runs on Vodafone's network with no contract and unlimited social media. Honest 2026 head-to-head: price, flexibility, roaming, who should pick which.",
+    h1: "VOXI vs Vodafone",
+    subhead:
+      "VOXI is Vodafone's youth sub-brand — same masts, same 5G, but rolling 30-day plans with unlimited social media. Here's when each one actually wins.",
+    shared: [
+      "Identical UK network coverage (Vodafone masts, antennas, 5G)",
+      "Both let you keep your number via PAC code",
+      "Both sold and supported directly by Vodafone Group",
+    ],
+    dimensions: [
+      {
+        name: "Big-data value (80-100GB)",
+        aWins: true,
+        bWins: false,
+        note: "VOXI £10/mo for 80GB beats Vodafone Basics £12/mo for 100GB on flexibility.",
+      },
+      {
+        name: "Unlimited social media",
+        aWins: true,
+        bWins: false,
+        note: "VOXI's social apps don't touch your data allowance. Vodafone counts everything.",
+      },
+      {
+        name: "Contract flexibility",
+        aWins: true,
+        bWins: false,
+        note: "VOXI is 30-day rolling, cancel anytime. Vodafone Basics locks you in for 12 months.",
+      },
+      {
+        name: "Credit check required",
+        aWins: true,
+        bWins: false,
+        note: "VOXI has no credit check. Vodafone contracts require one.",
+      },
+      {
+        name: "Customer service",
+        aWins: false,
+        bWins: true,
+        note: "Vodafone has 24/7 phone support + stores. VOXI is chat-based.",
+      },
+      {
+        name: "Phone bundles available",
+        aWins: false,
+        bWins: true,
+        note: "Vodafone sells iPhone/Galaxy/Pixel on contract with trade-in offers.",
+      },
+      {
+        name: "Perks & rewards",
+        aWins: false,
+        bWins: true,
+        note: "Vodafone VeryMe rewards + Together bundle savings up to £400/yr.",
+      },
+    ],
+    verdict: {
+      pickA:
+        "Pick VOXI if you're a heavy social media user, want to cancel anytime, or can't pass a credit check. £10-£20 rolling plans on a big-four network are hard to beat.",
+      pickB:
+        "Pick Vodafone if you want a phone bundled in, 24/7 support, family bundle savings via Vodafone Together, or the cheapest possible entry price (11GB Basics at £7/mo).",
+    },
+    faqs: [
+      {
+        question: "Is VOXI the same network as Vodafone?",
+        answer:
+          "Yes. VOXI is owned and operated by Vodafone and runs on Vodafone's exact UK network — same masts, same 4G/5G coverage. Coverage and speeds are effectively identical in day-to-day use.",
+      },
+      {
+        question: "Why is VOXI cheaper than Vodafone?",
+        answer:
+          "VOXI is Vodafone's no-frills, online-only sub-brand aimed at younger users. You give up phone stores, 24/7 phone support and rewards schemes, and in exchange get more data per pound plus unlimited social media on every plan.",
+      },
+      {
+        question: "Does VOXI need a credit check?",
+        answer:
+          "No. VOXI plans are 30-day rolling with no credit check, which also makes it one of the best options if you've been refused a contract elsewhere. Vodafone's own contracts do require a credit check.",
+      },
+      {
+        question: "Can I switch from Vodafone to VOXI and keep my number?",
+        answer:
+          "Yes. Text PAC to 65075 from your Vodafone number, enter the PAC code when you join VOXI, and your number ports across — usually within one working day.",
+      },
+    ],
+  },
   "lebara-vs-talkmobile": {
     slug: "lebara-vs-talkmobile",
     providerA: { slug: "lebara", name: "Lebara" },
