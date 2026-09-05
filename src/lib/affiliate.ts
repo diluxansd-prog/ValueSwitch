@@ -49,7 +49,7 @@ export const MERCHANT_HOMEPAGES: Record<AwinMerchantSlug, string> = {
   scancom: "https://www.scancom.com/",
   "sim-local": "https://www.simlocal.com/",
   quickline: "https://www.quickline.co.uk/",
-  "highland-broadband": "https://www.highlandbroadband.co.uk/",
+  "highland-broadband": "https://highlandbroadband.com/",
   "connect-fibre": "https://www.connectfibre.co.uk/",
   "be-fibre": "https://www.befibre.co.uk/",
   "lightning-fibre": "https://www.lightningfibre.co.uk/",
@@ -139,7 +139,7 @@ export function detectMerchantFromUrl(url: string): AwinMerchantSlug | null {
     if (hostname.includes("scancom.com")) return "scancom";
     if (hostname.includes("simlocal.com")) return "sim-local";
     if (hostname.includes("quickline.co.uk")) return "quickline";
-    if (hostname.includes("highlandbroadband.co.uk")) return "highland-broadband";
+    if (hostname.includes("highlandbroadband.com")) return "highland-broadband";
     if (hostname.includes("connectfibre.co.uk")) return "connect-fibre";
     if (hostname.includes("befibre.co.uk")) return "be-fibre";
     if (hostname.includes("lightningfibre.co.uk")) return "lightning-fibre";
