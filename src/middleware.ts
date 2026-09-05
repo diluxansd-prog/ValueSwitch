@@ -69,6 +69,15 @@ export async function middleware(req: NextRequest) {
   const isDashboard = pathname.startsWith("/dashboard");
   const isAdmin = pathname.startsWith("/admin");
   const isAdminApi = pathname.startsWith("/api/admin");
+  // The refresh-feed cron fans out to /api/admin/refresh-merchant/* with
+  // a Bearer CRON_SECRET header (server-to-server, no session cookie).
+  // Let those through — the route re-validates the secret itself.
+  const cronSecret = process.env.CRON_SECRET;
+  const hasCronAuth = Boolean(
+    isAdminApi &&
+      cronSecret &&
+      req.headers.get("authorization") === `Bearer ${cronSecret}`
+  );
   // Setup endpoint bootstraps the first admin; it does its own auth
   // check internally (requires signed-in user, refuses if an admin
   // already exists) so the middleware must let it through.
@@ -79,10 +88,12 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // Protect admin pages - require admin role (except the setup endpoint)
+  // Protect admin pages - require admin role (except the setup endpoint
+  // and cron-secret-authenticated fan-out requests)
   if (
     (isAdmin || isAdminApi) &&
     !isAdminSetup &&
+    !hasCronAuth &&
     (!isAuth || token?.role !== "admin")
   ) {
     if (!isAuth) {
