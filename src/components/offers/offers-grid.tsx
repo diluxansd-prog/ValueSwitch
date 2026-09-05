@@ -18,6 +18,8 @@ export interface OfferCard {
   description: string;
   code?: string;
   endsAt?: string; // pre-formatted display date, e.g. "15 Sept 2026"
+  /** Started within the last 14 days — shows the NEW pill */
+  isNew?: boolean;
   category: string;
   categoryLabel: string;
   badge: string;
@@ -142,6 +144,11 @@ export function OffersGrid({ offers }: { offers: OfferCard[] }) {
                   <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     {offer.merchantName}
                   </p>
+                  {offer.isNew && (
+                    <span className="rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-2 py-0.5 text-[9px] font-extrabold tracking-wide shadow-sm">
+                      NEW
+                    </span>
+                  )}
                   {offer.endsAt && (
                     <span className="ml-auto inline-flex items-center gap-1 text-[10px] text-amber-700 dark:text-amber-400 font-semibold whitespace-nowrap">
                       <Clock className="size-3" />

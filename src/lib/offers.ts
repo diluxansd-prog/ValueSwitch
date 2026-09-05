@@ -26,6 +26,8 @@ export interface CuratedOffer {
   description: string;
   /** Voucher code, when the offer needs one at checkout */
   code?: string;
+  /** ISO date the offer started (from the Awin dashboard) — drives newest-first ordering */
+  startsAt?: string;
   /** ISO date the offer ends — omit for long-running/evergreen offers */
   endsAt?: string;
   category: OfferCategory;
@@ -41,6 +43,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   // ── SIM & mobile plans ────────────────────────────────────────────
   {
     id: "lebara-save50",
+    startsAt: "2024-02-07",
     merchant: "lebara",
     merchantName: "Lebara",
     title: "50% off every plan for 3 months",
@@ -54,6 +57,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "lebara-30gb-249",
+    startsAt: "2026-01-21",
     merchant: "lebara",
     merchantName: "Lebara",
     title: "30GB SIM for £2.49/month",
@@ -67,6 +71,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "voxi-80gb",
+    startsAt: "2026-07-27",
     merchant: "voxi",
     merchantName: "VOXI",
     title: "80GB + unlimited social media for £10",
@@ -80,6 +85,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "voxi-300gb",
+    startsAt: "2026-07-27",
     merchant: "voxi",
     merchantName: "VOXI",
     title: "300GB + unlimited video & music for £20",
@@ -93,6 +99,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "vodafone-basics-100gb",
+    startsAt: "2026-04-09",
     merchant: "vodafone",
     merchantName: "Vodafone",
     title: "100GB Basics plan for £12/month",
@@ -105,6 +112,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "vodafone-basics-11gb",
+    startsAt: "2026-04-09",
     merchant: "vodafone",
     merchantName: "Vodafone",
     title: "11GB Basics plan for £7/month",
@@ -117,6 +125,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "1pmobile-50gb-boost",
+    startsAt: "2024-07-25",
     merchant: "1pmobile",
     merchantName: "1pMobile",
     title: "Free 50GB data boost on new SIMs",
@@ -133,6 +142,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   // deeplink for their actual shop is known.
   {
     id: "simlocal-students",
+    startsAt: "2026-08-20",
     merchant: "sim-local",
     merchantName: "Sim Local",
     title: "15% student discount on SIMs",
@@ -149,6 +159,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   // ── Broadband ─────────────────────────────────────────────────────
   {
     id: "quickline-switch-300",
+    startsAt: "2026-08-10",
     merchant: "quickline",
     merchantName: "Quickline",
     title: "Up to £300 switching reward",
@@ -162,6 +173,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "quickline-ff1000",
+    startsAt: "2026-04-07",
     merchant: "quickline",
     merchantName: "Quickline",
     title: "Full Fibre 1000 — £32.99/month",
@@ -175,6 +187,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "highland-1000-for-500",
+    startsAt: "2026-08-05",
     merchant: "highland-broadband",
     merchantName: "Highland Broadband",
     title: "1000Mbps for the price of 500Mbps",
@@ -188,6 +201,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "connect-fibre",
+    startsAt: "2026-09-05",
     merchant: "connect-fibre",
     merchantName: "Connect Fibre",
     title: "Full-fibre broadband deals",
@@ -202,6 +216,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   // ── Travel eSIMs ──────────────────────────────────────────────────
   {
     id: "knowroaming-80",
+    startsAt: "2026-06-10",
     merchant: "knowroaming",
     merchantName: "KnowRoaming",
     title: "80% off global unlimited eSIMs",
@@ -215,6 +230,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "worldsim-10",
+    startsAt: "2026-09-02",
     merchant: "worldsim",
     merchantName: "WorldSIM",
     title: "10% off eSIM Pro & eSIM Connect",
@@ -229,6 +245,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "mozillion-esim-2",
+    startsAt: "2026-08-14",
     merchant: "mozillion",
     merchantName: "Mozillion",
     title: "Travel eSIMs from £2",
@@ -244,6 +261,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   // ── Phones ────────────────────────────────────────────────────────
   {
     id: "ttfone-refurb-50",
+    startsAt: "2026-02-06",
     merchant: "ttfone",
     merchantName: "TTfone",
     title: "Up to 50% off returned & open-box phones",

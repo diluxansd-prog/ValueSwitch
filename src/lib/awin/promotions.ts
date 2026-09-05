@@ -37,6 +37,8 @@ export interface AutoPromotion {
   description: string;
   code?: string;
   /** ISO yyyy-mm-dd */
+  startsAt?: string;
+  /** ISO yyyy-mm-dd */
   endsAt?: string;
   category: OfferCategory;
   /** Awin's own tracked deeplink for this promotion */
@@ -188,6 +190,7 @@ export async function fetchAutoPromotions(): Promise<AutoPromotion[]> {
         title,
         description: (p.description || "").trim() || title,
         code,
+        startsAt: toIsoDate(p.startDate),
         endsAt: toIsoDate(p.endDate),
         category: MERCHANT_CATEGORY[slug],
         trackedUrl,

@@ -27,6 +27,8 @@ export interface DisplayOffer {
   description: string;
   code?: string;
   /** ISO yyyy-mm-dd */
+  startsAt?: string;
+  /** ISO yyyy-mm-dd */
   endsAt?: string;
   category: OfferCategory;
   badge: string;
@@ -87,6 +89,7 @@ export async function getDisplayOffers(): Promise<DisplayOffer[]> {
     title: o.title,
     description: o.description,
     code: o.code,
+    startsAt: o.startsAt,
     endsAt: o.endsAt,
     category: o.category,
     badge: o.badge,
@@ -104,6 +107,7 @@ export async function getDisplayOffers(): Promise<DisplayOffer[]> {
       title: a.title,
       description: a.description,
       code: a.code,
+      startsAt: a.startsAt,
       endsAt: a.endsAt,
       category: a.category,
       badge: a.badge,
@@ -111,5 +115,9 @@ export async function getDisplayOffers(): Promise<DisplayOffer[]> {
       source: "awin",
     }));
 
-  return [...curated, ...extras];
+  // Newest promotions first — offers without a known start date sink to
+  // the end of their recency band rather than jumping the queue.
+  return [...curated, ...extras].sort((a, b) =>
+    (b.startsAt ?? "0000").localeCompare(a.startsAt ?? "0000")
+  );
 }

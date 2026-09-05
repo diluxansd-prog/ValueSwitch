@@ -67,6 +67,10 @@ export default async function OffersPage() {
   // API — new partner offers appear automatically on revalidate.
   const offers = await getDisplayOffers();
 
+  const newCutoff = new Date(Date.now() - 14 * 86400_000)
+    .toISOString()
+    .slice(0, 10);
+
   const cards: OfferCard[] = offers.map((o) => {
     const brand = getBrandColor(o.merchant);
     return {
@@ -77,6 +81,7 @@ export default async function OffersPage() {
       description: o.description,
       code: o.code,
       endsAt: o.endsAt ? formatEnds(o.endsAt) : undefined,
+      isNew: !!o.startsAt && o.startsAt >= newCutoff,
       category: o.category,
       categoryLabel: OFFER_CATEGORY_LABELS[o.category],
       badge: o.badge,
