@@ -109,8 +109,10 @@ export interface AutoPromotionResult {
  * the offers page can always fall back to the curated static list.
  */
 export async function fetchAutoPromotions(): Promise<AutoPromotionResult> {
-  const token = process.env.AWIN_API_TOKEN;
-  const publisherId = process.env.AWIN_PUBLISHER_ID;
+  // Trim defensively — a stray newline in a pasted env var makes the
+  // Authorization header invalid and fetch() throws before any HTTP.
+  const token = process.env.AWIN_API_TOKEN?.trim();
+  const publisherId = process.env.AWIN_PUBLISHER_ID?.trim();
   if (!token || !publisherId) return { promos: [], note: "no-creds" };
 
   try {
@@ -149,8 +151,9 @@ export async function fetchAutoPromotions(): Promise<AutoPromotionResult> {
           Accept: "application/json",
         },
         body: JSON.stringify(attempt.body),
-        // Re-fetch every 6h; the page's revalidate controls render cadence.
-        next: { revalidate: 21600 },
+        // POSTs aren't cached by Next; the page's own revalidate (daily)
+        // controls how often this runs.
+        cache: "no-store",
       });
       lastStatus = res.status;
       if (!res.ok) continue;
@@ -218,6 +221,13 @@ export async function fetchAutoPromotions(): Promise<AutoPromotionResult> {
     return { promos: out, note };
   } catch (err) {
     console.error("[awin promotions] fetch failed:", err);
-    return { promos: [], note: "error" };
+    // Sanitized error detail (never includes the token) so the failure
+    // mode is readable from the page's data-awin attribute.
+    const msg =
+      err instanceof Error ? `${err.name}:${err.message}` : String(err);
+    const safe = (token ? msg.split(token).join("***") : msg)
+      .replace(/[^a-zA-Z0-9 :_.-]/g, "")
+      .slice(0, 80);
+    return { promos: [], note: `error ${safe}` };
   }
 }
