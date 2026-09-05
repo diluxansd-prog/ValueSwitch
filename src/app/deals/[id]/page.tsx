@@ -49,6 +49,10 @@ interface DealDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
+// Deal prices are refreshed by the Sunday feed cron — re-render daily so
+// updated prices reach the static pages without a redeploy.
+export const revalidate = 86400;
+
 export async function generateStaticParams() {
   const slugs = await getAllDealSlugs();
   return slugs.map((slug) => ({ id: slug }));

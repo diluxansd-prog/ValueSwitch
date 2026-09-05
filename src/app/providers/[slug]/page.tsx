@@ -41,6 +41,11 @@ interface ProviderDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// Provider details (website, plans, trust score) live in the DB and are
+// edited from /admin/providers — re-render daily so changes propagate
+// without a redeploy.
+export const revalidate = 86400;
+
 export async function generateStaticParams() {
   const slugs = await getAllProviderSlugs();
   return slugs.map((slug) => ({ slug }));
