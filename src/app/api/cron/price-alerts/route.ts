@@ -37,8 +37,8 @@ const SEND_THROTTLE_MS = 350;
 const MAX_ALERTS_PER_RUN = 90;
 /** Time-budget guard: if we've used this many ms, stop processing
  *  new alerts and finalize the run cleanly.  Saves us from being
- *  killed mid-loop. */
-const TIME_BUDGET_MS = 50_000;
+ *  killed mid-loop.  Kept below the 50s soft-deadline finalizer. */
+const TIME_BUDGET_MS = 40_000;
 
 async function isAuthorized(req: Request): Promise<boolean> {
   const authHeader = req.headers.get("authorization") || "";
@@ -116,11 +116,13 @@ async function findMatches(alert: {
 
 async function runJob() {
   const started = Date.now();
+  const phases: Record<string, number> = {};
 
   // Reap any previous price-alerts runs that timed out / crashed
   // before recording their outcome.  Without this, the admin UI
   // shows them as "still running" indefinitely.
   await reapOrphanedRuns("price-alerts").catch(() => 0);
+  phases.reapMs = Date.now() - started;
 
   const run = await prisma.cronRun.create({
     data: {
@@ -129,6 +131,7 @@ async function runJob() {
       summary: JSON.stringify({ status: "running" }),
     },
   });
+  phases.runRowMs = Date.now() - started;
 
   const allAlerts = await prisma.priceAlert.findMany({
     where: { isActive: true },
@@ -139,6 +142,8 @@ async function runJob() {
     orderBy: { lastTriggered: { sort: "asc", nulls: "first" } },
   });
 
+  phases.fetchAlertsMs = Date.now() - started;
+
   // Apply hard cap so we never starve the budget — overflow gets
   // picked up next run (alerts already have a 20h cooldown).
   const alerts = allAlerts.slice(0, MAX_ALERTS_PER_RUN);
@@ -147,6 +152,58 @@ async function runJob() {
   const results: PerAlertResult[] = [];
   let skippedDueToBudget = 0;
   let topLevelError: string | null = null;
+
+  // BULLETPROOF FINALIZE: a soft-deadline timer finalizes the CronRun
+  // row at 50s no matter what the work loop is stuck on, so Vercel's
+  // 60s kill can never leave an orphaned "running" row again. Whichever
+  // of (work completes | timer fires) happens first wins; the other
+  // becomes a no-op.
+  let finalized = false;
+  async function finalize(note: string | null) {
+    if (finalized) return;
+    finalized = true;
+    const sent = results.filter((r) => r.emailed).length;
+    const failed = results.filter((r) => r.reason?.startsWith("send failed")).length;
+    const durationMs = Date.now() - started;
+    const errorParts = [
+      note,
+      topLevelError ? `Top-level: ${topLevelError}` : null,
+      failed > 0 ? `${failed} send(s) failed` : null,
+      skippedDueToCap > 0
+        ? `${skippedDueToCap} alert(s) deferred — exceeded MAX_ALERTS_PER_RUN`
+        : null,
+      skippedDueToBudget > 0
+        ? `${skippedDueToBudget} alert(s) deferred — exceeded time budget`
+        : null,
+    ].filter(Boolean) as string[];
+    await prisma.cronRun
+      .update({
+        where: { id: run.id },
+        data: {
+          finishedAt: new Date(),
+          durationMs,
+          ok: !note && !topLevelError && failed === 0,
+          error: errorParts.length > 0 ? errorParts.join("; ") : null,
+          summary: JSON.stringify({
+            totalAlerts: alerts.length,
+            totalAlertsAvailable: allAlerts.length,
+            skippedDueToCap,
+            skippedDueToBudget,
+            sent,
+            failed,
+            phases,
+            processed: results.length,
+            results: results.slice(0, 50),
+          }),
+        },
+      })
+      .catch((err) => {
+        console.error("[cron] failed to finalize price-alerts CronRun:", err);
+      });
+  }
+  const softDeadline = setTimeout(() => {
+    void finalize("soft-deadline finalize at 50s — work loop overran");
+  }, 50_000);
 
   // try/finally guarantees the CronRun row gets finalized below
   // even if the loop throws or Vercel kills us mid-iteration.
@@ -225,42 +282,12 @@ async function runJob() {
     console.error("[cron] price-alerts top-level error:", err);
   }
 
+  clearTimeout(softDeadline);
+  phases.workLoopMs = Date.now() - started;
+  await finalize(null);
+
   const sent = results.filter((r) => r.emailed).length;
   const failed = results.filter((r) => r.reason?.startsWith("send failed")).length;
-  const durationMs = Date.now() - started;
-  const errorParts = [
-    topLevelError ? `Top-level: ${topLevelError}` : null,
-    failed > 0 ? `${failed} send(s) failed` : null,
-    skippedDueToCap > 0
-      ? `${skippedDueToCap} alert(s) deferred — exceeded MAX_ALERTS_PER_RUN`
-      : null,
-    skippedDueToBudget > 0
-      ? `${skippedDueToBudget} alert(s) deferred — exceeded time budget`
-      : null,
-  ].filter(Boolean) as string[];
-
-  await prisma.cronRun
-    .update({
-      where: { id: run.id },
-      data: {
-        finishedAt: new Date(),
-        durationMs,
-        ok: !topLevelError && failed === 0,
-        error: errorParts.length > 0 ? errorParts.join("; ") : null,
-        summary: JSON.stringify({
-          totalAlerts: alerts.length,
-          totalAlertsAvailable: allAlerts.length,
-          skippedDueToCap,
-          skippedDueToBudget,
-          sent,
-          failed,
-          results,
-        }),
-      },
-    })
-    .catch((err) => {
-      console.error("[cron] failed to finalize price-alerts CronRun:", err);
-    });
 
   return {
     ok: failed === 0,
@@ -269,7 +296,7 @@ async function runJob() {
     sent,
     failed,
     results,
-    durationMs,
+    durationMs: Date.now() - started,
   };
 }
 

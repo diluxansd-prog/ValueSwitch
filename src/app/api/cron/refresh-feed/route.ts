@@ -33,6 +33,13 @@ import { gunzipSync } from "zlib";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
+/** Stop starting new merchant imports after this much elapsed time.
+ *  Whatever doesn't fit is recorded as deferred and — because merchants
+ *  are processed stalest-first — goes to the FRONT of the queue next
+ *  run, so every feed converges instead of the same two big feeds
+ *  eating the whole 60s budget forever. */
+const IMPORT_BUDGET_MS = 42_000;
+
 async function isAuthorized(
   req: Request
 ): Promise<{ ok: boolean; source: "cron" | "admin" | "denied" }> {
@@ -120,7 +127,30 @@ async function runJob(
 
   const perMerchant: FeedImportResult[] = [];
   const newUrlsAll: string[] = [];
+  const deferred: string[] = [];
   let topLevelError: string | null = null;
+
+  const emptyResult = (
+    slug: string,
+    source: string,
+    error: string
+  ): FeedImportResult => ({
+    ok: false,
+    merchant: slug,
+    source: source as FeedImportResult["source"],
+    durationMs: 0,
+    counts: {
+      totalRows: 0,
+      uniqueDeals: 0,
+      created: 0,
+      updated: 0,
+      unchanged: 0,
+      priceChanges: 0,
+      errors: 0,
+    },
+    newDealUrls: [],
+    error,
+  });
 
   // CRITICAL: wrap the whole import loop in try/finally so the
   // CronRun row ALWAYS gets finalized — even if a merchant import
@@ -128,81 +158,79 @@ async function runJob(
   // this, the row stays "running" forever and the admin UI shows a
   // hopeful spinner that never resolves.
   try {
-    // Path 1: per-merchant feeds (each downloads its own CSV)
-    for (const m of activeFeeds) {
+    // Stalest-first ordering: merchants whose live plans were updated
+    // longest ago run first, so feeds starved by a previous timed-out
+    // run get priority instead of starving forever.
+    const providerFreshness = await prisma.provider
+      .findMany({
+        select: {
+          slug: true,
+          plans: {
+            select: { updatedAt: true },
+            orderBy: { updatedAt: "desc" },
+            take: 1,
+          },
+        },
+      })
+      .catch(() => [] as { slug: string; plans: { updatedAt: Date }[] }[]);
+    const lastImportBySlug = new Map(
+      providerFreshness.map((p) => [
+        p.slug,
+        p.plans[0]?.updatedAt?.getTime() ?? 0,
+      ])
+    );
+    const stalest = (slug: string) => lastImportBySlug.get(slug) ?? 0;
+
+    type Task =
+      | { kind: "own"; m: (typeof activeFeeds)[number] }
+      | { kind: "combined"; m: (typeof merchantsForCombined)[number] };
+    const tasks: Task[] = [
+      ...activeFeeds.map((m) => ({ kind: "own" as const, m })),
+      ...merchantsForCombined.map((m) => ({ kind: "combined" as const, m })),
+    ].sort((a, b) => stalest(a.m.slug) - stalest(b.m.slug));
+
+    // Combined CSV is downloaded lazily on the first combined-feed task
+    // so per-merchant-only runs never pay for it.
+    let combinedCsv: string | null = null;
+    const loadCombinedCsv = async (): Promise<string> => {
+      if (combinedCsv !== null) return combinedCsv;
+      console.log(`[cron] fetching combined feed...`);
+      const res = await fetch(combinedUrl!, {
+        headers: { "User-Agent": "ValueSwitchBot/1.0" },
+      });
+      if (!res.ok) throw new Error(`combined feed fetch HTTP ${res.status}`);
+      const buf = Buffer.from(await res.arrayBuffer());
       try {
-        const r = await importFeed(m, m.feedUrl);
+        combinedCsv = gunzipSync(buf).toString("utf-8");
+      } catch {
+        combinedCsv = buf.toString("utf-8");
+      }
+      console.log(
+        `[cron] combined feed = ${(buf.length / 1024 / 1024).toFixed(2)} MB`
+      );
+      return combinedCsv;
+    };
+
+    for (const t of tasks) {
+      if (Date.now() - started > IMPORT_BUDGET_MS) {
+        deferred.push(t.m.slug);
+        continue;
+      }
+      try {
+        const r =
+          t.kind === "own"
+            ? await importFeed(t.m, t.m.feedUrl)
+            : await importFromCsv(t.m, await loadCombinedCsv(), "combined-feed");
         perMerchant.push(r);
         if (r.newDealUrls) newUrlsAll.push(...r.newDealUrls);
       } catch (err) {
-        // Defensive: even if importFeed throws (rare — it usually
-        // returns a result with ok:false), don't kill the whole run.
-        perMerchant.push({
-          ok: false,
-          merchant: m.slug,
-          source: "per-merchant",
-          durationMs: 0,
-          counts: {
-            totalRows: 0,
-            uniqueDeals: 0,
-            created: 0,
-            updated: 0,
-            unchanged: 0,
-            priceChanges: 0,
-            errors: 0,
-          },
-          newDealUrls: [],
-          error: err instanceof Error ? err.message : "import threw",
-        });
-      }
-    }
-
-    // Path 2: combined feed — fetch once, dispatch many
-    if (combinedUrl && merchantsForCombined.length > 0) {
-      try {
-        console.log(`[cron] fetching combined feed for ${merchantsForCombined.length} merchants...`);
-        const res = await fetch(combinedUrl, {
-          headers: { "User-Agent": "ValueSwitchBot/1.0" },
-        });
-        if (!res.ok) throw new Error(`combined feed fetch HTTP ${res.status}`);
-        const ab = await res.arrayBuffer();
-        const buf = Buffer.from(ab);
-        const csv = (() => {
-          try {
-            return gunzipSync(buf).toString("utf-8");
-          } catch {
-            return buf.toString("utf-8");
-          }
-        })();
-        console.log(`[cron] combined feed = ${(buf.length / 1024 / 1024).toFixed(2)} MB`);
-
-        for (const m of merchantsForCombined) {
-          const r = await importFromCsv(m, csv, "combined-feed");
-          perMerchant.push(r);
-          if (r.newDealUrls) newUrlsAll.push(...r.newDealUrls);
-        }
-      } catch (err) {
-        console.error("[cron] combined feed failed:", err);
-        // mark each merchant as failed
-        for (const m of merchantsForCombined) {
-          perMerchant.push({
-            ok: false,
-            merchant: m.slug,
-            source: "combined-feed",
-            durationMs: 0,
-            counts: {
-              totalRows: 0,
-              uniqueDeals: 0,
-              created: 0,
-              updated: 0,
-              unchanged: 0,
-              priceChanges: 0,
-              errors: 0,
-            },
-            newDealUrls: [],
-            error: err instanceof Error ? err.message : "combined fetch failed",
-          });
-        }
+        perMerchant.push(
+          emptyResult(
+            t.m.slug,
+            t.kind === "own" ? "per-merchant" : "combined-feed",
+            err instanceof Error ? err.message : "import threw"
+          )
+        );
       }
     }
 
@@ -221,7 +249,9 @@ async function runJob(
   const totalSucceeded = perMerchant.filter((r) => r.ok).length;
   const totalFailed = perMerchant.filter((r) => !r.ok).length;
   const overallOk =
-    !topLevelError && totalFailed === 0 && activeFeeds.length > 0;
+    !topLevelError &&
+    totalFailed === 0 &&
+    activeFeeds.length + merchantsForCombined.length > 0;
   const durationMs = Date.now() - started;
 
   // ALWAYS finalize the CronRun, even if everything above threw.
@@ -234,18 +264,26 @@ async function runJob(
         ok: overallOk,
         error: topLevelError
           ? `Top-level: ${topLevelError}`
-          : activeFeeds.length === 0
+          : activeFeeds.length + merchantsForCombined.length === 0
             ? "No merchant feeds configured. Set at least one *_FEED_URL env var."
-            : totalFailed > 0
-              ? perMerchant
-                  .filter((r) => !r.ok)
-                  .map((r) => `${r.merchant}: ${r.error}`)
-                  .join("; ")
-              : null,
+            : [
+                totalFailed > 0
+                  ? perMerchant
+                      .filter((r) => !r.ok)
+                      .map((r) => `${r.merchant}: ${r.error}`)
+                      .join("; ")
+                  : null,
+                deferred.length > 0
+                  ? `deferred (time budget, stalest-first next run): ${deferred.join(", ")}`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" | ") || null,
         summary: JSON.stringify({
-          totalMerchants: activeFeeds.length,
+          totalMerchants: activeFeeds.length + merchantsForCombined.length,
           totalSucceeded,
           totalFailed,
+          deferred,
           skipped,
           perMerchant: perMerchant.map((r) => ({
             merchant: r.merchant,

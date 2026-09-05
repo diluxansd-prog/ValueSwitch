@@ -139,7 +139,30 @@ export async function fetchAwinAggregated(opts?: {
       };
     }
 
-    const rows = (await res.json()) as AwinAggregatedRow[];
+    const raw = await res.json();
+    const rows = (Array.isArray(raw) ? raw : []) as AwinAggregatedRow[];
+
+    // The API returns money fields as PLAIN NUMBERS, not {amount,currency}
+    // objects — normalize every row so the totals below and the dashboard
+    // component (which reads `.amount`) both see real values instead of 0.
+    const MONEY_KEYS = [
+      "pendingValue", "pendingComm", "confirmedValue", "confirmedComm",
+      "bonusValue", "bonusComm", "totalValue", "totalComm",
+      "declinedValue", "declinedComm",
+    ] as const;
+    for (const r of rows as unknown as Record<string, unknown>[]) {
+      const cur = typeof r.currency === "string" ? r.currency : "GBP";
+      for (const k of MONEY_KEYS) {
+        const v = r[k];
+        const amount =
+          typeof v === "number"
+            ? v
+            : v && typeof v === "object" && typeof (v as { amount?: unknown }).amount === "number"
+              ? (v as { amount: number }).amount
+              : 0;
+        r[k] = { amount, currency: cur };
+      }
+    }
 
     let totalCommission = 0;
     let totalSales = 0;
