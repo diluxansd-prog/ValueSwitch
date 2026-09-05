@@ -174,15 +174,18 @@ export async function fetchAutoPromotions(): Promise<AutoPromotionResult> {
     const out: AutoPromotion[] = [];
 
     for (const p of rows) {
+      try {
       const mid = p.advertiser?.id != null ? String(p.advertiser.id) : "";
       const slug = MID_TO_SLUG[mid];
       if (!slug) continue; // not one of our UK-relevant partners
 
-      // UK or unrestricted only
-      const regions = p.regions ?? [];
+      // UK or unrestricted only. The API's regions field is not always
+      // an array (production returned an object) — treat anything else
+      // as unrestricted rather than crashing the whole feed.
+      const regions = Array.isArray(p.regions) ? p.regions : [];
       const ukOk =
         regions.length === 0 ||
-        regions.some((r) => !r.countryCode || r.countryCode === "GB");
+        regions.some((r) => !r?.countryCode || r.countryCode === "GB");
       if (!ukOk) continue;
 
       // Must still be running (and already started)
@@ -211,6 +214,10 @@ export async function fetchAutoPromotions(): Promise<AutoPromotionResult> {
         trackedUrl,
         badge: deriveBadge(title, !!code),
       });
+      } catch {
+        // one malformed row must never blank the whole feed
+        continue;
+      }
     }
     const note =
       rows.length === 0
