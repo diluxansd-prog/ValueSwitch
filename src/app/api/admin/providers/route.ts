@@ -18,15 +18,27 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    const { providerId, isActive } = await req.json();
+    const { providerId, slug, isActive, website } = await req.json();
 
-    if (!providerId || typeof isActive !== "boolean") {
+    const data: { isActive?: boolean; website?: string } = {};
+    if (typeof isActive === "boolean") data.isActive = isActive;
+    if (typeof website === "string") {
+      try {
+        const u = new URL(website);
+        if (u.protocol !== "https:" && u.protocol !== "http:") throw new Error();
+      } catch {
+        return NextResponse.json({ error: "Invalid website URL" }, { status: 400 });
+      }
+      data.website = website;
+    }
+
+    if ((!providerId && !slug) || Object.keys(data).length === 0) {
       return NextResponse.json({ error: "Invalid data" }, { status: 400 });
     }
 
     await prisma.provider.update({
-      where: { id: providerId },
-      data: { isActive },
+      where: providerId ? { id: providerId } : { slug },
+      data,
     });
 
     return NextResponse.json({ success: true });
