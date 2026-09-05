@@ -38,6 +38,9 @@ export const BRAND_COLORS: Record<string, BrandColor> = {
   "connect-fibre": { from: "#F59E0B", to: "#B45309", abbr: "CF" },
   worldsim: { from: "#0284C7", to: "#075985", abbr: "WS" },
   knowroaming: { from: "#7C3AED", to: "#5B21B6", abbr: "KR" },
+  "lightning-fibre": { from: "#EAB308", to: "#A16207", abbr: "LF" },
+  italk: { from: "#DC2626", to: "#991B1B", abbr: "IT" },
+  "carnival-internet": { from: "#EC4899", to: "#BE185D", abbr: "CI" },
 };
 
 export function getBrandColor(slug: string): BrandColor | null {

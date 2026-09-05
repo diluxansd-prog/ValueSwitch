@@ -200,6 +200,53 @@ export const CURATED_OFFERS: CuratedOffer[] = [
     badge: "2× SPEED",
   },
   {
+    id: "be-fibre-from-20",
+    merchant: "be-fibre",
+    merchantName: "Be Fibre",
+    title: "Symmetrical full fibre from £20/month",
+    description:
+      "Be Fibre's Be200 plan: 200Mbps download AND upload for £20 a month for the first 12 months. Gigabit and 2.3Gbps tiers also available.",
+    category: "broadband",
+    destinationUrl: "https://be-fibre.co.uk/",
+    priority: 80,
+    badge: "£20/mo",
+  },
+  {
+    id: "carnival-fibre-2397",
+    merchant: "carnival-internet",
+    merchantName: "Carnival Internet",
+    title: "Full fibre broadband from £23.97/month",
+    description:
+      "Carnival Internet's full-fibre packages start at £23.97 a month — check availability at your postcode.",
+    category: "broadband",
+    destinationUrl: "https://www.carnivalinternet.co.uk/broadband",
+    priority: 65,
+    badge: "£23.97/mo",
+  },
+  {
+    id: "lightning-fibre-sussex",
+    merchant: "lightning-fibre",
+    merchantName: "Lightning Fibre",
+    title: "Full fibre in East Sussex from £24/month",
+    description:
+      "Eastbourne & Sussex full-fibre network with symmetrical speeds — plans from around £24 a month.",
+    category: "broadband",
+    priority: 60,
+    badge: "FROM £24",
+  },
+  {
+    id: "italk-full-fibre",
+    merchant: "italk",
+    merchantName: "iTalk",
+    title: "Full fibre packages up to 1000Mbps",
+    description:
+      "iTalk's full-fibre range spans Full Fibre 115 to Full Fibre 1000, with broadband and phone bundles available.",
+    category: "broadband",
+    destinationUrl: "https://www.italktelecom.co.uk/broadband/full-fibre/",
+    priority: 55,
+    badge: "FULL FIBRE",
+  },
+  {
     id: "connect-fibre",
     startsAt: "2026-09-05",
     merchant: "connect-fibre",

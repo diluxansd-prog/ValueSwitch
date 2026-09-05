@@ -94,9 +94,11 @@ export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
     name: "Be Fibre",
     awinMerchantId: "60791",
     feedUrlEnv: "AWIN_BEFIBRE_FEED_URL",
+    // befibre.co.uk (no hyphen) became a dead holding page — live site
+    // is be-fibre.co.uk.
     landingPages: {
-      handset: "https://www.befibre.co.uk/",
-      simOnly: "https://www.befibre.co.uk/", // not applicable to broadband
+      handset: "https://be-fibre.co.uk/",
+      simOnly: "https://be-fibre.co.uk/", // not applicable to broadband
     },
     category: "broadband",
   },

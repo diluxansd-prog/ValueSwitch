@@ -34,6 +34,8 @@ export const AWIN_MERCHANTS = {
   knowroaming: "104953",
   mozillion: "31539",
   fonehouse: "6224",
+  italk: "12833",
+  "carnival-internet": "127563",
 } as const;
 
 export type AwinMerchantSlug = keyof typeof AWIN_MERCHANTS;
@@ -51,12 +53,16 @@ export const MERCHANT_HOMEPAGES: Record<AwinMerchantSlug, string> = {
   quickline: "https://www.quickline.co.uk/",
   "highland-broadband": "https://highlandbroadband.com/",
   "connect-fibre": "https://www.connectfibre.co.uk/",
-  "be-fibre": "https://www.befibre.co.uk/",
+  // NOTE: befibre.co.uk (no hyphen) is a dead holding page — the live
+  // site is be-fibre.co.uk.
+  "be-fibre": "https://be-fibre.co.uk/",
   "lightning-fibre": "https://www.lightningfibre.co.uk/",
   worldsim: "https://www.worldsim.com/",
   knowroaming: "https://www.knowroaming.com/",
   mozillion: "https://www.mozillion.com/",
   fonehouse: "https://www.fonehouse.co.uk/",
+  italk: "https://www.italktelecom.co.uk/",
+  "carnival-internet": "https://www.carnivalinternet.co.uk/",
 };
 
 interface GenerateLinkOptions {
@@ -141,7 +147,10 @@ export function detectMerchantFromUrl(url: string): AwinMerchantSlug | null {
     if (hostname.includes("quickline.co.uk")) return "quickline";
     if (hostname.includes("highlandbroadband.com")) return "highland-broadband";
     if (hostname.includes("connectfibre.co.uk")) return "connect-fibre";
-    if (hostname.includes("befibre.co.uk")) return "be-fibre";
+    if (hostname.includes("be-fibre.co.uk") || hostname.includes("befibre.co.uk"))
+      return "be-fibre";
+    if (hostname.includes("italktelecom.co.uk")) return "italk";
+    if (hostname.includes("carnivalinternet.co.uk")) return "carnival-internet";
     if (hostname.includes("lightningfibre.co.uk")) return "lightning-fibre";
     if (hostname.includes("worldsim.com")) return "worldsim";
     if (hostname.includes("knowroaming.com")) return "knowroaming";
