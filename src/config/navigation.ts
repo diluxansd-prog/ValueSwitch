@@ -30,9 +30,9 @@ export const mainNavItems: NavItem[] = [
     description: "Like-new phones from £99. Mozillion + multi-network sellers.",
   },
   {
-    label: "Broadband",
-    href: "/broadband",
-    description: "Full-fibre from £29/mo. Be Fibre + speed comparison.",
+    label: "Offers",
+    href: "/offers",
+    description: "Live voucher codes & promos from our Awin partners.",
   },
   {
     label: "Guides",
@@ -46,6 +46,7 @@ export const footerLinks = {
     { label: "Mobile Deals", href: "/mobile" },
     { label: "Phone Contracts", href: "/mobile/contracts" },
     { label: "SIM Only", href: "/mobile/sim-only" },
+    { label: "Offers & Vouchers", href: "/offers" },
     { label: "Providers", href: "/providers" },
   ],
   company: [

@@ -31,6 +31,13 @@ export const BRAND_COLORS: Record<string, BrandColor> = {
   "sim-local": { from: "#06B6D4", to: "#0E7490", abbr: "SL" },
   yourcoop: { from: "#0033A0", to: "#001F66", abbr: "Co" },
   "tirendo-uk": { from: "#000000", to: "#1F1F1F", abbr: "TR" },
+  voxi: { from: "#FF0050", to: "#B30038", abbr: "VX" },
+  scancom: { from: "#1D4ED8", to: "#1E3A8A", abbr: "SC" },
+  quickline: { from: "#6D28D9", to: "#4C1D95", abbr: "QL" },
+  "highland-broadband": { from: "#0D9488", to: "#115E59", abbr: "HB" },
+  "connect-fibre": { from: "#F59E0B", to: "#B45309", abbr: "CF" },
+  worldsim: { from: "#0284C7", to: "#075985", abbr: "WS" },
+  knowroaming: { from: "#7C3AED", to: "#5B21B6", abbr: "KR" },
 };
 
 export function getBrandColor(slug: string): BrandColor | null {

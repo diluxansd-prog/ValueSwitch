@@ -14,12 +14,26 @@
 /** Your Awin publisher ID (valueswitch.co.uk) */
 export const AWIN_AFFILIATE_ID = "2798806";
 
-/** Merchant IDs (MID) — the integer Awin uses to identify each advertiser */
+/** Merchant IDs (MID) — the integer Awin uses to identify each advertiser.
+ *  IDs verified against the joined-programmes list in the Awin dashboard. */
 export const AWIN_MERCHANTS = {
   vodafone: "1257",
   talkmobile: "2351",
   ttfone: "28737",
   lebara: "30681",
+  voxi: "10951",
+  "1pmobile": "37738",
+  scancom: "105861",
+  "sim-local": "68844",
+  quickline: "80323",
+  "highland-broadband": "99387",
+  "connect-fibre": "114602",
+  "be-fibre": "60791",
+  "lightning-fibre": "119853",
+  worldsim: "104675",
+  knowroaming: "104953",
+  mozillion: "31539",
+  fonehouse: "6224",
 } as const;
 
 export type AwinMerchantSlug = keyof typeof AWIN_MERCHANTS;
@@ -30,6 +44,19 @@ export const MERCHANT_HOMEPAGES: Record<AwinMerchantSlug, string> = {
   talkmobile: "https://talkmobile.co.uk/",
   ttfone: "https://www.ttfone.com/",
   lebara: "https://www.lebara.co.uk/",
+  voxi: "https://www.voxi.co.uk/",
+  "1pmobile": "https://www.1pmobile.com/",
+  scancom: "https://www.scancom.com/",
+  "sim-local": "https://www.simlocal.com/",
+  quickline: "https://www.quickline.co.uk/",
+  "highland-broadband": "https://www.highlandbroadband.co.uk/",
+  "connect-fibre": "https://www.connectfibre.co.uk/",
+  "be-fibre": "https://www.befibre.co.uk/",
+  "lightning-fibre": "https://www.lightningfibre.co.uk/",
+  worldsim: "https://www.worldsim.com/",
+  knowroaming: "https://www.knowroaming.com/",
+  mozillion: "https://www.mozillion.com/",
+  fonehouse: "https://www.fonehouse.co.uk/",
 };
 
 interface GenerateLinkOptions {
@@ -103,10 +130,23 @@ export function getMerchantLink(
 export function detectMerchantFromUrl(url: string): AwinMerchantSlug | null {
   try {
     const hostname = new URL(url).hostname.toLowerCase();
+    if (hostname.includes("voxi.co.uk")) return "voxi";
     if (hostname.includes("vodafone.co.uk")) return "vodafone";
     if (hostname.includes("talkmobile.co.uk")) return "talkmobile";
     if (hostname.includes("ttfone.com")) return "ttfone";
     if (hostname.includes("lebara")) return "lebara";
+    if (hostname.includes("1pmobile.com")) return "1pmobile";
+    if (hostname.includes("scancom.com")) return "scancom";
+    if (hostname.includes("simlocal.com")) return "sim-local";
+    if (hostname.includes("quickline.co.uk")) return "quickline";
+    if (hostname.includes("highlandbroadband.co.uk")) return "highland-broadband";
+    if (hostname.includes("connectfibre.co.uk")) return "connect-fibre";
+    if (hostname.includes("befibre.co.uk")) return "be-fibre";
+    if (hostname.includes("lightningfibre.co.uk")) return "lightning-fibre";
+    if (hostname.includes("worldsim.com")) return "worldsim";
+    if (hostname.includes("knowroaming.com")) return "knowroaming";
+    if (hostname.includes("mozillion.com")) return "mozillion";
+    if (hostname.includes("fonehouse.co.uk")) return "fonehouse";
     return null;
   } catch {
     return null;
