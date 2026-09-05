@@ -152,7 +152,7 @@ export function OffersGrid({ offers }: { offers: OfferCard[] }) {
                 <h3 className="text-base font-bold leading-snug">
                   {offer.title}
                 </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed line-clamp-4">
                   {offer.description}
                 </p>
               </div>

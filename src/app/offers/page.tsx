@@ -3,11 +3,8 @@ import { BadgePercent, Clock, ShieldCheck, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { siteConfig } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
-import {
-  getActiveOffers,
-  getOfferLink,
-  OFFER_CATEGORY_LABELS,
-} from "@/lib/offers";
+import { OFFER_CATEGORY_LABELS } from "@/lib/offers";
+import { getDisplayOffers } from "@/lib/offers-live";
 import { OffersGrid, type OfferCard } from "@/components/offers/offers-grid";
 import {
   BreadcrumbJsonLd,
@@ -65,8 +62,10 @@ function formatEnds(iso: string): string {
   });
 }
 
-export default function OffersPage() {
-  const offers = getActiveOffers();
+export default async function OffersPage() {
+  // Curated offers + any extra live promotions from the Awin Promotions
+  // API — new partner offers appear automatically on revalidate.
+  const offers = await getDisplayOffers();
 
   const cards: OfferCard[] = offers.map((o) => {
     const brand = getBrandColor(o.merchant);
@@ -81,7 +80,7 @@ export default function OffersPage() {
       category: o.category,
       categoryLabel: OFFER_CATEGORY_LABELS[o.category],
       badge: o.badge,
-      href: getOfferLink(o),
+      href: o.href,
       brandFrom: brand?.from ?? "#1a365d",
       brandTo: brand?.to ?? "#38a169",
     };
@@ -129,7 +128,7 @@ export default function OffersPage() {
             </span>
             <span className="flex items-center gap-2">
               <Clock className="size-4 text-emerald-300" />
-              Expiry-checked daily
+              Auto-updated daily
             </span>
             <span className="flex items-center gap-2">
               <ShieldCheck className="size-4 text-emerald-300" />
