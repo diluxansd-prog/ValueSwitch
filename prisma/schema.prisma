@@ -369,6 +369,10 @@ model MerchantPromo {
   ctaUrl      String   // Awin cread URL (already tracked)
   emoji       String?  // 🎉 / 🎁 / 🔥 etc.
   bgGradient  String?  // tailwind gradient class, e.g. "from-orange-500 to-red-500"
+  // Merchant promotional creative — an https URL (e.g. Awin-hosted
+  // banner) or a data:image/... URL uploaded from /admin/promos.
+  // Promos with an image also render as featured banners on /offers.
+  imageUrl    String?
   startsAt    DateTime
   endsAt      DateTime
   isActive    Boolean  @default(true)

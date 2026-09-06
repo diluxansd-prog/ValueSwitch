@@ -30,6 +30,7 @@ export default async function AdminPromosPage() {
         ctaUrl: p.ctaUrl,
         emoji: p.emoji,
         bgGradient: p.bgGradient,
+        imageUrl: p.imageUrl,
         startsAt: p.startsAt.toISOString(),
         endsAt: p.endsAt.toISOString(),
         isActive: p.isActive,

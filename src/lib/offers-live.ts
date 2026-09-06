@@ -7,7 +7,7 @@ import {
   fetchAutoPromotions,
   type AutoPromotion,
 } from "@/lib/awin/promotions";
-import type { AwinMerchantSlug } from "@/lib/affiliate";
+import { MERCHANT_HOMEPAGES, type AwinMerchantSlug } from "@/lib/affiliate";
 
 /**
  * Live offer feed for display — curated entries first (hand-written
@@ -56,12 +56,36 @@ function similarTitles(a: string, b: string): boolean {
   return common / (wa.size + wb.size - common) >= 0.45;
 }
 
-/** Append our clickref to Awin's own tracked link (cread accepts it). */
-function withClickref(trackedUrl: string, clickref: string): string {
+/** Verified landing pages for merchants whose advertiser deeplinks are
+ *  known to rot (stale basket SKUs render an empty cart). Checked live. */
+const SAFE_LANDINGS: Partial<Record<AwinMerchantSlug, string>> = {
+  vodafone: "https://www.vodafone.co.uk/sim-only/best-sim-only-deals",
+  voxi: "https://www.voxi.co.uk/sim-only-plans",
+  lebara: "https://www.lebara.co.uk/en/best-sim-only-deals.html",
+  quickline: "https://quickline.co.uk/home-broadband/full-fibre-broadband/",
+};
+
+/** Append our clickref, and sanitize rotten advertiser deeplinks: a ued
+ *  pointing at a basket/cart/checkout dies the moment the SKU expires
+ *  (users see an empty cart), so rewrite those to a verified landing
+ *  page for the merchant instead. */
+function withClickref(
+  trackedUrl: string,
+  clickref: string,
+  merchant: AwinMerchantSlug
+): string {
   try {
     const u = new URL(trackedUrl);
-    if (u.hostname.endsWith("awin1.com") && !u.searchParams.has("clickref")) {
-      u.searchParams.set("clickref", clickref);
+    if (u.hostname.endsWith("awin1.com")) {
+      if (!u.searchParams.has("clickref")) {
+        u.searchParams.set("clickref", clickref);
+      }
+      const ued = u.searchParams.get("ued");
+      if (ued && /\/(basket|cart|checkout)/i.test(ued)) {
+        const safe =
+          SAFE_LANDINGS[merchant] ?? MERCHANT_HOMEPAGES[merchant];
+        if (safe) u.searchParams.set("ued", safe);
+      }
     }
     return u.toString();
   } catch {
@@ -104,8 +128,19 @@ export async function getDisplayOffers(): Promise<DisplayOffersResult> {
   }));
 
   const { promos, note } = await fetchAutoPromotions();
+  // Cap auto promos at 3 per merchant (newest first) — some advertisers
+  // publish near-identical evergreen promos (7× 1pMobile data boosts)
+  // that all land on the same page and just clutter the grid.
+  const perMerchantCount = new Map<string, number>();
   const extras: DisplayOffer[] = promos
     .filter((a) => !isDuplicate(a, curated))
+    .sort((a, b) => (b.startsAt ?? "0000").localeCompare(a.startsAt ?? "0000"))
+    .filter((a) => {
+      const n = perMerchantCount.get(a.merchant) ?? 0;
+      if (n >= 3) return false;
+      perMerchantCount.set(a.merchant, n + 1);
+      return true;
+    })
     .map((a) => ({
       id: a.id,
       merchant: a.merchant,
@@ -117,7 +152,7 @@ export async function getDisplayOffers(): Promise<DisplayOffersResult> {
       endsAt: a.endsAt,
       category: a.category,
       badge: a.badge,
-      href: withClickref(a.trackedUrl, `offers_${a.id}`),
+      href: withClickref(a.trackedUrl, `offers_${a.id}`, a.merchant),
       source: "awin",
     }));
 

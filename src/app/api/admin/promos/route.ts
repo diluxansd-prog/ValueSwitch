@@ -21,6 +21,15 @@ const promoSchema = z.object({
   ctaUrl: z.string().url(),
   emoji: z.string().max(8).nullish(),
   bgGradient: z.string().max(80).nullish(),
+  // https URL or an uploaded data:image/... URL (~500KB cap)
+  imageUrl: z
+    .string()
+    .max(700_000)
+    .refine(
+      (v) => v.startsWith("https://") || v.startsWith("data:image/"),
+      "imageUrl must be https:// or data:image/"
+    )
+    .nullish(),
   startsAt: z.string().or(z.date()),
   endsAt: z.string().or(z.date()),
   isActive: z.boolean().default(true),

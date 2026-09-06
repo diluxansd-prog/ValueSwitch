@@ -5,6 +5,7 @@ import { siteConfig } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
 import { OFFER_CATEGORY_LABELS } from "@/lib/offers";
 import { getDisplayOffers } from "@/lib/offers-live";
+import { getActivePromos } from "@/lib/services/promo.service";
 import { OffersGrid, type OfferCard } from "@/components/offers/offers-grid";
 import {
   BreadcrumbJsonLd,
@@ -32,9 +33,10 @@ export const metadata: Metadata = {
   },
 };
 
-// Offer end-dates make this page time-sensitive — revalidate daily so
-// expired offers disappear without a redeploy.
-export const revalidate = 86400;
+// Offer end-dates and admin-created banners make this page
+// time-sensitive — revalidate hourly so expired offers disappear and
+// newly uploaded promo banners appear without a redeploy.
+export const revalidate = 3600;
 
 const FAQS = [
   {
@@ -65,7 +67,13 @@ function formatEnds(iso: string): string {
 export default async function OffersPage() {
   // Curated offers + any extra live promotions from the Awin Promotions
   // API — new partner offers appear automatically on revalidate.
-  const { offers, note } = await getDisplayOffers();
+  const [{ offers, note }, activePromos] = await Promise.all([
+    getDisplayOffers(),
+    getActivePromos(),
+  ]);
+  // Admin-created banner promos with an uploaded/linked image render as
+  // featured image banners above the coupon grid.
+  const imageBanners = activePromos.filter((p) => p.imageUrl);
 
   const newCutoff = new Date(Date.now() - 14 * 86400_000)
     .toISOString()
@@ -142,6 +150,50 @@ export default async function OffersPage() {
           </div>
         </div>
       </section>
+
+      {/* Featured merchant banners — created in /admin/promos with an
+          uploaded photo or Awin creative URL */}
+      {imageBanners.length > 0 && (
+        <section className="bg-slate-50 dark:bg-slate-950 border-b border-border/40">
+          <div className="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
+            <div
+              className={`grid gap-4 ${imageBanners.length > 1 ? "sm:grid-cols-2" : ""}`}
+            >
+              {imageBanners.map((p) => (
+                <a
+                  key={p.id}
+                  href={p.ctaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow sponsored"
+                  className="group relative block overflow-hidden rounded-2xl border border-border/60 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 bg-white dark:bg-slate-900"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={p.imageUrl!}
+                    alt={p.title}
+                    className="w-full max-h-64 object-cover"
+                  />
+                  <div className="flex items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="font-bold leading-snug truncate">
+                        {p.title}
+                      </p>
+                      {p.subtitle && (
+                        <p className="text-sm text-muted-foreground truncate">
+                          {p.subtitle}
+                        </p>
+                      )}
+                    </div>
+                    <span className="shrink-0 inline-flex items-center rounded-full bg-gradient-to-r from-[#1a365d] to-[#38a169] text-white px-4 py-1.5 text-xs font-bold shadow-md">
+                      {p.ctaLabel}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Coupon grid with category filter. data-awin carries a non-secret
           fetch diagnostic (e.g. "ok:34:kept:12" / "http:401") so the live

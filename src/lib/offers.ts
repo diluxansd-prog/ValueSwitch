@@ -224,7 +224,9 @@ export const CURATED_OFFERS: CuratedOffer[] = [
     description:
       "Carnival Internet's full-fibre packages start at £23.97 a month — check availability at your postcode.",
     category: "broadband",
-    destinationUrl: "https://www.carnivalinternet.co.uk/broadband",
+    // NOTE: their /broadband path redirects oddly (landed on a gaming
+    // sub-page in link audits) — homepage is the reliable entry.
+    destinationUrl: "https://www.carnivalinternet.co.uk/",
     priority: 65,
     badge: "£23.97/mo",
   },

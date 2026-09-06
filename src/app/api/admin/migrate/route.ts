@@ -21,6 +21,18 @@ const STATEMENTS: { id: string; sql: string }[] = [
     id: "price-alert-last-notified-price",
     sql: `ALTER TABLE "PriceAlert" ADD COLUMN IF NOT EXISTS "lastNotifiedPrice" DOUBLE PRECISION`,
   },
+  {
+    id: "merchant-promo-image-url",
+    sql: `ALTER TABLE "MerchantPromo" ADD COLUMN IF NOT EXISTS "imageUrl" TEXT`,
+  },
+  {
+    // Be Fibre moved from befibre.co.uk (now a dead holding page) to
+    // be-fibre.co.uk — repair the tracked deal links imported before
+    // the move. REPLACE never matches the hyphenated new domain, so
+    // this is safe to run repeatedly.
+    id: "plan-befibre-domain-fix",
+    sql: `UPDATE "Plan" SET "affiliateUrl" = REPLACE("affiliateUrl", 'befibre.co.uk', 'be-fibre.co.uk') WHERE "affiliateUrl" LIKE '%befibre.co.uk%'`,
+  },
 ];
 
 async function isAdmin(): Promise<boolean> {

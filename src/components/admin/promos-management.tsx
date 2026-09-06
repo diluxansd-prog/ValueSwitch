@@ -43,6 +43,7 @@ interface Promo {
   ctaUrl: string;
   emoji: string | null;
   bgGradient: string | null;
+  imageUrl: string | null;
   startsAt: string;
   endsAt: string;
   isActive: boolean;
@@ -77,6 +78,7 @@ function emptyForm(): Partial<Promo> {
     ctaUrl: "",
     emoji: "🎉",
     bgGradient: GRADIENT_OPTIONS[0].value,
+    imageUrl: null,
     startsAt: now.toISOString().slice(0, 16),
     endsAt: inAWeek.toISOString().slice(0, 16),
     isActive: true,
@@ -241,6 +243,79 @@ export function PromosManagement({ promos, providers }: Props) {
                 onChange={(e) => setEditing({ ...editing, subtitle: e.target.value })}
                 placeholder="£25 off any phone — limited time only"
               />
+            </div>
+
+            {/* Merchant promotional image — paste an Awin creative URL or
+                upload a banner (max ~500KB). Promos with an image also
+                appear as featured banners on /offers. */}
+            <div className="space-y-1.5">
+              <Label htmlFor="imageUrl">
+                Promo image{" "}
+                <span className="font-normal text-muted-foreground">
+                  (optional — shows as a featured banner on /offers)
+                </span>
+              </Label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  id="imageUrl"
+                  value={
+                    editing.imageUrl?.startsWith("data:")
+                      ? "(uploaded image)"
+                      : editing.imageUrl || ""
+                  }
+                  onChange={(e) =>
+                    setEditing({ ...editing, imageUrl: e.target.value || null })
+                  }
+                  placeholder="https://… (paste an Awin creative URL)"
+                  disabled={Boolean(editing.imageUrl?.startsWith("data:"))}
+                />
+                <div className="flex gap-2 shrink-0">
+                  <Button asChild variant="outline" className="cursor-pointer">
+                    <label>
+                      Upload photo
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (!f) return;
+                          if (f.size > 500_000) {
+                            toast.error(
+                              "Image too large — keep banners under 500KB"
+                            );
+                            return;
+                          }
+                          const reader = new FileReader();
+                          reader.onload = () =>
+                            setEditing((prev) =>
+                              prev
+                                ? { ...prev, imageUrl: String(reader.result) }
+                                : prev
+                            );
+                          reader.readAsDataURL(f);
+                        }}
+                      />
+                    </label>
+                  </Button>
+                  {editing.imageUrl && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditing({ ...editing, imageUrl: null })}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+              </div>
+              {editing.imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={editing.imageUrl}
+                  alt="Promo banner preview"
+                  className="mt-2 max-h-40 rounded-lg border border-border/60 object-contain"
+                />
+              )}
             </div>
 
             <div className="grid sm:grid-cols-3 gap-4">
