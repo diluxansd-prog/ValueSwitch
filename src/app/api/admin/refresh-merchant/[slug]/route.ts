@@ -35,6 +35,30 @@ let combinedCache: { url: string; fetchedAt: number; csv: string } | null =
   null;
 const COMBINED_CACHE_TTL_MS = 10 * 60 * 1000;
 
+/** Line-level prefilter: keep the header plus only lines that mention
+ *  this merchant's MID. The importer used to parse EVERY row of the
+ *  combined feed into objects before filtering — that full parse is
+ *  what ran instances out of memory. String scanning is cheap; the
+ *  importer's exact merchant_id check still applies afterwards, so
+ *  false-positive lines are harmless. */
+function filterCsvForMerchant(csv: string, mid: string): string {
+  const firstNl = csv.indexOf("\n");
+  if (firstNl === -1) return csv;
+  const out: string[] = [csv.slice(0, firstNl)];
+  const quoted = `"${mid}"`;
+  const bare = `,${mid},`;
+  let i = firstNl;
+  while (i < csv.length) {
+    const j = csv.indexOf("\n", i + 1);
+    const end = j === -1 ? csv.length : j;
+    const line = csv.slice(i + 1, end);
+    if (line.includes(quoted) || line.includes(bare)) out.push(line);
+    if (j === -1) break;
+    i = end;
+  }
+  return out.join("\n");
+}
+
 async function getCombinedCsv(url: string): Promise<string> {
   if (
     combinedCache &&
@@ -147,7 +171,10 @@ export async function POST(
     if (feedUrl) {
       result = await importFeed(merchant, feedUrl);
     } else {
-      const csv = await getCombinedCsv(combinedUrl!);
+      const csv = filterCsvForMerchant(
+        await getCombinedCsv(combinedUrl!),
+        merchant.awinMerchantId
+      );
       result = await importFromCsv(merchant, csv, "combined-feed");
     }
     await prisma.cronRun.update({
