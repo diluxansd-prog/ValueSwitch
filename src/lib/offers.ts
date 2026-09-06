@@ -15,7 +15,12 @@ import {
  * Last synced with Awin: 5 September 2026.
  */
 
-export type OfferCategory = "sim" | "broadband" | "travel-esim" | "phones";
+export type OfferCategory =
+  | "sim"
+  | "broadband"
+  | "travel-esim"
+  | "phones"
+  | "business";
 
 export interface CuratedOffer {
   /** Stable id, used as React key + clickref */
@@ -336,11 +341,63 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
 ];
 
+const VODAFONE_BUSINESS_OFFERS: CuratedOffer[] = [
+  // From the Awin Vodafone Business affiliate mailer, 26 Aug 2026.
+  // Business offers don't flow through the consumer feed or the
+  // Promotions API — email is their only channel. Prices exclude VAT.
+  {
+    id: "vodafone-biz-unlimited-simo",
+    startsAt: "2026-08-26",
+    merchant: "vodafone",
+    merchantName: "Vodafone Business",
+    title: "Business Unlimited SIM — £19.17/month (save £240)",
+    description:
+      "Save £240 on Vodafone's business Unlimited SIM-only plan at £19.17 a month (exc. VAT; rises £21.25 from April 2027). Terms apply.",
+    endsAt: "2026-09-16",
+    category: "business",
+    destinationUrl: "https://www.vodafone.co.uk/business/business-sim-only",
+    priority: 100,
+    badge: "SAVE £240",
+  },
+  {
+    id: "vodafone-biz-pixel-11-pro",
+    startsAt: "2026-08-26",
+    merchant: "vodafone",
+    merchantName: "Vodafone Business",
+    title: "Pixel 11 Pro — save £1,220 with trade-in",
+    description:
+      "Save £1,220 on the Google Pixel 11 Pro 256GB when you trade in an eligible phone, on a 24-month Unlimited Airtime + 36-month Phone Plan. From £37.91/month, £41.67 upfront (exc. VAT). Terms apply.",
+    endsAt: "2026-09-09",
+    category: "business",
+    destinationUrl:
+      "https://www.vodafone.co.uk/business/business-mobile-phones/pay-monthly-contracts/google/pixel-11-pro",
+    priority: 95,
+    badge: "SAVE £1,220",
+  },
+  {
+    id: "vodafone-biz-iphone-17-pro-max",
+    startsAt: "2026-08-26",
+    merchant: "vodafone",
+    merchantName: "Vodafone Business",
+    title: "iPhone 17 Pro Max — save up to £495 with trade-in",
+    description:
+      "Save up to £495 on the iPhone 17 Pro Max 256GB when you trade in an eligible phone. From £47.50/month with £41.67 upfront (exc. VAT). Terms apply.",
+    endsAt: "2026-09-09",
+    category: "business",
+    destinationUrl:
+      "https://www.vodafone.co.uk/business/business-mobile-phones/pay-monthly-contracts/apple/iphone-17-pro-max",
+    priority: 90,
+    badge: "SAVE £495",
+  },
+];
+CURATED_OFFERS.push(...VODAFONE_BUSINESS_OFFERS);
+
 export const OFFER_CATEGORY_LABELS: Record<OfferCategory, string> = {
   sim: "SIM & mobile plans",
   broadband: "Broadband",
   "travel-esim": "Travel eSIMs",
   phones: "Phones",
+  business: "Business",
 };
 
 /** Offers still in date, sorted by category then priority. */
