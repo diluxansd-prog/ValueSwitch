@@ -33,6 +33,15 @@ const STATEMENTS: { id: string; sql: string }[] = [
     id: "plan-befibre-domain-fix",
     sql: `UPDATE "Plan" SET "affiliateUrl" = REPLACE("affiliateUrl", 'befibre.co.uk', 'be-fibre.co.uk') WHERE "affiliateUrl" LIKE '%befibre.co.uk%'`,
   },
+  {
+    // Retire deals no feed has confirmed in 45+ days: merchants
+    // restructure product URLs (Be Fibre's be1000-900mbps-18 now 404s)
+    // and prices go stale. Fresh feed imports touch updatedAt weekly,
+    // so live deals are never affected; the expiry filter then hides
+    // retired ones from listings, the sitemap, and outbound links.
+    id: "plan-expire-stale-45d",
+    sql: `UPDATE "Plan" SET "expiresAt" = NOW() WHERE "updatedAt" < NOW() - INTERVAL '45 days' AND ("expiresAt" IS NULL OR "expiresAt" > NOW())`,
+  },
 ];
 
 async function isAdmin(): Promise<boolean> {

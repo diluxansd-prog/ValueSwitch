@@ -52,13 +52,17 @@ export async function GET(req: Request) {
         .catch(() => null); // don't fail the redirect if logging fails
 
       // Prefer the pre-built affiliate URL (already an Awin cread link
-      // pointing to the exact merchant product page). If missing, fall
-      // back to auto-wrapping the provider website.
+      // pointing to the exact merchant product page). If missing — or if
+      // the plan has EXPIRED (its merchant product page likely 404s) —
+      // fall back to auto-wrapping the provider website so the click
+      // still lands somewhere useful and tracked.
+      const isExpired =
+        plan.expiresAt != null && plan.expiresAt.getTime() < Date.now();
       let targetUrl =
-        plan.affiliateUrl ||
+        (!isExpired ? plan.affiliateUrl : null) ||
         (plan.provider.website
           ? wrapWithAffiliate(plan.provider.website, clickref)
-          : null);
+          : plan.affiliateUrl);
 
       if (!targetUrl) {
         return NextResponse.redirect(new URL("/", req.url));

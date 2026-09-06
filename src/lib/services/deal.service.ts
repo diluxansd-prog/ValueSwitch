@@ -20,6 +20,9 @@ export async function getPopularDeals(category?: string, limit = 6) {
 export async function getAllDealSlugs() {
   try {
     const plans = await prisma.plan.findMany({
+      // Expired deals stay in the DB for history but leave the sitemap —
+      // their merchant product pages often no longer exist.
+      where: { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
       select: { slug: true },
     });
     return plans.map((p) => p.slug);
