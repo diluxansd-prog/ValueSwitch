@@ -80,9 +80,11 @@ export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
     name: "Fonehouse",
     awinMerchantId: "6224",
     feedUrlEnv: "AWIN_FONEHOUSE_FEED_URL",
+    // Fonehouse restructured their URLs — /mobile-phones and /sim-only
+    // now 404; verified live 2026-09-06.
     landingPages: {
-      handset: "https://www.fonehouse.co.uk/mobile-phones",
-      simOnly: "https://www.fonehouse.co.uk/sim-only",
+      handset: "https://www.fonehouse.co.uk/",
+      simOnly: "https://www.fonehouse.co.uk/sim-only-deals",
     },
     category: "mobile",
   },

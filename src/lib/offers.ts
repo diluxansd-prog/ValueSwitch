@@ -307,6 +307,20 @@ export const CURATED_OFFERS: CuratedOffer[] = [
 
   // ── Phones ────────────────────────────────────────────────────────
   {
+    id: "fonehouse-samsung-z8-launch",
+    startsAt: "2026-09-04",
+    merchant: "fonehouse",
+    merchantName: "Fonehouse",
+    title: "New Samsung Galaxy Z Flip8 & Z Fold8 — order now",
+    description:
+      "Samsung's latest foldables have landed at Fonehouse: Galaxy Z Flip8, Z Fold8 and Z Fold8 Ultra, with contract deals from £15/month.",
+    endsAt: "2026-10-31",
+    category: "phones",
+    destinationUrl: "https://www.fonehouse.co.uk/brand/samsung-mobile-phone-deals",
+    priority: 110,
+    badge: "JUST LAUNCHED",
+  },
+  {
     id: "ttfone-refurb-50",
     startsAt: "2026-02-06",
     merchant: "ttfone",
