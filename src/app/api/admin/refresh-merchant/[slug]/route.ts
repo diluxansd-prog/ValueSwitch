@@ -24,7 +24,7 @@ import { reapOrphanedRunsByPrefix } from "@/lib/cron-reaper";
 import { gunzipSync } from "zlib";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300; // Fluid Compute allows up to 300s on Hobby
 
 /** Admin session OR the cron secret — the weekly refresh-feed job
  *  fans out to this endpoint so each merchant imports in its own

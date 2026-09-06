@@ -27,12 +27,12 @@ import { getActiveMerchantFeeds, MERCHANT_FEEDS } from "@/config/merchants";
 import { reapOrphanedRunsByPrefix } from "@/lib/cron-reaper";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300; // Fluid Compute allows up to 300s on Hobby
 
 /** Don't START a new merchant dispatch after this much elapsed time. */
-const DISPATCH_CUTOFF_MS = 25_000;
+const DISPATCH_CUTOFF_MS = 200_000;
 /** Abort in-flight sub-requests and finalize by this point. */
-const SOFT_DEADLINE_MS = 52_000;
+const SOFT_DEADLINE_MS = 280_000;
 /** Parallel sub-invocations. */
 const CONCURRENCY = 3;
 
@@ -185,7 +185,7 @@ async function runJob(
       });
   }
   const softDeadline = setTimeout(() => {
-    void finalize("soft-deadline finalize at 52s — dispatches overran");
+    void finalize("soft-deadline finalize — dispatches overran the budget");
   }, SOFT_DEADLINE_MS);
 
   try {

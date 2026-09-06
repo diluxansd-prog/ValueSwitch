@@ -19,7 +19,7 @@ import {
 } from "@/lib/email/templates/digest";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300; // Fluid Compute allows up to 300s on Hobby
 
 async function isAuthorized(req: Request): Promise<boolean> {
   const authHeader = req.headers.get("authorization") || "";

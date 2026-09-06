@@ -23,7 +23,7 @@ import {
 import { reapOrphanedRuns } from "@/lib/cron-reaper";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300; // Fluid Compute allows up to 300s on Hobby
 
 const MIN_INTERVAL_MS = 20 * 60 * 60 * 1000; // 20 hours — guard against double-runs
 /** Per-email throttle in ms.  Resend free tier allows 2/s = 500ms.
@@ -37,8 +37,8 @@ const SEND_THROTTLE_MS = 350;
 const MAX_ALERTS_PER_RUN = 90;
 /** Time-budget guard: if we've used this many ms, stop processing
  *  new alerts and finalize the run cleanly.  Saves us from being
- *  killed mid-loop.  Kept below the 50s soft-deadline finalizer. */
-const TIME_BUDGET_MS = 40_000;
+ *  killed mid-loop.  Kept below the soft-deadline finalizer. */
+const TIME_BUDGET_MS = 240_000;
 
 async function isAuthorized(req: Request): Promise<boolean> {
   const authHeader = req.headers.get("authorization") || "";
@@ -202,8 +202,8 @@ async function runJob() {
       });
   }
   const softDeadline = setTimeout(() => {
-    void finalize("soft-deadline finalize at 50s — work loop overran");
-  }, 50_000);
+    void finalize("soft-deadline finalize — work loop overran the budget");
+  }, 270_000);
 
   // try/finally guarantees the CronRun row gets finalized below
   // even if the loop throws or Vercel kills us mid-iteration.
