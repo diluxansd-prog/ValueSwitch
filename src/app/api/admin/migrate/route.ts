@@ -42,6 +42,15 @@ const STATEMENTS: { id: string; sql: string }[] = [
     id: "plan-expire-stale-45d",
     sql: `UPDATE "Plan" SET "expiresAt" = NOW() WHERE "updatedAt" < NOW() - INTERVAL '45 days' AND ("expiresAt" IS NULL OR "expiresAt" > NOW())`,
   },
+  {
+    // Be Fibre's legacy catalogue (imported pre-Sept 2026) survived the
+    // age sweep because something touched updatedAt, but every product
+    // URL from that import 404s on their rebuilt site and the prices
+    // are months out of date. Retire by createdAt so future fresh
+    // imports are never affected.
+    id: "plan-expire-befibre-legacy",
+    sql: `UPDATE "Plan" SET "expiresAt" = NOW() WHERE "providerId" IN (SELECT "id" FROM "Provider" WHERE "slug" = 'be-fibre') AND "createdAt" < '2026-09-01' AND ("expiresAt" IS NULL OR "expiresAt" > NOW())`,
+  },
 ];
 
 async function isAdmin(): Promise<boolean> {
