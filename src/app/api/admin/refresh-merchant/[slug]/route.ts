@@ -26,6 +26,39 @@ import { gunzipSync } from "zlib";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Fluid Compute allows up to 300s on Hobby
 
+/** Warm-instance cache for the combined multi-FID CSV. Fluid Compute
+ *  keeps the instance alive between invocations, so sequential
+ *  per-merchant refreshes reuse one download instead of re-fetching
+ *  (and re-holding) a huge CSV each time — the repeated copies are
+ *  what OOM-killed instances before. */
+let combinedCache: { url: string; fetchedAt: number; csv: string } | null =
+  null;
+const COMBINED_CACHE_TTL_MS = 10 * 60 * 1000;
+
+async function getCombinedCsv(url: string): Promise<string> {
+  if (
+    combinedCache &&
+    combinedCache.url === url &&
+    Date.now() - combinedCache.fetchedAt < COMBINED_CACHE_TTL_MS
+  ) {
+    return combinedCache.csv;
+  }
+  combinedCache = null; // free the old copy before downloading a new one
+  const res = await fetch(url, {
+    headers: { "User-Agent": "ValueSwitchBot/1.0" },
+  });
+  if (!res.ok) throw new Error(`combined feed fetch HTTP ${res.status}`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  let csv: string;
+  try {
+    csv = gunzipSync(buf).toString("utf-8");
+  } catch {
+    csv = buf.toString("utf-8");
+  }
+  combinedCache = { url, fetchedAt: Date.now(), csv };
+  return csv;
+}
+
 /** Admin session OR the cron secret — the weekly refresh-feed job
  *  fans out to this endpoint so each merchant imports in its own
  *  60s function invocation instead of sharing one budget. */
@@ -114,17 +147,7 @@ export async function POST(
     if (feedUrl) {
       result = await importFeed(merchant, feedUrl);
     } else {
-      const res = await fetch(combinedUrl!, {
-        headers: { "User-Agent": "ValueSwitchBot/1.0" },
-      });
-      if (!res.ok) throw new Error(`combined feed fetch HTTP ${res.status}`);
-      const buf = Buffer.from(await res.arrayBuffer());
-      let csv: string;
-      try {
-        csv = gunzipSync(buf).toString("utf-8");
-      } catch {
-        csv = buf.toString("utf-8");
-      }
+      const csv = await getCombinedCsv(combinedUrl!);
       result = await importFromCsv(merchant, csv, "combined-feed");
     }
     await prisma.cronRun.update({

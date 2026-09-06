@@ -133,14 +133,26 @@ async function runJob() {
   });
   phases.runRowMs = Date.now() - started;
 
-  const allAlerts = await prisma.priceAlert.findMany({
-    where: { isActive: true },
-    include: {
-      user: { select: { id: true, email: true, name: true } },
-    },
-    // Process oldest-triggered first so we don't starve long-quiet alerts
-    orderBy: { lastTriggered: { sort: "asc", nulls: "first" } },
-  });
+  // Fetch alerts defensively — a schema-drift or DB error here used to
+  // throw straight out of runJob, orphaning the run row (the daily
+  // "timed out" verdicts were actually an instant crash on a missing
+  // column). Capture the error and surface it via finalize instead.
+  const fetchAlerts = () =>
+    prisma.priceAlert.findMany({
+      where: { isActive: true },
+      include: {
+        user: { select: { id: true, email: true, name: true } },
+      },
+      // Process oldest-triggered first so we don't starve long-quiet alerts
+      orderBy: { lastTriggered: { sort: "asc", nulls: "first" } },
+    });
+  let allAlerts: Awaited<ReturnType<typeof fetchAlerts>> = [];
+  let alertsQueryError: string | null = null;
+  try {
+    allAlerts = await fetchAlerts();
+  } catch (err) {
+    alertsQueryError = err instanceof Error ? err.message : String(err);
+  }
 
   phases.fetchAlertsMs = Date.now() - started;
 
@@ -208,6 +220,9 @@ async function runJob() {
   // try/finally guarantees the CronRun row gets finalized below
   // even if the loop throws or Vercel kills us mid-iteration.
   try {
+  if (alertsQueryError) {
+    throw new Error(`alerts query failed: ${alertsQueryError}`);
+  }
   for (const a of alerts) {
     // Time-budget guard — bail before Vercel does
     if (Date.now() - started > TIME_BUDGET_MS) {

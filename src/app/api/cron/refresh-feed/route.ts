@@ -33,8 +33,11 @@ export const maxDuration = 300; // Fluid Compute allows up to 300s on Hobby
 const DISPATCH_CUTOFF_MS = 200_000;
 /** Abort in-flight sub-requests and finalize by this point. */
 const SOFT_DEADLINE_MS = 280_000;
-/** Parallel sub-invocations. */
-const CONCURRENCY = 3;
+/** Sequential on purpose: Fluid Compute routes concurrent invocations
+ *  onto a SHARED instance, and parallel combined-CSV parses OOM-killed
+ *  the whole instance (dispatcher included). One at a time also lets
+ *  the sub-route's warm-instance CSV cache do its job. */
+const CONCURRENCY = 1;
 
 async function isAuthorized(
   req: Request
