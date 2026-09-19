@@ -17,7 +17,7 @@ export default function ContactPage() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Contact Us
           </h1>
@@ -29,7 +29,7 @@ export default function ContactPage() {
       </section>
 
       {/* Content */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid gap-12 lg:grid-cols-3">
           {/* Contact Form */}
           <div className="lg:col-span-2">

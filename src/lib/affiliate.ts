@@ -40,6 +40,41 @@ export const AWIN_MERCHANTS = {
 
 export type AwinMerchantSlug = keyof typeof AWIN_MERCHANTS;
 
+/**
+ * Programmes that have CLOSED on Awin. Their cread links now land on
+ * awin1.com/closedMerchant.html ("this link is inactive"), so we must
+ * never wrap their URLs: link straight to the merchant instead, which
+ * still works for the visitor and simply earns nothing.
+ *
+ * Verified closed: be-fibre (MID 60791) — 2026-09-19.
+ */
+export const CLOSED_AWIN_PROGRAMMES = new Set<AwinMerchantSlug>(["be-fibre"]);
+
+export function isClosedProgramme(slug: AwinMerchantSlug): boolean {
+  return CLOSED_AWIN_PROGRAMMES.has(slug);
+}
+
+/**
+ * Unwrap an Awin link whose programme has closed, returning its real
+ * destination. Links stored before a programme closed (imported deal
+ * URLs, admin-made banners) would otherwise dead-end on Awin.
+ */
+export function sanitizeAffiliateUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    if (!u.hostname.endsWith("awin1.com")) return url;
+    const mid = u.searchParams.get("awinmid");
+    if (!mid) return url;
+    const slug = (Object.keys(AWIN_MERCHANTS) as AwinMerchantSlug[]).find(
+      (s) => AWIN_MERCHANTS[s] === mid
+    );
+    if (!slug || !isClosedProgramme(slug)) return url;
+    return u.searchParams.get("ued") || MERCHANT_HOMEPAGES[slug];
+  } catch {
+    return url;
+  }
+}
+
 /** Homepage URLs used as fallback / base links for each merchant */
 export const MERCHANT_HOMEPAGES: Record<AwinMerchantSlug, string> = {
   vodafone: "https://www.vodafone.co.uk/",
@@ -122,6 +157,11 @@ export function getMerchantLink(
   if (!merchantId) {
     throw new Error(`Unknown merchant: ${slug}`);
   }
+  // Closed programme → send the visitor straight to the merchant; an
+  // Awin link would only show "this link is inactive".
+  if (isClosedProgramme(slug)) {
+    return destinationUrl || MERCHANT_HOMEPAGES[slug];
+  }
   return generateAwinLink({
     merchantId,
     destinationUrl: destinationUrl || MERCHANT_HOMEPAGES[slug],
@@ -173,6 +213,7 @@ export function wrapWithAffiliate(
 ): string {
   const merchant = detectMerchantFromUrl(url);
   if (!merchant) return url;
+  if (isClosedProgramme(merchant)) return url;
   return generateAwinLink({
     merchantId: AWIN_MERCHANTS[merchant],
     destinationUrl: url,

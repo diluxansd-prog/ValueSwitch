@@ -86,7 +86,7 @@ export default function FAQPage() {
       <FAQPageJsonLd faqs={faqs} />
       {/* Hero */}
       <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Frequently Asked Questions
           </h1>
@@ -115,7 +115,7 @@ export default function FAQPage() {
 
       {/* Contact CTA */}
       <section className="border-t bg-muted/30 py-16">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <Card className="mx-auto max-w-2xl border-2 border-[#38a169]/20">
             <CardContent className="p-8">
               <h2 className="text-2xl font-bold">Still Have Questions?</h2>

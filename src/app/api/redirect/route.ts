@@ -14,7 +14,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { wrapWithAffiliate } from "@/lib/affiliate";
+import { wrapWithAffiliate, sanitizeAffiliateUrl } from "@/lib/affiliate";
 
 export async function GET(req: Request) {
   try {
@@ -63,6 +63,8 @@ export async function GET(req: Request) {
         (plan.provider.website
           ? wrapWithAffiliate(plan.provider.website, clickref)
           : plan.affiliateUrl);
+      // Closed programme → unwrap so the click still reaches the merchant
+      if (targetUrl) targetUrl = sanitizeAffiliateUrl(targetUrl);
 
       if (!targetUrl) {
         return NextResponse.redirect(new URL("/", req.url));

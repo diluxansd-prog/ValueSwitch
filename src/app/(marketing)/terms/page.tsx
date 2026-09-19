@@ -12,7 +12,7 @@ export default function TermsPage() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Terms of Service
           </h1>

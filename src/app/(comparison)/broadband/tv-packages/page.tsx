@@ -39,7 +39,7 @@ const FAQS = [
   {
     question: "Do altnet fibre providers offer TV packages?",
     answer:
-      "Mostly no — alternative networks like Be Fibre, Quickline, Highland Broadband and Connect Fibre focus on fast, cheap broadband and let you stream TV over the top. Some offer add-ons like mesh WiFi or landline calling instead.",
+      "Mostly no — alternative networks like Quickline, Highland Broadband, Connect Fibre and Lightning Fibre focus on fast, cheap broadband and let you stream TV over the top. Some offer add-ons like mesh WiFi or landline calling instead.",
   },
   {
     question: "What do I need to stream TV in 4K?",

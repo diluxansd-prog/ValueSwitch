@@ -13,7 +13,7 @@ import { SavingOpportunities } from "@/components/home/saving-opportunities";
 function GridSkeleton({ count = 4 }: { count?: number }) {
   return (
     <section className="py-16 lg:py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <div className="mx-auto h-8 w-64 animate-pulse rounded bg-muted" />
           <div className="mx-auto mt-3 h-5 w-full max-w-96 animate-pulse rounded bg-muted" />

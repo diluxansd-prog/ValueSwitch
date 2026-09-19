@@ -96,7 +96,7 @@ export function PromoBanner({ promos }: Props) {
       aria-label="Promotional banner"
       className={`relative overflow-hidden bg-gradient-to-r ${gradient} text-white print:hidden`}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="flex items-center gap-3 py-2.5 sm:py-3 text-sm">
           {/* Emoji / icon */}
           <span className="text-lg sm:text-xl shrink-0" aria-hidden>

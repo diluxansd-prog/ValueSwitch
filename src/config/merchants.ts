@@ -95,6 +95,9 @@ export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
     slug: "be-fibre",
     name: "Be Fibre",
     awinMerchantId: "60791",
+    // Awin programme CLOSED 2026-09 — links dead-end on Awin, so stop
+    // importing. Kept for historical data + link sanitising.
+    cronSkip: true,
     feedUrlEnv: "AWIN_BEFIBRE_FEED_URL",
     // befibre.co.uk (no hyphen) became a dead holding page — live site
     // is be-fibre.co.uk.

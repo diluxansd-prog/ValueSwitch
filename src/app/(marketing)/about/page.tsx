@@ -59,7 +59,7 @@ export default function AboutPage() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-20 text-white">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             About ValueSwitch
           </h1>
@@ -71,7 +71,7 @@ export default function AboutPage() {
       </section>
 
       {/* Company Story */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tight">Our Story</h2>
           <div className="mt-6 space-y-4 text-lg leading-relaxed text-muted-foreground">
@@ -99,7 +99,7 @@ export default function AboutPage() {
 
       {/* Mission & Vision */}
       <section className="border-t bg-muted/30 py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-8 md:grid-cols-2">
             <Card className="border-2 border-[#1a365d]/10">
               <CardContent className="p-8">
@@ -133,7 +133,7 @@ export default function AboutPage() {
 
       {/* Stats */}
       <section className="py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <h2 className="mb-12 text-center text-3xl font-bold tracking-tight">
             ValueSwitch in Numbers
           </h2>
@@ -154,7 +154,7 @@ export default function AboutPage() {
 
       {/* Team Values */}
       <section className="border-t bg-muted/30 py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="mb-12 text-center">
             <h2 className="text-3xl font-bold tracking-tight">Our Values</h2>
             <p className="mt-3 text-lg text-muted-foreground">
@@ -184,7 +184,7 @@ export default function AboutPage() {
 
       {/* CTA */}
       <section className="py-16">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <h2 className="text-3xl font-bold tracking-tight">
             Ready to Start Saving?
           </h2>

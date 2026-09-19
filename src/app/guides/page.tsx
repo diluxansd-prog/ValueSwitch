@@ -36,7 +36,7 @@ export default async function GuidesPage({ searchParams }: GuidesPageProps) {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
             Guides &amp; Advice
           </h1>
@@ -48,7 +48,7 @@ export default async function GuidesPage({ searchParams }: GuidesPageProps) {
       </section>
 
       {/* Content */}
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         {/* Category Filter */}
         <div className="mb-8 flex flex-wrap gap-2">
           {FILTER_CATEGORIES.map((cat) => (

@@ -26,7 +26,7 @@ const POPULAR_QUERIES = [
   "Pixel 10 Pro",
   "Unlimited data SIM",
   "Refurbished iPhone",
-  "Be Fibre broadband",
+  "Full fibre broadband",
 ];
 
 export function SiteSearch({

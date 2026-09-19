@@ -40,7 +40,7 @@ export default async function CategoryGuidesPage({
     <div className="min-h-screen">
       {/* Hero */}
       <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-16 text-white">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <Link
             href="/guides"
             className="mb-4 inline-flex items-center gap-1.5 text-sm text-blue-200 transition-colors hover:text-white"
@@ -60,7 +60,7 @@ export default async function CategoryGuidesPage({
       </section>
 
       {/* Content */}
-      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <p className="mb-6 text-sm text-muted-foreground">
           {guides.length} guide{guides.length !== 1 && "s"} in{" "}
           {formattedCategory}

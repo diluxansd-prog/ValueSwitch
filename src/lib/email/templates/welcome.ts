@@ -31,7 +31,7 @@ export function welcomeEmail(args: WelcomeArgs): { subject: string; html: string
 </p>
 <ul style="margin:0 0 22px 0; padding-left:20px; color:#374151; line-height:1.7;">
   <li><a href="${SITE_URL}/mobile">Mobile deals</a> — SIM-only, contracts, and refurbished handsets</li>
-  <li><a href="${SITE_URL}/broadband">Broadband deals</a> — full-fibre from £29/mo with Be Fibre</li>
+  <li><a href="${SITE_URL}/broadband">Broadband deals</a> — full-fibre from £24.99/mo with Quickline</li>
   <li><a href="${SITE_URL}/guides">Buyer guides</a> — straight talk on EU roaming, bad-credit contracts, refurbished vs new</li>
 </ul>
 <div style="text-align:center; margin:24px 0 8px 0;">${cta}</div>

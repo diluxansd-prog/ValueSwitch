@@ -42,7 +42,7 @@ export function Footer() {
 
       {/* Trust badges section */}
       <div className="border-b border-white/10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
             <div className="flex items-center gap-3 justify-center sm:justify-start">
               <div className="flex items-center justify-center size-10 rounded-full bg-white/10">
@@ -82,7 +82,7 @@ export function Footer() {
       </div>
 
       {/* Main footer content */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand column */}
           <div className="sm:col-span-2 lg:col-span-2">
@@ -214,7 +214,7 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-5 space-y-3">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-5 space-y-3">
           <p className="text-xs text-white/40 max-w-4xl leading-relaxed">
             {COMPANY.legalName} is a company registered in England and Wales.
             Company number{" "}

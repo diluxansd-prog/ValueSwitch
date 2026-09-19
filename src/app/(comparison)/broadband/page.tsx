@@ -161,7 +161,7 @@ export default async function BroadbandPage() {
               </span>
             </h1>
             <p className="mt-5 text-lg text-blue-100/90 leading-relaxed max-w-2xl">
-              Gigabit-ready full-fibre packages from Be Fibre and other UK
+              Gigabit-ready full-fibre packages from Quickline, Highland Broadband and other UK
               providers. Real monthly prices, no marketing fluff.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-3">

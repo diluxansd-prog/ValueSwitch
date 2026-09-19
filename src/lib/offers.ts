@@ -205,18 +205,6 @@ export const CURATED_OFFERS: CuratedOffer[] = [
     badge: "2× SPEED",
   },
   {
-    id: "be-fibre-from-20",
-    merchant: "be-fibre",
-    merchantName: "Be Fibre",
-    title: "Symmetrical full fibre from £20/month",
-    description:
-      "Be Fibre's Be200 plan: 200Mbps download AND upload for £20 a month for the first 12 months. Gigabit and 2.3Gbps tiers also available.",
-    category: "broadband",
-    destinationUrl: "https://be-fibre.co.uk/",
-    priority: 80,
-    badge: "£20/mo",
-  },
-  {
     id: "carnival-fibre-2397",
     merchant: "carnival-internet",
     merchantName: "Carnival Internet",

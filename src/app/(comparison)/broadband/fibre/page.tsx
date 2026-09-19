@@ -33,7 +33,7 @@ import {
 export const metadata: Metadata = {
   title: "Full Fibre Broadband Deals UK 2026 — Compare Speeds & Prices",
   description:
-    "Compare full-fibre broadband from Be Fibre, Quickline, Highland Broadband, Connect Fibre and more. Symmetric speeds from £20/mo, switching rewards up to £300.",
+    "Compare full-fibre broadband from Quickline, Highland Broadband, Connect Fibre, Lightning Fibre and more. Symmetric speeds from £20/mo, switching rewards up to £300.",
   alternates: { canonical: `${siteConfig.url}/broadband/fibre` },
   openGraph: {
     type: "website",
@@ -55,7 +55,7 @@ const FAQS = [
   {
     question: "How do I know if full fibre is available at my address?",
     answer:
-      "Every provider runs a postcode check before you order. Altnets like Be Fibre, Quickline, Highland Broadband, Connect Fibre and Lightning Fibre each cover specific regions, so check two or three — coverage differs street by street.",
+      "Every provider runs a postcode check before you order. Altnets like Quickline, Highland Broadband, Connect Fibre, Carnival Internet and Lightning Fibre each cover specific regions, so check two or three — coverage differs street by street.",
   },
   {
     question: "Can a new provider pay my exit fees?",

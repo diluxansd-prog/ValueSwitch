@@ -17,7 +17,7 @@ export default function NotFound() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-20 text-white">
-        <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 text-center sm:px-6">
           <p className="text-8xl font-bold opacity-20 sm:text-9xl">404</p>
           <h1 className="-mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
             Page Not Found
@@ -53,7 +53,7 @@ export default function NotFound() {
       </section>
 
       {/* Suggestions */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h2 className="mb-8 text-center text-2xl font-bold">
           Here are some helpful links
         </h2>

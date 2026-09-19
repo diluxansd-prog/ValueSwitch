@@ -23,7 +23,7 @@ export function CompareDrawer() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 shadow-2xl backdrop-blur-md">
-      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <ArrowRightLeft className="size-4 text-[#38a169]" />

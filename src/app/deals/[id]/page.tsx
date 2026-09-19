@@ -165,7 +165,7 @@ export default async function DealDetailPage({
           }}
         />
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <Breadcrumbs
             items={[
               { label: "Home", href: "/" },
@@ -262,7 +262,7 @@ export default async function DealDetailPage({
       </section>
 
       {/* Floating content area */}
-      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 -mt-16 relative z-10">
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 -mt-16 relative z-10">
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Left: Main Content */}
           <div className="space-y-6 lg:col-span-2">
@@ -544,7 +544,7 @@ export default async function DealDetailPage({
       {/* Similar Deals */}
       {similarDeals.length > 0 && (
         <section className="mt-16 border-t bg-gradient-to-b from-white to-slate-50 dark:from-background dark:to-slate-900/40 py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6">
             <Badge className="mb-3 bg-gradient-to-r from-rose-500 to-orange-500 text-white border-0 shadow-md">
               <TrendingUp className="size-3 mr-1" />
               You might also like

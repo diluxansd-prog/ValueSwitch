@@ -129,7 +129,7 @@ export default async function ProviderDetailPage({
           }}
         />
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
           <Breadcrumbs
             items={[
               { label: "Home", href: "/" },
@@ -199,7 +199,7 @@ export default async function ProviderDetailPage({
 
       {/* Live stats strip */}
       <section className="border-b bg-gradient-to-r from-slate-50 via-white to-slate-50 dark:from-slate-900/40 dark:via-slate-900/20 dark:to-slate-900/40">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-8">
             {[
               {
@@ -254,7 +254,7 @@ export default async function ProviderDetailPage({
       </section>
 
       {/* Content with Tabs */}
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
         <Tabs defaultValue="overview">
           <TabsList className="mb-8 w-full justify-start sm:w-auto">
             <TabsTrigger value="overview">Overview</TabsTrigger>

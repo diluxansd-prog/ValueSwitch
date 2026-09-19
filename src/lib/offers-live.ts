@@ -7,7 +7,11 @@ import {
   fetchAutoPromotions,
   type AutoPromotion,
 } from "@/lib/awin/promotions";
-import { MERCHANT_HOMEPAGES, type AwinMerchantSlug } from "@/lib/affiliate";
+import {
+  MERCHANT_HOMEPAGES,
+  isClosedProgramme,
+  type AwinMerchantSlug,
+} from "@/lib/affiliate";
 
 /**
  * Live offer feed for display — curated entries first (hand-written
@@ -112,7 +116,11 @@ export interface DisplayOffersResult {
 }
 
 export async function getDisplayOffers(): Promise<DisplayOffersResult> {
-  const curated: DisplayOffer[] = getActiveOffers().map((o) => ({
+  // Never show offers for programmes that have closed on Awin — their
+  // links dead-end on "this link is inactive".
+  const curated: DisplayOffer[] = getActiveOffers()
+    .filter((o) => !isClosedProgramme(o.merchant))
+    .map((o) => ({
     id: o.id,
     merchant: o.merchant,
     merchantName: o.merchantName,
@@ -133,7 +141,7 @@ export async function getDisplayOffers(): Promise<DisplayOffersResult> {
   // that all land on the same page and just clutter the grid.
   const perMerchantCount = new Map<string, number>();
   const extras: DisplayOffer[] = promos
-    .filter((a) => !isDuplicate(a, curated))
+    .filter((a) => !isClosedProgramme(a.merchant) && !isDuplicate(a, curated))
     .sort((a, b) => (b.startsAt ?? "0000").localeCompare(a.startsAt ?? "0000"))
     .filter((a) => {
       const n = perMerchantCount.get(a.merchant) ?? 0;
