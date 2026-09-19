@@ -1,8 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export async function getPopularDeals(category?: string, limit = 6) {
   try {
-    const where: any = {};
+    const where: Prisma.PlanWhereInput = {
+      provider: { isActive: true },
+      AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }],
+    };
     if (category) where.category = category;
     where.OR = [{ isPromoted: true }, { isBestValue: true }, { isPopular: true }];
 

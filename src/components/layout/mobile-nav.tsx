@@ -57,7 +57,7 @@ export function MobileNav({ open, onOpenChange, session }: MobileNavProps) {
               className="w-full bg-gradient-to-r from-[#1a365d] to-[#38a169] hover:from-[#2a4a7f] hover:to-[#48bb78] text-white border-0"
               onClick={handleClose}
             >
-              <Link href="/energy">
+              <Link href="/mobile/compare">
                 <ArrowRightLeft className="size-4" />
                 Start Comparing
               </Link>
@@ -73,6 +73,10 @@ export function MobileNav({ open, onOpenChange, session }: MobileNavProps) {
                 (c) => c.slug === item.href.replace("/", "")
               );
               const Icon = category?.icon;
+
+              if (!item.children?.length) return (
+                <Link key={item.href} href={item.href} onClick={handleClose} className="flex min-h-12 items-center rounded-lg border-b px-1 text-sm font-medium hover:bg-muted">{item.label}</Link>
+              );
 
               return (
                 <AccordionItem key={item.href} value={item.href}>

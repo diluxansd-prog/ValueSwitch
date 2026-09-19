@@ -372,7 +372,7 @@ export default async function BestPickPage({ params }: PageProps) {
 
       {/* Hero */}
       <section
-        className="relative py-14 sm:py-20 text-white overflow-hidden"
+        className="page-banner relative py-14 sm:py-20 text-white overflow-hidden"
         style={{
           background: `linear-gradient(135deg, ${pick.heroFrom} 0%, ${pick.heroTo} 60%, #0a1628 130%)`,
         }}

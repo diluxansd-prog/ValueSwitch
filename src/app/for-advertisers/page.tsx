@@ -105,7 +105,7 @@ export default async function ForAdvertisersPage() {
       />
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-[#0a1628] via-[#1a365d] to-[#2a4a7f] text-white overflow-hidden">
+      <section className="page-banner relative bg-gradient-to-br from-[#0a1628] via-[#1a365d] to-[#2a4a7f] text-white overflow-hidden">
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-emerald-500/20 blur-3xl animate-pulse" />
         <div
           className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-blue-500/20 blur-3xl animate-pulse"

@@ -3,5 +3,6 @@ export default function ComparisonLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <><ComparisonNav />{children}</>;
 }
+import { ComparisonNav } from "@/components/layout/comparison-nav";

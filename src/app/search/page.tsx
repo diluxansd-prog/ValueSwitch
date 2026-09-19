@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Search, ExternalLink, Clock } from "lucide-react";
+import { Search, Clock } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PriceDisplay } from "@/components/shared/price-display";
@@ -25,6 +25,8 @@ async function searchAll(query: string) {
   const [deals, providers, guides] = await Promise.all([
     prisma.plan.findMany({
       where: {
+        provider: { isActive: true },
+        AND: [{ OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }],
         OR: [
           { name: { contains: query, mode: "insensitive" } },
           { description: { contains: query, mode: "insensitive" } },
@@ -37,6 +39,7 @@ async function searchAll(query: string) {
     }),
     prisma.provider.findMany({
       where: {
+        isActive: true,
         OR: [
           { name: { contains: query, mode: "insensitive" } },
           { description: { contains: query, mode: "insensitive" } },
@@ -67,12 +70,15 @@ async function searchAll(query: string) {
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const { q } = await searchParams;
   const query = q?.trim() ?? "";
-  const results = await searchAll(query);
+  const results = await searchAll(query).then(
+    (data) => ({ ...data, unavailable: false }),
+    () => ({ deals: [], providers: [], guides: [], unavailable: true }),
+  );
   const totalResults = results.deals.length + results.providers.length + results.guides.length;
 
   return (
     <div className="min-h-screen">
-      <section className="bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-12 text-white">
+      <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-12 text-white">
         <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">Search</h1>
           <p className="mt-2 text-blue-100">Find deals, providers, and guides</p>
@@ -83,7 +89,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        {query && (
+        {query && !results.unavailable && (
           <p className="mb-6 text-sm text-muted-foreground">
             {totalResults} result{totalResults !== 1 && "s"} for &ldquo;{query}&rdquo;
           </p>
@@ -96,7 +102,16 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </div>
         )}
 
-        {query && totalResults === 0 && (
+        {results.unavailable && (
+          <div className="rounded-2xl border bg-card px-6 py-12 text-center" role="status">
+            <Search aria-hidden="true" className="mx-auto size-10 text-muted-foreground" />
+            <h2 className="mt-4 text-xl font-semibold">Search is temporarily unavailable</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">We couldn’t load results for &ldquo;{query}&rdquo;. Please try again shortly, or explore our guides while we reconnect.</p>
+            <Link href="/guides" className="mt-6 inline-flex rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground">Explore guides</Link>
+          </div>
+        )}
+
+        {query && !results.unavailable && totalResults === 0 && (
           <div className="py-16 text-center">
             <Search className="mx-auto size-12 text-muted-foreground/40" />
             <p className="mt-4 text-lg font-medium">No results found</p>

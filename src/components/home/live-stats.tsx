@@ -9,12 +9,14 @@ export async function LiveStats() {
   let plans = 0;
   let providers = 0;
   let lastImport: Date | null = null;
+  const available = { provider: { isActive: true }, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] };
   try {
     [plans, providers, lastImport] = await Promise.all([
-      prisma.plan.count(),
+      prisma.plan.count({ where: available }),
       prisma.provider.count({ where: { isActive: true } }),
       prisma.plan
         .findFirst({
+          where: available,
           orderBy: { updatedAt: "desc" },
           select: { updatedAt: true },
         })
@@ -25,40 +27,29 @@ export async function LiveStats() {
     return null;
   }
 
-  const fmtRel = (d: Date | null) => {
-    if (!d) return "today";
-    const diff = Date.now() - d.getTime();
-    const mins = Math.floor(diff / 60_000);
-    if (mins < 60) return `${mins}m ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    const days = Math.floor(hrs / 24);
-    return `${days}d ago`;
-  };
-
   const items = [
     {
       icon: TrendingUp,
       value: plans.toLocaleString("en-GB"),
-      label: "Live deals",
+      label: "Listed deals",
       color: "from-emerald-500 to-emerald-700",
     },
     {
       icon: Building2,
       value: String(providers),
-      label: "Verified retailers",
+      label: "Active providers",
       color: "from-blue-500 to-blue-700",
     },
     {
       icon: RefreshCw,
-      value: fmtRel(lastImport),
-      label: "Last refresh",
+      value: lastImport?.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" }) ?? "Unavailable",
+      label: "Latest listing update",
       color: "from-purple-500 to-purple-700",
     },
     {
       icon: Sparkles,
-      value: "0",
-      label: "Hidden fees",
+      value: "Free",
+      label: "To compare",
       color: "from-amber-500 to-orange-600",
     },
   ];

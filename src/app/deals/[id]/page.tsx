@@ -145,7 +145,7 @@ export default async function DealDetailPage({
 
       {/* Hero — brand-coloured gradient with animated decoration */}
       <section
-        className="relative pb-24 pt-8 text-white overflow-hidden"
+        className="page-banner relative pb-24 pt-8 text-white overflow-hidden"
         style={{
           background: `linear-gradient(135deg, ${heroFrom} 0%, ${heroTo} 60%, #0a1628 120%)`,
         }}

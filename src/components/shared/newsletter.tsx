@@ -43,6 +43,8 @@ export function Newsletter() {
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           type="email"
+          aria-label="Email address for deal alerts"
+          autoComplete="email"
           placeholder="Your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -51,6 +53,7 @@ export function Newsletter() {
         />
         <Button
           type="submit"
+          aria-label={loading ? "Subscribing to deal alerts" : "Subscribe to deal alerts"}
           size="sm"
           disabled={loading}
           className="shrink-0 bg-[#38a169] text-white hover:bg-[#48bb78]"

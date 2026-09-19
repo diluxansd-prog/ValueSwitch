@@ -1,28 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { HeroSection } from "./hero-section";
 
-/**
- * Server wrapper that fetches live counters and passes them into the
- * client hero. Defensive — if the DB is unreachable at build time we
- * fall back to safe baseline numbers.
- */
+/** Omit counters when the database cannot provide current listings. */
 export async function HeroSectionServer() {
+  let stats: { deals: number; providers: number } | undefined;
   try {
-    const [deals, providers, cheapestAgg] = await Promise.all([
-      prisma.plan.count(),
+    const [deals, providers] = await Promise.all([
+      prisma.plan.count({ where: { provider: { isActive: true }, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } }),
       prisma.provider.count({ where: { isActive: true } }),
-      prisma.plan.aggregate({ _min: { monthlyCost: true } }),
     ]);
-    return (
-      <HeroSection
-        stats={{
-          deals,
-          providers,
-          cheapestMonthly: cheapestAgg._min.monthlyCost ?? 4.5,
-        }}
-      />
-    );
+    stats = { deals, providers };
   } catch {
-    return <HeroSection />;
+    // Category browsing remains available without database counters.
   }
+  return <HeroSection stats={stats} />;
 }

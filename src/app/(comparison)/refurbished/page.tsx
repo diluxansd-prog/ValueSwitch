@@ -121,7 +121,7 @@ export default async function RefurbishedPage() {
   return (
     <div>
       {/* Hero — emerald cinematic */}
-      <section className="relative overflow-hidden text-white bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900">
+      <section className="page-banner relative overflow-hidden text-white bg-gradient-to-br from-emerald-700 via-emerald-800 to-slate-900">
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-emerald-400/20 blur-3xl animate-pulse" />
         <div
           className="absolute -bottom-32 -left-32 w-96 h-96 rounded-full bg-teal-400/20 blur-3xl animate-pulse"

@@ -91,7 +91,7 @@ function MortgagesContent() {
 
   return (
     <div>
-      <section className="border-b bg-gradient-to-r from-emerald-500 to-teal-500">
+      <section className="page-banner border-b bg-gradient-to-r from-emerald-500 to-teal-500">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
           <div className="flex items-center gap-2 text-white/80 text-sm mb-2">
             <Link href="/finance" className="hover:text-white transition-colors">Finance</Link>

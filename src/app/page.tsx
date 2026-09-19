@@ -8,7 +8,7 @@ import { TopOffers } from "@/components/home/top-offers";
 import { LatestPhones } from "@/components/home/latest-phones";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { ProviderLogos } from "@/components/home/provider-logos";
-import { Testimonials } from "@/components/home/testimonials";
+import { SavingOpportunities } from "@/components/home/saving-opportunities";
 
 function GridSkeleton({ count = 4 }: { count?: number }) {
   return (
@@ -16,7 +16,7 @@ function GridSkeleton({ count = 4 }: { count?: number }) {
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <div className="mx-auto h-8 w-64 animate-pulse rounded bg-muted" />
-          <div className="mx-auto mt-3 h-5 w-96 animate-pulse rounded bg-muted" />
+          <div className="mx-auto mt-3 h-5 w-full max-w-96 animate-pulse rounded bg-muted" />
         </div>
         <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4">
           {Array.from({ length: count }).map((_, i) => (
@@ -31,7 +31,7 @@ function GridSkeleton({ count = 4 }: { count?: number }) {
 export default function Home() {
   return (
     <>
-      <Suspense fallback={<div className="h-[600px] bg-[#08152d]" />}>
+      <Suspense fallback={<div className="h-[680px] bg-[#0c2528]" />}>
         <HeroSectionServer />
       </Suspense>
       <Suspense fallback={null}>
@@ -50,7 +50,6 @@ export default function Home() {
       >
         <CategoryCards />
       </Suspense>
-      <TrustIndicators />
       <TopOffers />
       <Suspense fallback={<GridSkeleton count={8} />}>
         <LatestPhones />
@@ -58,9 +57,10 @@ export default function Home() {
       <Suspense fallback={<GridSkeleton count={3} />}>
         <PopularDeals />
       </Suspense>
+      <SavingOpportunities />
+      <TrustIndicators />
       <HowItWorks />
       <ProviderLogos />
-      <Testimonials />
     </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
   Menu,
@@ -37,10 +38,10 @@ import { mainNavItems } from "@/config/navigation";
 import { categories } from "@/config/categories";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
-import { SiteSearch } from "@/components/layout/site-search";
 import { cn } from "@/lib/utils";
 
 export function Header() {
+  const pathname = usePathname();
   const { data: session } = useSession();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -56,19 +57,19 @@ export function Header() {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md transition-all duration-300",
+        "sticky top-0 z-50 w-full border-b bg-card/95 backdrop-blur-xl transition-all duration-300",
         isScrolled
           ? "shadow-md border-border/60"
           : "shadow-none border-transparent"
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto flex h-[76px] max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center justify-center size-8 rounded-lg bg-gradient-to-br from-[#1a365d] to-[#38a169]">
+          <div className="flex items-center justify-center size-9 rounded-xl bg-[#1b4b3f] shadow-sm">
             <Zap className="size-5 text-white" />
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-[#1a365d] to-[#38a169] bg-clip-text text-transparent">
+          <span className="text-xl font-semibold tracking-tight text-foreground">
             ValueSwitch
           </span>
         </Link>
@@ -86,7 +87,7 @@ export function Header() {
                 <NavigationMenuItem key={item.href}>
                   {item.children && item.children.length > 0 ? (
                     <>
-                      <NavigationMenuTrigger className="text-sm font-medium text-foreground/80 hover:text-foreground">
+                      <NavigationMenuTrigger className={cn("rounded-lg bg-transparent text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground", pathname.startsWith(item.href) && "bg-muted text-foreground")}>
                         {Icon && (
                           <Icon
                             className={cn("size-4 mr-1", category?.color)}
@@ -156,7 +157,8 @@ export function Header() {
                     <NavigationMenuLink asChild>
                       <Link
                         href={item.href}
-                        className="text-sm font-medium text-foreground/80 hover:text-foreground px-4 py-2"
+                        aria-current={pathname === item.href ? "page" : undefined}
+                        className={cn("rounded-lg text-sm font-medium text-foreground/70 hover:bg-muted hover:text-foreground px-3 py-2", pathname.startsWith(item.href) && "bg-muted text-foreground")}
                       >
                         {item.label}
                       </Link>
@@ -168,14 +170,9 @@ export function Header() {
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Inline search (desktop only — mobile uses the icon below) */}
-        <div className="hidden xl:block flex-1 max-w-sm mx-6">
-          <SiteSearch variant="inline" />
-        </div>
-
         {/* Right side actions */}
         <div className="flex items-center gap-1 sm:gap-2">
-          <Button variant="ghost" size="icon" asChild className="xl:hidden hidden sm:inline-flex">
+          <Button variant="ghost" size="icon" asChild>
             <Link href="/search" aria-label="Search">
               <Search className="size-4" />
             </Link>
@@ -270,9 +267,9 @@ export function Header() {
           <Button
             size="sm"
             asChild
-            className="hidden sm:inline-flex bg-gradient-to-r from-[#1a365d] to-[#38a169] hover:from-[#2a4a7f] hover:to-[#48bb78] text-white border-0"
+            className="hidden sm:inline-flex"
           >
-            <Link href="/mobile">
+            <Link href="/mobile/compare">
               <ArrowRightLeft className="size-4" />
               <span className="hidden md:inline">Compare</span>
             </Link>

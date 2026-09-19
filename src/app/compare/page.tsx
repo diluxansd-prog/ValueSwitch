@@ -56,7 +56,7 @@ export default function ComparePage() {
             Add 2-3 plans from our comparison pages to see them side by side.
           </p>
           <Button asChild className="bg-gradient-to-r from-[#1a365d] to-[#38a169] text-white">
-            <Link href="/energy">
+            <Link href="/mobile">
               <ArrowLeft className="size-4" />
               Browse deals
             </Link>
@@ -123,7 +123,7 @@ export default function ComparePage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <section className="bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-10 text-white">
+      <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-10 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 mb-2">
             <Icon className="size-6" />

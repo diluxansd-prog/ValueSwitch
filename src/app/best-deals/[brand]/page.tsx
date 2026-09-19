@@ -123,7 +123,7 @@ export default async function BestBrandDealsPage({ params }: PageProps) {
       />
 
       {/* Hero */}
-      <section className="bg-gradient-to-br from-[#1a365d] via-[#1e3a5f] to-[#2a4a7f] text-white">
+      <section className="page-banner bg-gradient-to-br from-[#1a365d] via-[#1e3a5f] to-[#2a4a7f] text-white">
         <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
           <Breadcrumbs
             items={[

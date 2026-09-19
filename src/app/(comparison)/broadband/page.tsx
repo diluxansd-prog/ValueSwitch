@@ -132,7 +132,7 @@ export default async function BroadbandPage() {
   return (
     <div>
       {/* Hero — cinematic gradient */}
-      <section className="relative bg-gradient-to-br from-[#0a1628] via-[#1a365d] to-[#2a4a7f] text-white overflow-hidden">
+      <section className="page-banner relative bg-gradient-to-br from-[#0a1628] via-[#1a365d] to-[#2a4a7f] text-white overflow-hidden">
         {/* Animated wifi pulse */}
         <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-purple-500/20 blur-3xl animate-pulse" />
         <div

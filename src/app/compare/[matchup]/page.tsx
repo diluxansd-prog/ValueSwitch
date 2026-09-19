@@ -564,7 +564,7 @@ export default async function ComparePage({ params }: PageProps) {
       </section>
 
       {/* Page intro */}
-      <section className="bg-background border-b">
+      <section className="page-banner bg-background border-b">
         <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
           <Badge className="mb-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0 shadow-md">
             <Sparkles className="size-3 mr-1" />

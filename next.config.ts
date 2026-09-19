@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  outputFileTracingIncludes: {
+    "/guides/**/*": ["./content/guides/**/*.md"],
+    "/guides": ["./content/guides/**/*.md"],
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [

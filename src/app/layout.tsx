@@ -9,7 +9,6 @@ import { CookieConsent } from "@/components/shared/cookie-consent";
 import { BackToTop } from "@/components/shared/back-to-top";
 import { CompareDrawer } from "@/components/shared/compare-drawer";
 import { OrganizationJsonLd, WebSiteJsonLd } from "@/components/shared/json-ld";
-import { ExitIntentPopup } from "@/components/shared/exit-intent-popup";
 import { PwaInstallPrompt } from "@/components/shared/pwa-install-prompt";
 import { PromoBannerServer } from "@/components/shared/promo-banner-server";
 import { SessionProvider } from "@/components/providers/session-provider";
@@ -64,7 +63,6 @@ export default function RootLayout({
             <CompareDrawer />
             <CookieConsent />
             <BackToTop />
-            <ExitIntentPopup />
             <PwaInstallPrompt />
           </TooltipProvider>
         </ThemeProvider>

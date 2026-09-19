@@ -110,7 +110,7 @@ export default async function ProviderDetailPage({
 
       {/* Hero — brand-coloured gradient with animated decoration */}
       <section
-        className="relative py-14 sm:py-20 text-white overflow-hidden"
+        className="page-banner relative py-14 sm:py-20 text-white overflow-hidden"
         style={{
           background: `linear-gradient(135deg, ${heroFrom} 0%, ${heroTo} 60%, #0a1628 130%)`,
         }}

@@ -64,7 +64,7 @@ export default function TvPackagesPage() {
       <FAQPageJsonLd faqs={FAQS} />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#1a365d] via-[#4c1d95] to-[#0e7490] text-white">
+      <section className="page-banner relative overflow-hidden bg-gradient-to-br from-[#1a365d] via-[#4c1d95] to-[#0e7490] text-white">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:py-20">
           <Badge className="mb-4 bg-white/15 text-white border-0 backdrop-blur-sm">
             <Tv className="size-3.5 mr-1" />

@@ -122,7 +122,7 @@ function MobileCompareContent() {
   return (
     <div>
       {/* Header */}
-      <section className="border-b bg-gradient-to-r from-purple-500 to-pink-500">
+      <section className="page-banner border-b bg-gradient-to-r from-purple-500 to-pink-500">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
           <div className="flex items-center gap-2 text-white/80 text-sm mb-2">
             <Link href="/mobile" className="hover:text-white transition-colors">

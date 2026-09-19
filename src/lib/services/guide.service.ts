@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
+import { getLocalGuides } from "./local-guides";
 
 export async function getGuides(category?: string) {
   try {
-    const where: any = { isPublished: true };
+    const where: Prisma.GuideWhereInput = { isPublished: true };
     if (category) where.category = category;
 
     return await prisma.guide.findMany({
@@ -10,7 +12,7 @@ export async function getGuides(category?: string) {
       orderBy: { publishedAt: "desc" },
     });
   } catch {
-    return [];
+    return (await getLocalGuides()).filter(guide => !category || guide.category === category);
   }
 }
 
@@ -22,14 +24,14 @@ export async function getAllGuideSlugs() {
     });
     return guides;
   } catch {
-    return [];
+    return (await getLocalGuides()).map(({ slug, category }) => ({ slug, category }));
   }
 }
 
 export async function getGuideBySlug(slug: string) {
   try {
-    return await prisma.guide.findUnique({ where: { slug } });
+    return await prisma.guide.findFirst({ where: { slug, isPublished: true } });
   } catch {
-    return null;
+    return (await getLocalGuides()).find(guide => guide.slug === slug) ?? null;
   }
 }

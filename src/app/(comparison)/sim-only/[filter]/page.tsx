@@ -359,7 +359,7 @@ export default async function SimOnlyFilteredPage({ params }: PageProps) {
 
       {/* Hero */}
       <section
-        className="relative py-14 sm:py-20 text-white overflow-hidden"
+        className="page-banner relative py-14 sm:py-20 text-white overflow-hidden"
         style={{
           background: `linear-gradient(135deg, ${config.heroFrom} 0%, ${config.heroTo} 60%, #0a1628 130%)`,
         }}

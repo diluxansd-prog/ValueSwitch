@@ -67,7 +67,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
   const { category, slug } = await params;
   const guide = await getGuideBySlug(slug);
 
-  if (!guide) {
+  if (!guide || guide.category !== category) {
     notFound();
   }
 
@@ -123,7 +123,7 @@ export default async function GuidePage({ params }: GuidePageProps) {
       <SpeakableJsonLd url={url} cssSelectors={["h1", "article p:first-of-type"]} />
 
       {/* Article Header */}
-      <section className="bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-12 text-white">
+      <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-12 text-white">
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <Breadcrumbs
             items={[

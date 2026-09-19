@@ -39,7 +39,7 @@ export default async function CategoryGuidesPage({
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-16 text-white">
+      <section className="page-banner bg-gradient-to-br from-[#1a365d] to-[#2a4a7f] py-16 text-white">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <Link
             href="/guides"

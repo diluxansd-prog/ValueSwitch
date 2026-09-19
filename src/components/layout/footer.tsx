@@ -31,11 +31,14 @@ function LinkedInIcon({ className }: { className?: string }) {
 
 export function Footer() {
   return (
-    <footer className="border-t bg-[#1a365d] text-white">
+    <footer className="border-t bg-[#102e2c] text-white">
       {/* SEO internal-link block — every page links to programmatic
           landing pages and top guides, distributing PageRank from the
           home page down to long-tail destinations. */}
-      <SeoLinkBlock />
+      <details className="group border-b border-white/10">
+        <summary className="mx-auto flex max-w-6xl items-center justify-between px-4 py-5 text-sm font-medium text-white/80 sm:px-6">Explore more comparisons and guides <span className="text-xl transition-transform group-open:rotate-45" aria-hidden="true">+</span></summary>
+        <SeoLinkBlock />
+      </details>
 
       {/* Trust badges section */}
       <div className="border-b border-white/10">
@@ -48,7 +51,7 @@ export function Footer() {
               <div>
                 <p className="text-sm font-semibold">Awin Affiliate Partner</p>
                 <p className="text-xs text-white/60">
-                  Verified real deals
+                  Affiliate links clearly disclosed
                 </p>
               </div>
             </div>
@@ -57,9 +60,9 @@ export function Footer() {
                 <Star className="size-5 text-yellow-400" />
               </div>
               <div>
-                <p className="text-sm font-semibold">Real prices, real deals</p>
+                <p className="text-sm font-semibold">Details before decisions</p>
                 <p className="text-xs text-white/60">
-                  Live-imported weekly from partner feeds
+                  Check price, upfront cost and contract
                 </p>
               </div>
             </div>
@@ -68,9 +71,9 @@ export function Footer() {
                 <Lock className="size-5 text-blue-300" />
               </div>
               <div>
-                <p className="text-sm font-semibold">Secure & Safe</p>
+                <p className="text-sm font-semibold">Your choice, your switch</p>
                 <p className="text-xs text-white/60">
-                  SSL encrypted & GDPR compliant
+                  Complete your purchase with the provider
                 </p>
               </div>
             </div>

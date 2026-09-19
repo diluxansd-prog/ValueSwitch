@@ -1,7 +1,9 @@
+import Link from "next/link";
+
 const providers = [
-  { name: "Vodafone", deals: "66 deals" },
-  { name: "Talkmobile", deals: "25 deals" },
-  { name: "Lebara", deals: "15 deals" },
+  { name: "Vodafone", slug: "vodafone" },
+  { name: "Talkmobile", slug: "talkmobile" },
+  { name: "Lebara", slug: "lebara" },
 ];
 
 export function ProviderLogos() {
@@ -18,16 +20,16 @@ export function ProviderLogos() {
 
       <div className="flex gap-4 flex-wrap justify-center">
         {providers.map((provider) => (
-          <div
+          <Link
             key={provider.name}
-            className="flex items-center gap-3 rounded-xl border border-border/60 bg-white px-6 py-4 dark:bg-slate-800/50"
+            href={`/providers/${provider.slug}`}
+            className="flex items-center gap-3 rounded-xl border border-border/60 bg-white px-6 py-4 transition-colors hover:border-emerald-600 dark:bg-slate-800/50"
           >
             <div className="flex size-3 rounded-full bg-green-500 shrink-0" />
             <div>
               <span className="text-sm font-semibold">{provider.name}</span>
-              <p className="text-xs text-muted-foreground">{provider.deals}</p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
     </section>
