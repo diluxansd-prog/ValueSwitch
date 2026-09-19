@@ -20,7 +20,7 @@
  * All side effects are idempotent — running twice is safe.
  */
 import { prisma } from "@/lib/prisma";
-import { gunzipSync } from "zlib";
+import { streamFeedCsv, toCsv } from "@/lib/awin/feed-stream";
 import { generateAwinLink } from "@/lib/affiliate";
 import type { MerchantFeedConfig } from "@/config/merchants";
 
@@ -149,25 +149,10 @@ function slugify(s: string): string {
 async function fetchFeed(
   feedUrl: string
 ): Promise<{ csv: string; bytes: number }> {
-  const res = await fetch(feedUrl, {
-    headers: { "User-Agent": "ValueSwitchBot/1.0 (+https://valueswitch.co.uk)" },
-  });
-  if (!res.ok) {
-    throw new Error(`Feed fetch failed: HTTP ${res.status}`);
-  }
-  const ab = await res.arrayBuffer();
-  const gz = Buffer.from(ab);
-
-  let csv: string;
-  try {
-    // Awin serves gzipped by default
-    csv = gunzipSync(gz).toString("utf-8");
-  } catch {
-    // Fallback: maybe the feed wasn't gzipped
-    csv = gz.toString("utf-8");
-  }
-
-  return { csv, bytes: gz.length };
+  // Streamed download + gunzip: never holds the compressed buffer, the
+  // decompressed buffer and the decoded string all at once.
+  const { header, records, bytes } = await streamFeedCsv(feedUrl, null);
+  return { csv: toCsv(header, records), bytes };
 }
 
 interface FeedRow {
@@ -772,6 +757,9 @@ async function importInternal(
           affiliateUrl,
           merchantProductId: row.merchant_product_id,
           merchantDeepLink: merchantDeepLink || null,
+          // The feed just confirmed this deal exists, so it is live —
+          // un-retire it if the stale-deal sweep had expired it.
+          expiresAt: null,
         };
 
         if (previous) {

@@ -49,7 +49,16 @@ const STATEMENTS: { id: string; sql: string }[] = [
     // are months out of date. Retire by createdAt so future fresh
     // imports are never affected.
     id: "plan-expire-befibre-legacy",
-    sql: `UPDATE "Plan" SET "expiresAt" = NOW() WHERE "providerId" IN (SELECT "id" FROM "Provider" WHERE "slug" = 'be-fibre') AND "createdAt" < '2026-09-01' AND ("expiresAt" IS NULL OR "expiresAt" > NOW())`,
+    // updatedAt guard: never re-retire a row a feed has since re-confirmed
+    sql: `UPDATE "Plan" SET "expiresAt" = NOW() WHERE "providerId" IN (SELECT "id" FROM "Provider" WHERE "slug" = 'be-fibre') AND "createdAt" < '2026-09-01' AND "updatedAt" < '2026-09-07' AND ("expiresAt" IS NULL OR "expiresAt" > NOW())`,
+  },
+  {
+    // Repair: before the importer cleared expiresAt on re-import, deals
+    // the stale sweep retired stayed hidden even after a feed confirmed
+    // them again. Raw-SQL expiry doesn't touch updatedAt, so any row
+    // updated after it was expired was re-confirmed by a feed.
+    id: "plan-unexpire-reconfirmed",
+    sql: `UPDATE "Plan" SET "expiresAt" = NULL WHERE "expiresAt" IS NOT NULL AND "updatedAt" > "expiresAt"`,
   },
 ];
 

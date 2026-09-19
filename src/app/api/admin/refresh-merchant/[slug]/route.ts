@@ -21,66 +21,36 @@ import { prisma } from "@/lib/prisma";
 import { MERCHANT_FEEDS } from "@/config/merchants";
 import { importFeed, importFromCsv } from "@/lib/feed-importer";
 import { reapOrphanedRunsByPrefix } from "@/lib/cron-reaper";
-import { gunzipSync } from "zlib";
+import { streamFeedCsv, toCsv } from "@/lib/awin/feed-stream";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300; // Fluid Compute allows up to 300s on Hobby
 
-/** Warm-instance cache for the combined multi-FID CSV. Fluid Compute
- *  keeps the instance alive between invocations, so sequential
- *  per-merchant refreshes reuse one download instead of re-fetching
- *  (and re-holding) a huge CSV each time — the repeated copies are
- *  what OOM-killed instances before. */
-let combinedCache: { url: string; fetchedAt: number; csv: string } | null =
-  null;
+/** Warm-instance cache of the combined multi-FID feed, holding ONLY the
+ *  rows of merchants we import (grouped by MID) — never the whole
+ *  network feed. Holding the full CSV for 10 minutes on a shared Fluid
+ *  instance is what ran imports out of memory. Sequential per-merchant
+ *  refreshes still share one download. */
+let combinedCache: {
+  url: string;
+  fetchedAt: number;
+  header: string;
+  byMid: Map<string, string[]>;
+} | null = null;
 const COMBINED_CACHE_TTL_MS = 10 * 60 * 1000;
 
-/** Line-level prefilter: keep the header plus only lines that mention
- *  this merchant's MID. The importer used to parse EVERY row of the
- *  combined feed into objects before filtering — that full parse is
- *  what ran instances out of memory. String scanning is cheap; the
- *  importer's exact merchant_id check still applies afterwards, so
- *  false-positive lines are harmless. */
-function filterCsvForMerchant(csv: string, mid: string): string {
-  const firstNl = csv.indexOf("\n");
-  if (firstNl === -1) return csv;
-  const out: string[] = [csv.slice(0, firstNl)];
-  const quoted = `"${mid}"`;
-  const bare = `,${mid},`;
-  let i = firstNl;
-  while (i < csv.length) {
-    const j = csv.indexOf("\n", i + 1);
-    const end = j === -1 ? csv.length : j;
-    const line = csv.slice(i + 1, end);
-    if (line.includes(quoted) || line.includes(bare)) out.push(line);
-    if (j === -1) break;
-    i = end;
-  }
-  return out.join("\n");
-}
-
-async function getCombinedCsv(url: string): Promise<string> {
+async function getCombinedCsvFor(url: string, mid: string): Promise<string> {
   if (
-    combinedCache &&
-    combinedCache.url === url &&
-    Date.now() - combinedCache.fetchedAt < COMBINED_CACHE_TTL_MS
+    !combinedCache ||
+    combinedCache.url !== url ||
+    Date.now() - combinedCache.fetchedAt >= COMBINED_CACHE_TTL_MS
   ) {
-    return combinedCache.csv;
+    combinedCache = null; // release the old subsets before downloading
+    const mids = [...new Set(MERCHANT_FEEDS.map((m) => m.awinMerchantId))];
+    const { header, byMid } = await streamFeedCsv(url, mids);
+    combinedCache = { url, fetchedAt: Date.now(), header, byMid };
   }
-  combinedCache = null; // free the old copy before downloading a new one
-  const res = await fetch(url, {
-    headers: { "User-Agent": "ValueSwitchBot/1.0" },
-  });
-  if (!res.ok) throw new Error(`combined feed fetch HTTP ${res.status}`);
-  const buf = Buffer.from(await res.arrayBuffer());
-  let csv: string;
-  try {
-    csv = gunzipSync(buf).toString("utf-8");
-  } catch {
-    csv = buf.toString("utf-8");
-  }
-  combinedCache = { url, fetchedAt: Date.now(), csv };
-  return csv;
+  return toCsv(combinedCache.header, combinedCache.byMid.get(mid) ?? []);
 }
 
 /** Admin session OR the cron secret — the weekly refresh-feed job
@@ -171,8 +141,8 @@ export async function POST(
     if (feedUrl) {
       result = await importFeed(merchant, feedUrl);
     } else {
-      const csv = filterCsvForMerchant(
-        await getCombinedCsv(combinedUrl!),
+      const csv = await getCombinedCsvFor(
+        combinedUrl!,
         merchant.awinMerchantId
       );
       result = await importFromCsv(merchant, csv, "combined-feed");

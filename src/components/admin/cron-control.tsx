@@ -104,6 +104,23 @@ function parseSummary(raw: string | null): ParsedSummary | null {
   }
 }
 
+/** Parse a job response without ever surfacing a raw JSON error. When the
+ *  platform answers with an HTML page instead (function crash/timeout, or
+ *  a login redirect after the session expired) say which one it was. */
+async function readJobResponse(res: Response) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    if (res.redirected && /\/login/.test(res.url)) {
+      throw new Error("your admin session expired — sign in again and retry");
+    }
+    throw new Error(
+      `the server returned an error page (HTTP ${res.status}) — the job crashed or timed out. Check Run history below; imports that finished are still saved`
+    );
+  }
+}
+
 export function CronControlClient({
   runs,
   merchants,
@@ -119,11 +136,11 @@ export function CronControlClient({
     if (running) return;
     setRunning(true);
     toast.info(
-      `Refreshing ${configuredCount} merchant feed${configuredCount === 1 ? "" : "s"}... takes 30-60s`
+      `Refreshing ${configuredCount} merchant feed${configuredCount === 1 ? "" : "s"} one at a time... can take a few minutes`
     );
     try {
       const res = await fetch("/api/cron/refresh-feed", { method: "POST" });
-      const data = await res.json();
+      const data = await readJobResponse(res);
       if (data.ok) {
         const totals = (data.perMerchant || []).reduce(
           (acc: { c: number; u: number; p: number }, r: PerMerchantSummary) => ({
@@ -146,8 +163,10 @@ export function CronControlClient({
       router.refresh();
     } catch (err) {
       toast.error(
-        `Trigger failed: ${err instanceof Error ? err.message : "unknown"}`
+        `Refresh didn't finish: ${err instanceof Error ? err.message : "unknown error"}`,
+        { duration: 12_000 }
       );
+      router.refresh();
     } finally {
       setRunning(false);
     }
@@ -492,12 +511,12 @@ function MerchantDiagnostics({ merchants }: { merchants: MerchantStatus[] }) {
   async function refreshOne(slug: string) {
     if (busy) return;
     setBusy(slug);
-    toast.info(`Refreshing ${slug}... up to 30s`);
+    toast.info(`Refreshing ${slug}... can take up to a couple of minutes`);
     try {
       const res = await fetch(`/api/admin/refresh-merchant/${slug}`, {
         method: "POST",
       });
-      const data = await res.json();
+      const data = await readJobResponse(res);
       if (data.ok) {
         const c = data.counts;
         toast.success(
@@ -511,8 +530,10 @@ function MerchantDiagnostics({ merchants }: { merchants: MerchantStatus[] }) {
       router.refresh();
     } catch (err) {
       toast.error(
-        `Trigger failed: ${err instanceof Error ? err.message : "unknown"}`
+        `${slug} refresh didn't finish: ${err instanceof Error ? err.message : "unknown error"}`,
+        { duration: 12_000 }
       );
+      router.refresh();
     } finally {
       setBusy(null);
     }
