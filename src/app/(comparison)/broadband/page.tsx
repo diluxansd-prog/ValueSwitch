@@ -23,7 +23,7 @@ import { getBrandColor } from "@/config/brand-colors";
 export const metadata: Metadata = {
   title: "Compare Full-Fibre Broadband Deals UK",
   description:
-    "Compare the best UK full-fibre broadband deals — gigabit speeds, no-contract options, and real monthly prices. Updated daily from Be Fibre and other Awin partners.",
+    "Compare the best UK full-fibre broadband deals — gigabit speeds, no-contract options, and real monthly prices. Updated daily from Quickline, Highland Broadband and other Awin partners.",
 };
 
 export const dynamic = "force-dynamic";
