@@ -20,7 +20,8 @@ export type OfferCategory =
   | "broadband"
   | "travel-esim"
   | "phones"
-  | "business";
+  | "business"
+  | "insurance";
 
 export interface CuratedOffer {
   /** Stable id, used as React key + clickref */
@@ -147,18 +148,50 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   // deeplink for their actual shop is known.
   {
     id: "simlocal-students",
-    startsAt: "2026-08-20",
+    startsAt: "2026-09-17",
     merchant: "sim-local",
     merchantName: "Sim Local",
     title: "15% student discount on SIMs",
     description:
       "Students save 15% at Sim Local — stack it with freshers-season SIM deals before it expires.",
     code: "STUDENTS15",
-    endsAt: "2026-09-15",
+    endsAt: "2026-10-10",
     category: "sim",
     destinationUrl: "https://www.simlocal.com/promotions/esim-plans-for-students",
     priority: 55,
     badge: "15% OFF",
+  },
+
+  {
+    id: "chattr-back-to-school",
+    startsAt: "2026-09-08",
+    merchant: "chattr",
+    merchantName: "Chattr",
+    title: "No-credit-check SIM — £15/month, £13 with loyalty",
+    description:
+      "Chattr's back-to-school SIM: no credit check, ideal for a student SIM or a second number. £15 a month, dropping to £13 with their loyalty discount.",
+    endsAt: "2026-09-30",
+    category: "sim",
+    destinationUrl: "https://chattr.co.uk/plans",
+    priority: 60,
+    badge: "NO CREDIT CHECK",
+  },
+
+  // ── Travel insurance ──────────────────────────────────────────────
+  {
+    id: "outbacker-single-trip-5",
+    startsAt: "2026-09-09",
+    merchant: "outbacker",
+    merchantName: "Outbacker Insurance",
+    title: "5% off single-trip travel insurance",
+    description:
+      "5% off Outbacker single-trip policies — backpacker and adventure cover with medical, gadget and cancellation protection. Pairs with a travel eSIM.",
+    code: "OUTBACKER5",
+    endsAt: "2026-09-30",
+    category: "insurance",
+    destinationUrl: "https://outbackerinsurance.com/travel_insurance_quote.php",
+    priority: 100,
+    badge: "5% OFF",
   },
 
   // ── Broadband ─────────────────────────────────────────────────────
@@ -388,6 +421,7 @@ export const OFFER_CATEGORY_LABELS: Record<OfferCategory, string> = {
   "travel-esim": "Travel eSIMs",
   phones: "Phones",
   business: "Business",
+  insurance: "Travel insurance",
 };
 
 /** Offers still in date, sorted by category then priority. */

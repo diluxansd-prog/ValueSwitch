@@ -36,6 +36,8 @@ export const AWIN_MERCHANTS = {
   fonehouse: "6224",
   italk: "12833",
   "carnival-internet": "127563",
+  chattr: "115559",
+  outbacker: "18999",
 } as const;
 
 export type AwinMerchantSlug = keyof typeof AWIN_MERCHANTS;
@@ -101,6 +103,8 @@ export const MERCHANT_HOMEPAGES: Record<AwinMerchantSlug, string> = {
   fonehouse: "https://www.fonehouse.co.uk/",
   italk: "https://www.italktelecom.co.uk/",
   "carnival-internet": "https://www.carnivalinternet.co.uk/",
+  chattr: "https://chattr.co.uk/",
+  outbacker: "https://outbackerinsurance.com/",
 };
 
 interface GenerateLinkOptions {
@@ -194,6 +198,8 @@ export function detectMerchantFromUrl(url: string): AwinMerchantSlug | null {
       return "be-fibre";
     if (hostname.includes("italktelecom.co.uk")) return "italk";
     if (hostname.includes("carnivalinternet.co.uk")) return "carnival-internet";
+    if (hostname.includes("chattr.co.uk")) return "chattr";
+    if (hostname.includes("outbackerinsurance.com")) return "outbacker";
     if (hostname.includes("lightningfibre.co.uk")) return "lightning-fibre";
     if (hostname.includes("worldsim.com")) return "worldsim";
     if (hostname.includes("knowroaming.com")) return "knowroaming";

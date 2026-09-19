@@ -70,6 +70,8 @@ const MERCHANT_CATEGORY: Record<AwinMerchantSlug, OfferCategory> = {
   "lightning-fibre": "broadband",
   italk: "broadband",
   "carnival-internet": "broadband",
+  chattr: "sim",
+  outbacker: "insurance",
   worldsim: "travel-esim",
   knowroaming: "travel-esim",
   mozillion: "travel-esim",
