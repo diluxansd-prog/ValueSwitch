@@ -34,11 +34,11 @@ const BLOCKS = [
       { href: "/compare/vodafone-vs-talkmobile", label: "Vodafone vs Talkmobile" },
       { href: "/compare/voxi-vs-vodafone", label: "VOXI vs Vodafone" },
       { href: "/compare/lebara-vs-talkmobile", label: "Lebara vs Talkmobile" },
-      { href: "/compare/be-fibre-vs-bt-broadband", label: "Be Fibre vs BT" },
       { href: "/providers/vodafone", label: "Vodafone plans & reviews" },
       { href: "/providers/lebara", label: "Lebara plans & reviews" },
       { href: "/providers/talkmobile", label: "Talkmobile plans & reviews" },
-      { href: "/providers/be-fibre", label: "Be Fibre plans & reviews" },
+      { href: "/providers/fonehouse", label: "Fonehouse plans & reviews" },
+      { href: "/providers/mozillion", label: "Mozillion plans & reviews" },
     ],
   },
   {
