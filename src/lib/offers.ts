@@ -194,6 +194,63 @@ export const CURATED_OFFERS: CuratedOffer[] = [
     badge: "5% OFF",
   },
 
+  {
+    id: "mozillion-4pm-flash",
+    startsAt: "2026-09-19",
+    merchant: "mozillion",
+    merchantName: "Mozillion",
+    title: "30GB SIM for £4/month equivalent — no credit check",
+    description:
+      "One £96 payment covers 24 months: 30GB refreshed monthly, unlimited calls and texts, 5G, EU roaming in 41 countries. No credit check and no mid-contract price rises. Flash offer, ends Sunday midnight.",
+    endsAt: "2026-09-20",
+    category: "sim",
+    destinationUrl: "https://www.mozillion.com/sim-detail/24346",
+    priority: 120,
+    badge: "£4/mo · 24 MTHS",
+  },
+  {
+    id: "vodafone-unlimited-26",
+    startsAt: "2026-09-17",
+    merchant: "vodafone",
+    merchantName: "Vodafone",
+    title: "Unlimited data SIM — £26/month (was £39)",
+    description:
+      "Vodafone's unlimited SIM-only plan with 100Mbps speeds and EU roaming, cut from £39 to £26 a month — £312 saved across the 24-month term.",
+    endsAt: "2026-11-11",
+    category: "sim",
+    destinationUrl: "https://www.vodafone.co.uk/sim-only/best-sim-only-deals",
+    priority: 115,
+    badge: "SAVE £312",
+  },
+
+  // ── Phones: iPhone 18 launch ──────────────────────────────────────
+  {
+    id: "mozillion-iphone-18-pro-max",
+    startsAt: "2026-09-17",
+    merchant: "mozillion",
+    merchantName: "Mozillion",
+    title: "iPhone 18 Pro Max — no mid-contract price rises",
+    description:
+      "Pre-order the iPhone 18 Pro Max on Mozillion with uncapped 5G, unlimited calls and texts, EU roaming — and a price locked for the whole contract.",
+    category: "phones",
+    destinationUrl: "https://www.mozillion.com/bundle/apple/iphone-18-pro-max",
+    priority: 118,
+    badge: "PRICE LOCKED",
+  },
+  {
+    id: "mozillion-iphone-18-pro",
+    startsAt: "2026-09-17",
+    merchant: "mozillion",
+    merchantName: "Mozillion",
+    title: "iPhone 18 Pro — pre-order, price locked",
+    description:
+      "iPhone 18 Pro on Mozillion contracts with no mid-contract price rises, uncapped 5G data and inclusive EU roaming. SIM-free also available.",
+    category: "phones",
+    destinationUrl: "https://www.mozillion.com/bundle/apple/iphone-18-pro",
+    priority: 112,
+    badge: "PRICE LOCKED",
+  },
+
   // ── Broadband ─────────────────────────────────────────────────────
   {
     id: "quickline-switch-300",
@@ -239,6 +296,9 @@ export const CURATED_OFFERS: CuratedOffer[] = [
   },
   {
     id: "carnival-fibre-2397",
+    // Awin told us this programme closes 15 Dec 2026, so the offer
+    // retires itself the day before rather than dead-ending.
+    endsAt: "2026-12-14",
     merchant: "carnival-internet",
     merchantName: "Carnival Internet",
     title: "Full fibre broadband from £23.97/month",
@@ -365,6 +425,36 @@ export const CURATED_OFFERS: CuratedOffer[] = [
 ];
 
 const VODAFONE_BUSINESS_OFFERS: CuratedOffer[] = [
+  // From the Vodafone Business affiliate mailer, 18 Sep 2026. Prices
+  // exclude VAT; both were verified live before listing.
+  {
+    id: "vodafone-biz-iphone-18-pro-max",
+    startsAt: "2026-09-18",
+    merchant: "vodafone",
+    merchantName: "Vodafone Business",
+    title: "iPhone 18 Pro Max for Business — £59.33/month",
+    description:
+      "iPhone 18 Pro Max 256GB on a SuperMobile Plus plan: £59.33 a month with £41.67 upfront (exc. VAT), on a 24-month airtime and 48-month phone plan. Terms apply.",
+    category: "business",
+    destinationUrl:
+      "https://www.vodafone.co.uk/business/business-mobile-phones/pay-monthly-contracts/apple/iphone-18-pro-max",
+    priority: 120,
+    badge: "iPhone 18 PRO MAX",
+  },
+  {
+    id: "vodafone-biz-iphone-18-pro",
+    startsAt: "2026-09-18",
+    merchant: "vodafone",
+    merchantName: "Vodafone Business",
+    title: "iPhone 18 Pro for Business — £57.63/month",
+    description:
+      "iPhone 18 Pro 256GB on a SuperMobile plan with up to 4x faster speeds: £57.63 a month, £33.33 upfront (exc. VAT), 24-month airtime with a 48-month phone plan. Terms apply.",
+    category: "business",
+    destinationUrl:
+      "https://www.vodafone.co.uk/business/business-mobile-phones/pay-monthly-contracts/apple/iphone-18-pro",
+    priority: 118,
+    badge: "iPhone 18 PRO",
+  },
   // From the Awin Vodafone Business affiliate mailer, 26 Aug 2026.
   // Business offers don't flow through the consumer feed or the
   // Promotions API — email is their only channel. Prices exclude VAT.
