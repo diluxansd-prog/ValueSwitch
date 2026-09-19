@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { HeroSectionServer } from "@/components/home/hero-section-server";
 import { LiveStats } from "@/components/home/live-stats";
+import { IPhone18Banner } from "@/components/home/iphone-18-banner";
 import { CategoryCards } from "@/components/home/category-cards";
 import { TrustIndicators } from "@/components/home/trust-indicators";
 import { PopularDeals } from "@/components/home/popular-deals";
@@ -36,6 +37,9 @@ export default function Home() {
       </Suspense>
       <Suspense fallback={null}>
         <LiveStats />
+      </Suspense>
+      <Suspense fallback={null}>
+        <IPhone18Banner />
       </Suspense>
       <Suspense
         fallback={
