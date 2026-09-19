@@ -69,7 +69,10 @@ export function sanitizeAffiliateUrl(url: string): string {
       (s) => AWIN_MERCHANTS[s] === mid
     );
     if (!slug || !isClosedProgramme(slug)) return url;
-    return u.searchParams.get("ued") || MERCHANT_HOMEPAGES[slug];
+    // Send to the merchant's homepage rather than the stored `ued`: a
+    // programme usually closes around a site rebuild, so those product
+    // URLs 404 (verified on Be Fibre's /product/... links).
+    return MERCHANT_HOMEPAGES[slug];
   } catch {
     return url;
   }
