@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { getMerchantLink, type AwinMerchantSlug } from "@/lib/affiliate";
 import { siteConfig } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
 import { ProviderLogo } from "@/components/shared/provider-logo";
@@ -60,6 +61,10 @@ interface Pick {
   /** Name fragment of the variant to feature as a clickable hero card
    *  (e.g. "Pro Max"). Falls back to the cheapest deal with an image. */
   featuredMatch?: string;
+  /** Verified retailer page for the featured card to link to. Imported
+   *  plans point at stable landing pages rather than product URLs, so a
+   *  checked product page here makes the click land on the actual phone. */
+  featuredLink?: { merchant: AwinMerchantSlug; url: string };
   faqs: { question: string; answer: string }[];
 }
 
@@ -84,6 +89,11 @@ const PICKS: Record<string, Pick> = {
     orderBy: [{ monthlyCost: "asc" }],
     take: 16,
     featuredMatch: "Pro Max",
+    featuredLink: {
+      merchant: "fonehouse",
+      // verified live 2026-09-20
+      url: "https://www.fonehouse.co.uk/mobile-phone-deals/iphone-18-pro-max",
+    },
     intro:
       "Live iPhone 18 prices pulled straight from our Awin partner feeds and sorted cheapest-first. Launch-window stock moves quickly, so availability and pricing can change between our weekly refreshes — always check the final price on the retailer's page before you order.",
     faqs: [
@@ -397,6 +407,17 @@ export default async function BestPickPage({ params }: PageProps) {
           d.name.toLowerCase().includes(pick.featuredMatch!.toLowerCase())
         )
       : undefined) ?? withImage[0];
+  // Prefer the verified retailer product page; otherwise fall back to the
+  // plan's own tracked redirect (both log the click).
+  const featuredHref = pick.featuredLink
+    ? getMerchantLink(
+        pick.featuredLink.merchant,
+        pick.featuredLink.url,
+        `${type}_featured`
+      )
+    : featured
+      ? `/api/redirect?plan=${featured.id}&src=${type}_featured`
+      : "#";
 
   const rankStyles = [
     { chip: "from-amber-400 to-yellow-500", icon: Trophy },
@@ -526,7 +547,7 @@ export default async function BestPickPage({ params }: PageProps) {
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
             <div className="grid items-center gap-6 rounded-2xl border bg-card p-5 shadow-sm sm:p-6 md:grid-cols-[220px_1fr]">
               <a
-                href={`/api/redirect?plan=${featured.id}&src=${type}_featured`}
+                href={featuredHref}
                 target="_blank"
                 rel="noopener noreferrer nofollow sponsored"
                 aria-label={`View the ${featured.name} deal at ${featured.provider.name}`}
@@ -565,7 +586,7 @@ export default async function BestPickPage({ params }: PageProps) {
                     className="border-0 bg-gradient-to-r from-[#1a365d] to-[#38a169] px-6 font-semibold text-white shadow-md hover:from-[#2a4a7f] hover:to-[#48bb78]"
                   >
                     <a
-                      href={`/api/redirect?plan=${featured.id}&src=${type}_featured`}
+                      href={featuredHref}
                       target="_blank"
                       rel="noopener noreferrer nofollow sponsored"
                     >
