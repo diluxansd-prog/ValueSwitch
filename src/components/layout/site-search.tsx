@@ -26,6 +26,7 @@ const POPULAR_QUERIES = [
   "Pixel 10 Pro",
   "Unlimited data SIM",
   "Refurbished iPhone",
+  "iPhone 18",
   "Full fibre broadband",
 ];
 

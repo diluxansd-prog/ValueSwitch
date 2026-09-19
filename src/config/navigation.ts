@@ -35,6 +35,11 @@ export const mainNavItems: NavItem[] = [
     description: "Live voucher codes & promos from our Awin partners.",
   },
   {
+    label: "Popular",
+    href: "/popular",
+    description: "The deals our visitors click most, from real site data.",
+  },
+  {
     label: "Guides",
     href: "/guides",
     description: "Buyer guides — straight talk on contracts, refurbs and roaming.",
@@ -47,6 +52,7 @@ export const footerLinks = {
     { label: "Phone Contracts", href: "/mobile/contracts" },
     { label: "SIM Only", href: "/mobile/sim-only" },
     { label: "Offers & Vouchers", href: "/offers" },
+    { label: "Most Popular", href: "/popular" },
     { label: "Providers", href: "/providers" },
   ],
   company: [

@@ -77,6 +77,7 @@ const BLOCKS = [
   {
     title: "Editor's picks",
     links: [
+      { href: "/best/iphone-18-deals-uk", label: "iPhone 18 deals UK" },
       { href: "/best/cheapest-iphone-uk", label: "Cheapest iPhone UK" },
       {
         href: "/best/cheapest-samsung-galaxy-uk",
@@ -90,6 +91,7 @@ const BLOCKS = [
       },
       { href: "/best/cheapest-broadband-uk", label: "Cheapest broadband UK" },
       { href: "/offers", label: "Offers & voucher codes" },
+      { href: "/popular", label: "Most popular deals" },
     ],
   },
   {

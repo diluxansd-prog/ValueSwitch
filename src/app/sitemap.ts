@@ -25,6 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${baseUrl}/energy/compare`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/broadband/compare`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/mobile/compare`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+    { url: `${baseUrl}/popular`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
     { url: `${baseUrl}/offers`, lastModified: new Date(), changeFrequency: "daily", priority: 0.85 },
     { url: `${baseUrl}/providers`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${baseUrl}/guides`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
@@ -123,6 +124,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Curated commercial-intent landing pages — keep in sync with PICKS
   // in /best/[type]/page.tsx
   const bestPicks = [
+    "iphone-18-deals-uk",
     "cheapest-iphone-uk",
     "cheapest-samsung-galaxy-uk",
     "best-pixel-deal-uk",

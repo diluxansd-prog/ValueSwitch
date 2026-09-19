@@ -60,6 +60,50 @@ interface Pick {
 }
 
 const PICKS: Record<string, Pick> = {
+  "iphone-18-deals-uk": {
+    slug: "iphone-18-deals-uk",
+    title: "iPhone 18 Deals UK 2026 — Compare Live Contract Prices",
+    description:
+      "Compare live iPhone 18, 18 Pro and 18 Pro Max contract deals from our UK partners. Real monthly prices and upfront costs, refreshed weekly.",
+    h1: "iPhone 18 deals UK",
+    subhead:
+      "Every iPhone 18 listing our UK partners are running right now — 18, 18 Pro and 18 Pro Max, sorted by monthly cost so the cheapest route to the new model is first.",
+    heroFrom: "#1e1b4b",
+    heroTo: "#0f172a",
+    where: {
+      category: "mobile",
+      OR: [
+        { name: { contains: "iPhone 18", mode: "insensitive" } },
+        { handsetModel: { contains: "iPhone 18", mode: "insensitive" } },
+      ],
+    },
+    orderBy: [{ monthlyCost: "asc" }],
+    take: 16,
+    intro:
+      "Live iPhone 18 prices pulled straight from our Awin partner feeds and sorted cheapest-first. Launch-window stock moves quickly, so availability and pricing can change between our weekly refreshes — always check the final price on the retailer's page before you order.",
+    faqs: [
+      {
+        question: "Is it cheaper to buy the iPhone 18 outright or on contract?",
+        answer:
+          "Buying outright and adding a SIM-only plan is usually cheaper across 24 months, because contract pricing bundles the handset cost with interest baked in. Contracts win when you'd rather spread the cost, or when a retailer discounts the airtime heavily — compare the initial term cost on each listing above, which adds the monthly price and upfront fee together.",
+      },
+      {
+        question: "When do iPhone 18 prices usually drop?",
+        answer:
+          "New iPhone pricing tends to hold through the launch window, with the first meaningful movement coming from retailer promotions rather than Apple. Trade-in offers and network bundles typically deliver the biggest early savings, and refurbished stock of the previous generation gets markedly cheaper once the new model lands.",
+      },
+      {
+        question: "Should I consider last year's iPhone instead?",
+        answer:
+          "If your priority is value, yes. The previous generation drops in price as soon as a new model launches, and refurbished units from certified sellers come with warranties. See our cheapest iPhone page for every model line we track, including refurbished.",
+      },
+      {
+        question: "Are these iPhone 18 prices live?",
+        answer:
+          "They come from our partners' product feeds and refresh weekly, with expired listings removed automatically. We only list retailers whose prices we can verify — clicking through takes you to that retailer, and we may earn a commission at no extra cost to you.",
+      },
+    ],
+  },
   "cheapest-iphone-uk": {
     slug: "cheapest-iphone-uk",
     title: "Cheapest iPhone Deals UK 2026 — Live Affiliate Prices",
