@@ -4,6 +4,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import {
   ArrowRight,
+  ExternalLink,
   Sparkles,
   Trophy,
   Award,
@@ -56,6 +57,9 @@ interface Pick {
   take: number;
   /** Editor's commentary above the deals grid */
   intro: string;
+  /** Name fragment of the variant to feature as a clickable hero card
+   *  (e.g. "Pro Max"). Falls back to the cheapest deal with an image. */
+  featuredMatch?: string;
   faqs: { question: string; answer: string }[];
 }
 
@@ -79,6 +83,7 @@ const PICKS: Record<string, Pick> = {
     },
     orderBy: [{ monthlyCost: "asc" }],
     take: 16,
+    featuredMatch: "Pro Max",
     intro:
       "Live iPhone 18 prices pulled straight from our Awin partner feeds and sorted cheapest-first. Launch-window stock moves quickly, so availability and pricing can change between our weekly refreshes — always check the final price on the retailer's page before you order.",
     faqs: [
@@ -382,6 +387,17 @@ export default async function BestPickPage({ params }: PageProps) {
   const url = `${siteConfig.url}/best/${type}`;
   const cheapest = deals.length > 0 ? deals[0].monthlyCost : 0;
 
+  // Hero product card: prefer the requested variant, else any deal with
+  // an image. Its image and button both go through /api/redirect, so the
+  // click is tracked and lands on the retailer's own page.
+  const withImage = deals.filter((d) => d.imageUrl);
+  const featured =
+    (pick.featuredMatch
+      ? withImage.find((d) =>
+          d.name.toLowerCase().includes(pick.featuredMatch!.toLowerCase())
+        )
+      : undefined) ?? withImage[0];
+
   const rankStyles = [
     { chip: "from-amber-400 to-yellow-500", icon: Trophy },
     { chip: "from-slate-300 to-slate-500", icon: Award },
@@ -503,6 +519,76 @@ export default async function BestPickPage({ params }: PageProps) {
           </div>
         </div>
       </section>
+
+      {/* Featured product — clickable image straight to the retailer */}
+      {featured && (
+        <section className="bg-background border-b">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+            <div className="grid items-center gap-6 rounded-2xl border bg-card p-5 shadow-sm sm:p-6 md:grid-cols-[220px_1fr]">
+              <a
+                href={`/api/redirect?plan=${featured.id}&src=${type}_featured`}
+                target="_blank"
+                rel="noopener noreferrer nofollow sponsored"
+                aria-label={`View the ${featured.name} deal at ${featured.provider.name}`}
+                className="group relative mx-auto block aspect-square w-[200px] overflow-hidden rounded-xl bg-white ring-1 ring-border/60 transition-transform hover:-translate-y-0.5"
+              >
+                <Image
+                  src={featured.imageUrl!}
+                  alt={featured.name}
+                  fill
+                  sizes="200px"
+                  className="object-contain p-3 transition-transform group-hover:scale-105"
+                />
+              </a>
+              <div>
+                <Badge className="mb-3 border-0 bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md">
+                  <Sparkles className="mr-1 size-3" />
+                  Featured deal
+                </Badge>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                  {featured.provider.name}
+                </p>
+                <h2 className="mt-1 text-xl font-bold leading-snug sm:text-2xl">
+                  {featured.name.replace(/ - £[\d.]+\/mo.*/, "")}
+                </h2>
+                <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span className="text-3xl font-extrabold tabular-nums">
+                    £{featured.monthlyCost.toFixed(2)}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    /month{featured.contractLength ? ` · ${featured.contractLength}-month term` : ""}
+                  </span>
+                </p>
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <Button
+                    asChild
+                    className="border-0 bg-gradient-to-r from-[#1a365d] to-[#38a169] px-6 font-semibold text-white shadow-md hover:from-[#2a4a7f] hover:to-[#48bb78]"
+                  >
+                    <a
+                      href={`/api/redirect?plan=${featured.id}&src=${type}_featured`}
+                      target="_blank"
+                      rel="noopener noreferrer nofollow sponsored"
+                    >
+                      See it at {featured.provider.name}
+                      <ExternalLink className="size-4" />
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline" className="font-semibold">
+                    <Link href={`/deals/${featured.slug}`}>
+                      Full details
+                      <ArrowRight className="size-4" />
+                    </Link>
+                  </Button>
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Price from our partner feed — check the final price on the
+                  retailer&apos;s page. We may earn a commission.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Editor's intro */}
       <section className="bg-background">
