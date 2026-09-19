@@ -42,27 +42,35 @@ export interface FeedImportResult {
   error?: string;
 }
 
+// Both parsers below copy runs of text with slice() rather than appending
+// one character at a time: every `str += ch` makes V8 allocate a rope
+// node, and on a large feed (Fonehouse, ~30MB) the per-character ropes
+// pushed the heap past 2GB and crashed the import.
 function parseCSVLine(line: string): string[] {
   const result: string[] = [];
   let current = "";
   let inQuotes = false;
+  let runStart = 0;
   for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
+    const ch = line.charCodeAt(i);
+    if (ch === 34 /* " */) {
+      current += line.slice(runStart, i);
       // handle escaped quotes ("")
-      if (inQuotes && line[i + 1] === '"') {
+      if (inQuotes && line.charCodeAt(i + 1) === 34) {
         current += '"';
         i++;
       } else {
         inQuotes = !inQuotes;
       }
-    } else if (ch === "," && !inQuotes) {
+      runStart = i + 1;
+    } else if (ch === 44 /* , */ && !inQuotes) {
+      current += line.slice(runStart, i);
       result.push(current);
       current = "";
-    } else {
-      current += ch;
+      runStart = i + 1;
     }
   }
+  current += line.slice(runStart);
   result.push(current);
   return result.map((s) => s.trim());
 }
@@ -81,33 +89,27 @@ function parseCSVLine(line: string): string[] {
  */
 function splitCSVRows(csv: string): string[] {
   const rows: string[] = [];
-  let buf = "";
   let inQuotes = false;
+  let rowStart = 0;
   for (let i = 0; i < csv.length; i++) {
-    const ch = csv[i];
-    if (ch === '"') {
-      if (inQuotes && csv[i + 1] === '"') {
-        // escaped quote — keep both chars in buffer for parseCSVLine to
-        // resolve; just don't toggle quote state.
-        buf += '""';
+    const ch = csv.charCodeAt(i);
+    if (ch === 34 /* " */) {
+      if (inQuotes && csv.charCodeAt(i + 1) === 34) {
+        // escaped quote — stays in the row for parseCSVLine to resolve;
+        // just don't toggle quote state.
         i++;
         continue;
       }
       inQuotes = !inQuotes;
-      buf += ch;
-    } else if ((ch === "\n" || ch === "\r") && !inQuotes) {
+    } else if ((ch === 10 || ch === 13) && !inQuotes) {
       // Line ending outside a quoted field → end of row.
+      if (i > rowStart) rows.push(csv.slice(rowStart, i));
       // Skip \r\n combo so we don't emit blank rows.
-      if (ch === "\r" && csv[i + 1] === "\n") i++;
-      if (buf.length > 0) {
-        rows.push(buf);
-        buf = "";
-      }
-    } else {
-      buf += ch;
+      if (ch === 13 && csv.charCodeAt(i + 1) === 10) i++;
+      rowStart = i + 1;
     }
   }
-  if (buf.length > 0) rows.push(buf);
+  if (rowStart < csv.length) rows.push(csv.slice(rowStart));
   return rows;
 }
 
