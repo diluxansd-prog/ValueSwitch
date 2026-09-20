@@ -20,6 +20,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getMerchantLink, type AwinMerchantSlug } from "@/lib/affiliate";
 import { isPlausibleHandsetDeal } from "@/lib/deal-quality";
+import { getDisplayOffers } from "@/lib/offers-live";
 import { siteConfig } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
 import { ProviderLogo } from "@/components/shared/provider-logo";
@@ -62,6 +63,9 @@ interface Pick {
   /** Name fragment of the variant to feature as a clickable hero card
    *  (e.g. "Pro Max"). Falls back to the cheapest deal with an image. */
   featuredMatch?: string;
+  /** Show matching partner offers (advertiser-confirmed prices) on this
+   *  page — essential when feed rows are unreliable for a model. */
+  offerKeyword?: string;
   /** Handset pick: hide feed rows whose whole-term cost is too low to
    *  include the phone (airtime-only rows with a handset name). */
   handsetOnly?: boolean;
@@ -93,6 +97,7 @@ const PICKS: Record<string, Pick> = {
     orderBy: [{ monthlyCost: "asc" }],
     take: 16,
     handsetOnly: true,
+    offerKeyword: "iPhone 18",
     featuredMatch: "Pro Max",
     featuredLink: {
       merchant: "fonehouse",
@@ -418,6 +423,16 @@ export default async function BestPickPage({ params }: PageProps) {
       : undefined) ?? withImage[0];
   // Prefer the verified retailer product page; otherwise fall back to the
   // plan's own tracked redirect (both log the click).
+  // Advertiser-confirmed offers for this model (prices straight from the
+  // partner, unlike the feed's airtime-only rows).
+  const matchingOffers = pick.offerKeyword
+    ? (await getDisplayOffers().catch(() => ({ offers: [] }))).offers.filter(
+        (o) =>
+          o.title.toLowerCase().includes(pick.offerKeyword!.toLowerCase()) ||
+          o.description.toLowerCase().includes(pick.offerKeyword!.toLowerCase())
+      )
+    : [];
+
   const featuredPriceTrusted =
     !pick.handsetOnly || (featured ? isPlausibleHandsetDeal(featured) : false);
   const featuredHref = pick.featuredLink
@@ -641,6 +656,54 @@ export default async function BestPickPage({ params }: PageProps) {
           </p>
         </div>
       </section>
+
+      {/* Partner offers with advertiser-confirmed pricing */}
+      {matchingOffers.length > 0 && (
+        <section className="border-b bg-slate-50 dark:bg-slate-950">
+          <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:py-12">
+            <div className="mb-6">
+              <p className="section-eyebrow">Straight from the retailer</p>
+              <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">
+                Confirmed {pick.offerKeyword} offers
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+                Prices our partners confirmed to us directly, with the
+                dates they run to.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {matchingOffers.map((o) => (
+                <a
+                  key={o.id}
+                  href={o.href}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow sponsored"
+                  className="group rounded-2xl border bg-card p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      {o.merchantName}
+                    </p>
+                    <span className="rounded-md bg-gradient-to-r from-[#1a365d] to-[#38a169] px-2 py-0.5 text-[10px] font-extrabold text-white">
+                      {o.badge}
+                    </span>
+                  </div>
+                  <h3 className="mt-2 text-sm font-bold leading-snug">
+                    {o.title}
+                  </h3>
+                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-muted-foreground">
+                    {o.description}
+                  </p>
+                  <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
+                    View at {o.merchantName}
+                    <ArrowRight className="size-3.5" />
+                  </span>
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Leaderboard */}
       <section className="bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-900/40 dark:via-slate-950 dark:to-slate-900/40">
