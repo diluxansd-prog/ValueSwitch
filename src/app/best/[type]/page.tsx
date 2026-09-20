@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getMerchantLink, type AwinMerchantSlug } from "@/lib/affiliate";
+import { isPlausibleHandsetDeal } from "@/lib/deal-quality";
 import { siteConfig } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
 import { ProviderLogo } from "@/components/shared/provider-logo";
@@ -61,6 +62,9 @@ interface Pick {
   /** Name fragment of the variant to feature as a clickable hero card
    *  (e.g. "Pro Max"). Falls back to the cheapest deal with an image. */
   featuredMatch?: string;
+  /** Handset pick: hide feed rows whose whole-term cost is too low to
+   *  include the phone (airtime-only rows with a handset name). */
+  handsetOnly?: boolean;
   /** Verified retailer page for the featured card to link to. Imported
    *  plans point at stable landing pages rather than product URLs, so a
    *  checked product page here makes the click land on the actual phone. */
@@ -88,6 +92,7 @@ const PICKS: Record<string, Pick> = {
     },
     orderBy: [{ monthlyCost: "asc" }],
     take: 16,
+    handsetOnly: true,
     featuredMatch: "Pro Max",
     featuredLink: {
       merchant: "fonehouse",
@@ -372,6 +377,7 @@ export default async function BestPickPage({ params }: PageProps) {
     name: string;
     slug: string;
     monthlyCost: number;
+    setupFee: number;
     contractLength: number | null;
     dataAllowance: string | null;
     networkType: string | null;
@@ -379,6 +385,7 @@ export default async function BestPickPage({ params }: PageProps) {
     subcategory: string | null;
     provider: { name: string; slug: string; logo: string | null };
   }> = [];
+  let rawDeals: typeof deals = [];
 
   try {
     const result = await prisma.plan.findMany({
@@ -389,9 +396,11 @@ export default async function BestPickPage({ params }: PageProps) {
       orderBy: pick.orderBy,
       take: pick.take,
     });
-    deals = result;
+    rawDeals = result;
+    deals = pick.handsetOnly ? result.filter(isPlausibleHandsetDeal) : result;
   } catch {
     deals = [];
+    rawDeals = [];
   }
 
   const url = `${siteConfig.url}/best/${type}`;
@@ -400,7 +409,7 @@ export default async function BestPickPage({ params }: PageProps) {
   // Hero product card: prefer the requested variant, else any deal with
   // an image. Its image and button both go through /api/redirect, so the
   // click is tracked and lands on the retailer's own page.
-  const withImage = deals.filter((d) => d.imageUrl);
+  const withImage = (rawDeals.length ? rawDeals : deals).filter((d) => d.imageUrl);
   const featured =
     (pick.featuredMatch
       ? withImage.find((d) =>
@@ -409,6 +418,8 @@ export default async function BestPickPage({ params }: PageProps) {
       : undefined) ?? withImage[0];
   // Prefer the verified retailer product page; otherwise fall back to the
   // plan's own tracked redirect (both log the click).
+  const featuredPriceTrusted =
+    !pick.handsetOnly || (featured ? isPlausibleHandsetDeal(featured) : false);
   const featuredHref = pick.featuredLink
     ? getMerchantLink(
         pick.featuredLink.merchant,
@@ -572,14 +583,24 @@ export default async function BestPickPage({ params }: PageProps) {
                 <h2 className="mt-1 text-xl font-bold leading-snug sm:text-2xl">
                   {featured.name.replace(/ - £[\d.]+\/mo.*/, "")}
                 </h2>
-                <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                  <span className="text-3xl font-extrabold tabular-nums">
-                    £{featured.monthlyCost.toFixed(2)}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    /month{featured.contractLength ? ` · ${featured.contractLength}-month term` : ""}
-                  </span>
-                </p>
+                {featuredPriceTrusted ? (
+                  <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                    <span className="text-3xl font-extrabold tabular-nums">
+                      £{featured.monthlyCost.toFixed(2)}
+                    </span>
+                    <span className="text-sm text-muted-foreground">
+                      /month{featured.contractLength ? ` · ${featured.contractLength}-month term` : ""}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Live pricing and storage options are shown on{" "}
+                    {featured.provider.name}&apos;s page — our feed only
+                    carries the airtime element for this model, so we
+                    won&apos;t quote a monthly figure we can&apos;t stand
+                    behind.
+                  </p>
+                )}
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Button
                     asChild
@@ -602,8 +623,9 @@ export default async function BestPickPage({ params }: PageProps) {
                   </Button>
                 </div>
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Price from our partner feed — check the final price on the
-                  retailer&apos;s page. We may earn a commission.
+                  {featuredPriceTrusted
+                    ? "Price from our partner feed — check the final price on the retailer's page."
+                    : "We may earn a commission from this link."}
                 </p>
               </div>
             </div>

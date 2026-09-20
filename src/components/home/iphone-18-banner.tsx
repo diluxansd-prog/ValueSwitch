@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Sparkles, ShieldCheck, Zap } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { isPlausibleHandsetDeal } from "@/lib/deal-quality";
 
 /**
  * Homepage feature band for the current flagship launch.
@@ -12,16 +13,19 @@ import { prisma } from "@/lib/prisma";
  * no live listing exists, so it can never advertise a phantom price.
  */
 export async function IPhone18Banner() {
+  let priceIsReliable = true;
   let deal: {
     slug: string;
     name: string;
     monthlyCost: number;
+    setupFee: number;
+    contractLength: number | null;
     imageUrl: string | null;
     provider: { name: string };
   } | null = null;
 
   try {
-    deal = await prisma.plan.findFirst({
+    const candidates = await prisma.plan.findMany({
       where: {
         category: "mobile",
         imageUrl: { not: null },
@@ -42,14 +46,25 @@ export async function IPhone18Banner() {
         ],
       },
       orderBy: { monthlyCost: "asc" },
+      take: 20,
       select: {
         slug: true,
         name: true,
         monthlyCost: true,
+        setupFee: true,
+        contractLength: true,
         imageUrl: true,
         provider: { select: { name: true } },
       },
     });
+    // Feed rows that price only the airtime would advertise a Pro Max
+    // for £13/month — quote a price only when the whole-term cost could
+    // actually include the phone.
+    deal =
+      candidates.find((c) => isPlausibleHandsetDeal(c)) ?? candidates[0] ?? null;
+    if (deal && !isPlausibleHandsetDeal(deal)) {
+      priceIsReliable = false;
+    }
   } catch {
     deal = null;
   }
@@ -75,7 +90,9 @@ export async function IPhone18Banner() {
           <h2 className="text-3xl font-extrabold leading-[1.1] tracking-tight sm:text-4xl lg:text-5xl">
             iPhone 18 Pro Max
             <span className="mt-1 block text-[#d9ef96]">
-              from £{deal.monthlyCost.toFixed(2)}/month
+              {priceIsReliable
+                ? `from £${deal.monthlyCost.toFixed(2)}/month`
+                : "compare every live deal"}
             </span>
           </h2>
           <p className="mt-4 max-w-xl text-base leading-7 text-white/75">
@@ -86,7 +103,9 @@ export async function IPhone18Banner() {
           <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-white/70">
             <span className="flex items-center gap-1.5">
               <Zap className="size-3.5 text-[#d9ef96]" />
-              Live prices from {deal.provider.name} and others
+              {priceIsReliable
+                ? `Live prices from ${deal.provider.name} and others`
+                : "Prices confirmed on each retailer's page"}
             </span>
             <span className="flex items-center gap-1.5">
               <ShieldCheck className="size-3.5 text-[#d9ef96]" />
@@ -102,10 +121,10 @@ export async function IPhone18Banner() {
               <ArrowRight className="size-4" />
             </Link>
             <Link
-              href={`/deals/${deal.slug}`}
+              href="/offers"
               className="inline-flex items-center gap-2 rounded-xl border border-white/25 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/10"
             >
-              See this Pro Max deal
+              Price-locked pre-orders
             </Link>
           </div>
         </div>
