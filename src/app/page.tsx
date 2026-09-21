@@ -13,7 +13,7 @@ import { ProviderLogos } from "@/components/home/provider-logos";
 import { SavingOpportunities } from "@/components/home/saving-opportunities";
 
 export const metadata = pageMetadata("/", "Compare Mobile, SIM Only & Broadband Deals", "Compare UK phone contracts, SIM-only plans and broadband deals. Explore iPhone 18 promotions, voucher codes, upfront costs and contract terms. Free to compare.");
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 function GridSkeleton({ count = 4 }: { count?: number }) {
   return (

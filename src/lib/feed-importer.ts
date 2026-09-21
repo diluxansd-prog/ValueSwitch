@@ -22,6 +22,7 @@
 import { prisma } from "@/lib/prisma";
 import { streamFeedCsv, toCsv } from "@/lib/awin/feed-stream";
 import { generateAwinLink } from "@/lib/affiliate";
+import { fixMojibake, isAirtimeOnlyRow } from "@/lib/deal-quality";
 import type { MerchantFeedConfig } from "@/config/merchants";
 
 export interface FeedImportResult {
@@ -37,6 +38,7 @@ export interface FeedImportResult {
     unchanged: number;
     priceChanges: number;
     errors: number;
+    skippedImplausible: number;
   };
   newDealUrls: string[]; // for IndexNow
   error?: string;
@@ -337,7 +339,7 @@ function inferTelcosFromText(row: Record<string, string>): Record<string, string
   // search_price column on Fonehouse IS the upfront cost when monthCost was extracted from elsewhere
   if (!upfrontMatch) {
     const sp = parseFloat(row.search_price || "");
-    if (isFinite(sp) && sp >= 0 && sp < 1000) {
+    if (isFinite(sp) && sp >= 0 && sp < 3000) {
       out["Telcos:initial_cost"] = String(sp);
     }
   } else {
@@ -600,6 +602,7 @@ async function importInternal(
       unchanged: 0,
       priceChanges: 0,
       errors: 0,
+      skippedImplausible: 0,
     },
     newDealUrls: [],
   };
@@ -704,7 +707,8 @@ async function importInternal(
         // cleanProductName strips marketing tail ("...on Three Contract |
         // £44pm Unlimited Data | £149 upfront cost") so cards show
         // just the device model: "iPhone 13 Refurbished 128GB".
-        const shortName = cleanProductName(row.product_name) || row.product_name.substring(0, 80);
+        const productName = fixMojibake(row.product_name || "");
+        const shortName = cleanProductName(productName) || productName.substring(0, 80);
         // Append a short hash of merchant_product_id to guarantee uniqueness
         // even when brand/storage/price collide between variants.
         const idSuffix = row.merchant_product_id.toString().slice(-6);
@@ -725,11 +729,29 @@ async function importInternal(
               ? "sim-only"
               : "contract";
 
+        // A phone contract whose whole-term cost can't cover the phone is a
+        // mis-parsed or airtime-only row ("iPhone 17 Pro Max" at £9/mo, no
+        // upfront). Publishing it would advertise a price nobody can get.
+        if (
+          !isSim &&
+          !isSimFree &&
+          !isBroadband &&
+          isAirtimeOnlyRow({
+            name: shortName,
+            monthlyCost: monthCost,
+            setupFee: initialCost,
+            contractLength: term,
+          })
+        ) {
+          result.counts.skippedImplausible++;
+          continue;
+        }
+
         const dataFields = {
           name: shortName,
           category: merchant.category,
           subcategory,
-          description: (row.description || "").substring(0, 500),
+          description: fixMojibake(row.description || "").substring(0, 500),
           // For sim-free phones, monthCost holds the one-time purchase price
           // (the UI will detect subcategory==="sim-free" and label it "total"
           // instead of "/mo").

@@ -60,6 +60,32 @@ const STATEMENTS: { id: string; sql: string }[] = [
     id: "plan-unexpire-reconfirmed",
     sql: `UPDATE "Plan" SET "expiresAt" = NULL WHERE "expiresAt" IS NOT NULL AND "updatedAt" > "expiresAt"`,
   },
+  {
+    // Phone contracts whose whole-term cost can't cover the phone ("iPhone
+    // 17 Pro Max" at £9/mo, no upfront) — mis-parsed feed rows. Mirrors
+    // isAirtimeOnlyRow in src/lib/deal-quality.ts; the importer now skips
+    // them, so they won't come back.
+    id: "plan-expire-airtime-only-handsets",
+    sql: `UPDATE "Plan" SET "expiresAt" = NOW()
+      WHERE "expiresAt" IS NULL
+        AND "category" = 'mobile'
+        AND COALESCE("subcategory", '') NOT IN ('sim-only', 'sim-free')
+        AND "name" ~* '\\m(iphone|galaxy|pixel|xperia|oneplus|redmi|xiaomi|motorola|moto g|nokia|honor|oppo|vivo|huawei|nothing phone)\\M'
+        AND ("monthlyCost" * COALESCE(NULLIF("contractLength", 0), 1) + COALESCE("setupFee", 0)) <
+          CASE
+            WHEN "name" ~* '(refurb|pre-owned|preowned|used)' THEN 200
+            WHEN "name" ~* '(pro max|ultra|fold|2tb)' THEN 900
+            WHEN "name" ~* '(pro\\M|plus\\M|1tb)' THEN 700
+            ELSE 400
+          END`,
+  },
+  {
+    // Vodafone's feed ships UTF-8 decoded as Latin-1 ("at Â£10").
+    id: "plan-fix-mojibake-pound",
+    sql: `UPDATE "Plan" SET "name" = REPLACE("name", 'Â£', '£'),
+      "description" = REPLACE("description", 'Â£', '£')
+      WHERE "name" LIKE '%Â£%' OR "description" LIKE '%Â£%'`,
+  },
 ];
 
 async function isAdmin(): Promise<boolean> {
@@ -81,8 +107,8 @@ export async function POST() {
   const failed: { id: string; error: string }[] = [];
   for (const s of STATEMENTS) {
     try {
-      await prisma.$executeRawUnsafe(s.sql);
-      applied.push(s.id);
+      const rows = await prisma.$executeRawUnsafe(s.sql);
+      applied.push(`${s.id}:${rows}`);
     } catch (err) {
       failed.push({
         id: s.id,

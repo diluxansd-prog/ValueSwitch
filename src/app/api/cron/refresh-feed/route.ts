@@ -85,6 +85,7 @@ function emptyResult(slug: string, error: string): FeedImportResult {
       unchanged: 0,
       priceChanges: 0,
       errors: 0,
+      skippedImplausible: 0,
     },
     newDealUrls: [],
     error,
