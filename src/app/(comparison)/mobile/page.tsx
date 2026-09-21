@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Smartphone, CardSim, Recycle } from "lucide-react";
@@ -5,7 +6,10 @@ import { PageHero } from "@/components/shared/page-hero";
 import { PopularDeals } from "@/components/home/popular-deals";
 import { SavingOpportunities } from "@/components/home/saving-opportunities";
 
-export const metadata: Metadata = { title: "Compare Mobile Deals — Phone Contracts & SIM Only", description: "Explore mobile contracts, SIM-only plans and refurbished phones. Compare prices, providers and contract terms with ValueSwitch." };
+export const metadata: Metadata = {
+  ...pageMetadata("/mobile", "Compare Mobile Deals — Phone Contracts & SIM Only", "Explore mobile contracts, SIM-only plans and refurbished phones. Compare prices, providers and contract terms with ValueSwitch."),
+
+};
 export const dynamic = "force-dynamic";
 const options = [
   { icon: Smartphone, title: "A new phone", description: "Find your next handset with a monthly plan to match.", href: "/mobile/contracts", label: "Compare phone contracts", color: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300" },

@@ -2,18 +2,19 @@ import type { Metadata } from "next";
 
 export const siteConfig = {
   name: "ValueSwitch",
-  description: "Compare real UK mobile & broadband deals from Vodafone, VOXI, Lebara, Talkmobile and 13 more partners. Real prices, verified links, live voucher codes.",
+  description: "Compare UK phone contracts, SIM-only plans and broadband deals. Explore partner promotions, upfront costs and contract terms with ValueSwitch.",
   url: "https://valueswitch.co.uk",
-  ogImage: "/images/og-default.png",
+  ogImage: "/opengraph-image",
 };
 
 // Social/share titles — keep between 50-60 chars for optimal preview
 // display on Facebook, X, LinkedIn, WhatsApp, Discord, iMessage, Slack.
 const SHARE_TITLE = "Compare UK Mobile Phone Deals & SIM Only | ValueSwitch"; // 54 chars
 const SHARE_DESC =
-  "Compare real Vodafone, VOXI, Lebara & Talkmobile deals plus live voucher codes. Save £300+/year on UK mobile & broadband. Free comparison, updated daily.";
+  "Compare UK phone contracts, SIM-only plans and broadband deals. Explore iPhone offers, voucher codes, upfront costs and contract terms. Free to compare.";
 
 export const defaultMetadata: Metadata = {
+  metadataBase: new URL(siteConfig.url),
   title: {
     default: "Compare UK Mobile Phone Deals & SIM Only | ValueSwitch",
     template: "%s | ValueSwitch",
@@ -26,9 +27,6 @@ export const defaultMetadata: Metadata = {
   ],
   authors: [{ name: "ValueSwitch" }],
   creator: "ValueSwitch",
-  alternates: {
-    canonical: siteConfig.url,
-  },
   openGraph: {
     type: "website",
     locale: "en_GB",
@@ -47,8 +45,6 @@ export const defaultMetadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: SHARE_TITLE,
-    description: SHARE_DESC,
     images: [`${siteConfig.url}/opengraph-image`],
   },
   robots: {
@@ -79,6 +75,20 @@ export const defaultMetadata: Metadata = {
     }),
   },
 };
+
+/** Each public page owns its canonical and share text; never inherit home. */
+export function pageMetadata(path: string, title: string, description: string): Metadata {
+  const url = new URL(path, siteConfig.url).toString();
+  const cleanTitle = title.replace(/\s*\|\s*ValueSwitch$/, "");
+  const shareTitle = `${cleanTitle} | ${siteConfig.name}`;
+  return {
+    title: cleanTitle,
+    description,
+    alternates: { canonical: url },
+    openGraph: { ...defaultMetadata.openGraph, url, title: shareTitle, description },
+    twitter: { ...defaultMetadata.twitter, title: shareTitle, description },
+  };
+}
 
 /**
  * Extract the verification token from whatever the user pasted.

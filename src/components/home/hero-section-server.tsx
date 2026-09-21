@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { HeroSection } from "./hero-section";
+import { getActiveOffers } from "@/lib/offers";
 
 /** Omit counters when the database cannot provide current listings. */
 export async function HeroSectionServer() {
@@ -13,5 +14,5 @@ export async function HeroSectionServer() {
   } catch {
     // Category browsing remains available without database counters.
   }
-  return <HeroSection stats={stats} />;
+  return <HeroSection stats={stats} hasIPhonePromotion={getActiveOffers().some(offer => offer.id === "mozillion-iphone-18-pro-max")} />;
 }

@@ -37,8 +37,11 @@ if (process.argv.includes("--live")) {
         const response = await fetch(new URL(href, base), { signal: AbortSignal.timeout(60000) });
         const html = await response.text();
         const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/)?.[1] || "";
-        const failed = /Something went wrong|This page could not be found|Page not found/i.test(main) || !/<h1[\s>]/.test(html) || /NEXT_HTTP_ERROR_FALLBACK;404/.test(html);
-        report.pages.push({ href, status: response.status, errorPage: failed });
+        const isHtml = response.headers.get("content-type")?.includes("text/html");
+        const redirected = /NEXT_REDIRECT;/.test(html);
+        const requiresBrowserCheck = /BAILOUT_TO_CLIENT_SIDE_RENDERING/.test(html);
+        const failed = isHtml && (/Something went wrong|This page could not be found|Page not found/i.test(main) || (!/<h1[\s>]/.test(html) && !redirected && !requiresBrowserCheck) || /NEXT_HTTP_ERROR_FALLBACK;404/.test(html));
+        report.pages.push({ href, status: response.status, errorPage: failed, requiresBrowserCheck });
         for (const anchor of html.matchAll(/<a\b[^>]*\bhref="([^"]+)"/g)) {
           const target = anchor[1].replaceAll("&amp;", "&");
           if (target.startsWith("/") && !target.startsWith("//") && !/^\/(api|admin|dashboard|unsubscribe)(\/|\?|$)/.test(target) && !visited.has(target)) queue.push(target);
@@ -53,5 +56,5 @@ if (process.argv.includes("--live")) {
 await fs.mkdir(path.join(root, ".next"), { recursive: true });
 await fs.writeFile(path.join(root, ".next/link-audit.json"), JSON.stringify(report, null, 2));
 const failedPages = report.pages.filter(page => page.error || page.status >= 400 || page.errorPage);
-console.log(JSON.stringify({ sourceLinks: links.size, missingRoutes, testedPages: report.pages.length, failedPages, externalLinks: report.externalLinks.length, report: ".next/link-audit.json" }, null, 2));
+console.log(JSON.stringify({ sourceLinks: links.size, missingRoutes, testedPages: report.pages.length, failedPages, browserChecks: report.pages.filter(page => page.requiresBrowserCheck).map(page => page.href), externalLinks: report.externalLinks.length, report: ".next/link-audit.json" }, null, 2));
 if (missingRoutes.length || failedPages.length) process.exitCode = 1;

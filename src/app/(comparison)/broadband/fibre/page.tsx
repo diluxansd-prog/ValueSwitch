@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProviderLogo } from "@/components/shared/provider-logo";
 import { prisma } from "@/lib/prisma";
-import { siteConfig } from "@/config/seo";
+import { siteConfig , pageMetadata } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
 import { getDisplayOffers } from "@/lib/offers-live";
 import {
@@ -31,17 +31,8 @@ import {
  */
 
 export const metadata: Metadata = {
-  title: "Full Fibre Broadband Deals UK 2026 — Compare Speeds & Prices",
-  description:
-    "Compare full-fibre broadband from Quickline, Highland Broadband, Connect Fibre, Lightning Fibre and more. Symmetric speeds from £20/mo, switching rewards up to £300.",
-  alternates: { canonical: `${siteConfig.url}/broadband/fibre` },
-  openGraph: {
-    type: "website",
-    title: "Full Fibre Broadband Deals UK — Compare Speeds & Prices",
-    description:
-      "Live full-fibre deals and promotions from our UK partners — symmetric speeds from £20/mo.",
-    url: `${siteConfig.url}/broadband/fibre`,
-  },
+  ...pageMetadata("/broadband/fibre", "Full Fibre Broadband Deals UK 2026 — Compare Speeds & Prices", "Compare full-fibre broadband from Quickline, Highland Broadband, Connect Fibre, Lightning Fibre and more. Symmetric speeds from £20/mo, switching rewards up to £300."),
+
 };
 
 export const dynamic = "force-dynamic";

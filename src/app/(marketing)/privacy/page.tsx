@@ -1,11 +1,10 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy",
-  description:
-    "ValueSwitch Privacy Policy. Learn how we collect, use and protect your personal data. We are committed to safeguarding your privacy.",
+  ...pageMetadata("/privacy", "Privacy Policy", "ValueSwitch Privacy Policy. Learn how we collect, use and protect your personal data. We are committed to safeguarding your privacy."),
+
 };
 
 export default function PrivacyPage() {

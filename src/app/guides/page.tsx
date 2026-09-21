@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Clock, Calendar } from "lucide-react";
@@ -7,9 +8,8 @@ import { getGuides } from "@/lib/services/guide.service";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Guides & Advice",
-  description:
-    "Expert guides and advice on saving money across energy, broadband, mobile, insurance and finance. Learn how to get the best deals and switch with confidence.",
+  ...pageMetadata("/guides", "Guides & Advice", "Expert guides and advice on saving money across energy, broadband, mobile, insurance and finance. Learn how to get the best deals and switch with confidence."),
+
 };
 
 const FILTER_CATEGORIES = [

@@ -1,3 +1,4 @@
+import { defaultMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -24,6 +25,7 @@ import { getDisplayOffers } from "@/lib/offers-live";
 import { siteConfig } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
 import { ProviderLogo } from "@/components/shared/provider-logo";
+import { IPhoneShowcase } from "@/components/home/iphone-showcase";
 import {
   BreadcrumbJsonLd,
   ItemListJsonLd,
@@ -81,10 +83,10 @@ const PICKS: Record<string, Pick> = {
     slug: "iphone-18-deals-uk",
     title: "iPhone 18 Deals UK 2026 — Compare Live Contract Prices",
     description:
-      "Compare live iPhone 18, 18 Pro and 18 Pro Max contract deals from our UK partners. Real monthly prices and upfront costs, refreshed weekly.",
+      "Explore iPhone 18 Pro and Pro Max offers from UK partners. Compare available contracts, upfront costs and terms, then confirm your deal with the retailer.",
     h1: "iPhone 18 deals UK",
     subhead:
-      "Every iPhone 18 listing our UK partners are running right now — 18, 18 Pro and 18 Pro Max, sorted by monthly cost so the cheapest route to the new model is first.",
+      "A new generation. A deal that fits you. Explore iPhone 18 Pro and Pro Max promotions, then compare available phone contracts and the details that matter.",
     heroFrom: "#1e1b4b",
     heroTo: "#0f172a",
     where: {
@@ -105,7 +107,7 @@ const PICKS: Record<string, Pick> = {
       url: "https://www.fonehouse.co.uk/mobile-phone-deals/iphone-18-pro-max",
     },
     intro:
-      "Live iPhone 18 prices pulled straight from our Awin partner feeds and sorted cheapest-first. Launch-window stock moves quickly, so availability and pricing can change between our weekly refreshes — always check the final price on the retailer's page before you order.",
+      "Explore partner promotions alongside available handset listings. Confirm storage, data, upfront costs and the full contract term before buying. Business offers may exclude VAT and have different airtime and handset repayment terms.",
     faqs: [
       {
         question: "Is it cheaper to buy the iPhone 18 outright or on contract?",
@@ -362,6 +364,7 @@ export async function generateMetadata({
     description: pick.description,
     alternates: { canonical: `${siteConfig.url}/best/${type}` },
     openGraph: {
+      ...defaultMetadata.openGraph,
       type: "website",
       title: pick.title,
       description: pick.description,
@@ -394,7 +397,7 @@ export default async function BestPickPage({ params }: PageProps) {
 
   try {
     const result = await prisma.plan.findMany({
-      where: pick.where,
+      where: { AND: [pick.where, { provider: { isActive: true }, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] }] },
       include: {
         provider: { select: { name: true, slug: true, logo: true } },
       },
@@ -433,6 +436,15 @@ export default async function BestPickPage({ params }: PageProps) {
       )
     : [];
 
+  // The feed guard can strip every listing for a just-launched model while
+  // we still hold advertiser-confirmed offers, so the page's headline
+  // counts cover both sources rather than reading "0 live deals".
+  const listingCount = deals.length + matchingOffers.length;
+  const retailerCount = new Set([
+    ...deals.map((d) => d.provider.slug),
+    ...matchingOffers.map((o) => o.merchantName),
+  ]).size;
+
   const featuredPriceTrusted =
     !pick.handsetOnly || (featured ? isPlausibleHandsetDeal(featured) : false);
   const featuredHref = pick.featuredLink
@@ -456,7 +468,7 @@ export default async function BestPickPage({ params }: PageProps) {
       <BreadcrumbJsonLd
         items={[
           { name: "Home", url: siteConfig.url },
-          { name: "Best deals", url: `${siteConfig.url}/best` },
+          { name: "Popular deals", url: `${siteConfig.url}/popular` },
           { name: pick.h1, url },
         ]}
       />
@@ -498,11 +510,11 @@ export default async function BestPickPage({ params }: PageProps) {
           }}
         />
 
-        <div className="relative mx-auto max-w-6xl px-4 sm:px-6">
+        <div className={`relative mx-auto max-w-6xl px-4 sm:px-6 ${type === "iphone-18-deals-uk" ? "grid items-center gap-8 lg:grid-cols-[1.15fr_1fr]" : ""}`}>
           <div className="max-w-3xl">
             <Badge className="mb-4 bg-white/15 text-white border-white/20 backdrop-blur-sm">
               <Flame className="size-3 mr-1" />
-              Editor&apos;s pick · {deals.length} live deals
+              Editor&apos;s pick · {listingCount} live deals
             </Badge>
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
               {pick.h1}
@@ -510,7 +522,9 @@ export default async function BestPickPage({ params }: PageProps) {
             <p className="mt-5 text-lg text-white/90 leading-relaxed max-w-2xl speakable-summary">
               {pick.subhead}
             </p>
+            {type === "iphone-18-deals-uk" && <div className="mt-7 flex flex-wrap gap-3"><a href={matchingOffers.length ? "#partner-offers" : "#phone-comparison"} className="hero-primary">Explore partner offers <ArrowRight aria-hidden="true" className="size-4" /></a><Link href="/mobile/contracts" className="hero-secondary">All phone contracts</Link></div>}
           </div>
+          {type === "iphone-18-deals-uk" && <IPhoneShowcase />}
         </div>
       </section>
 
@@ -521,19 +535,22 @@ export default async function BestPickPage({ params }: PageProps) {
             {[
               {
                 icon: Sparkles,
-                value: deals.length.toString(),
+                value: listingCount.toString(),
                 label: "Hand-picked",
                 grad: "from-rose-500 to-pink-600",
               },
               {
                 icon: TrendingDown,
-                value: cheapest > 0 ? `£${cheapest.toFixed(2)}` : "—",
-                label: "Cheapest /mo",
+                value:
+                  cheapest > 0
+                    ? `£${cheapest.toFixed(2)}`
+                    : matchingOffers.length.toString(),
+                label: cheapest > 0 ? "Cheapest /mo" : "Partner promotions",
                 grad: "from-emerald-500 to-emerald-700",
               },
               {
                 icon: ShieldCheck,
-                value: new Set(deals.map((d) => d.provider.slug)).size.toString(),
+                value: retailerCount.toString(),
                 label: "Retailers",
                 grad: "from-blue-500 to-indigo-600",
               },
@@ -659,12 +676,12 @@ export default async function BestPickPage({ params }: PageProps) {
 
       {/* Partner offers with advertiser-confirmed pricing */}
       {matchingOffers.length > 0 && (
-        <section className="border-b bg-slate-50 dark:bg-slate-950">
+        <section id="partner-offers" className="border-b bg-slate-50 dark:bg-slate-950">
           <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:py-12">
             <div className="mb-6">
               <p className="section-eyebrow">Straight from the retailer</p>
               <h2 className="mt-2 text-2xl font-semibold sm:text-3xl">
-                Confirmed {pick.offerKeyword} offers
+                Partner {pick.offerKeyword} offers
               </h2>
               <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
                 Prices our partners confirmed to us directly, with the
@@ -706,15 +723,19 @@ export default async function BestPickPage({ params }: PageProps) {
       )}
 
       {/* Leaderboard */}
-      <section className="bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-900/40 dark:via-slate-950 dark:to-slate-900/40">
+      <section id="phone-comparison" className="bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-900/40 dark:via-slate-950 dark:to-slate-900/40">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:py-14">
           {deals.length === 0 ? (
             <div className="rounded-2xl border-2 border-dashed py-16 text-center">
               <p className="text-lg font-semibold">
-                No deals matching this pick right now
+                {matchingOffers.length > 0
+                  ? "Full contract prices aren't in our feeds yet"
+                  : "No deals matching this pick right now"}
               </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Our weekly refresh runs every Sunday — check back soon.
+              <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                {matchingOffers.length > 0
+                  ? "Retailers are still publishing complete handset pricing for this model — the partner offers above come straight from the retailers in the meantime."
+                  : "Our weekly refresh runs every Sunday — check back soon."}
               </p>
             </div>
           ) : (

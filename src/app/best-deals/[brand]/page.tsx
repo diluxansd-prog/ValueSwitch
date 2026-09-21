@@ -1,3 +1,4 @@
+import { defaultMetadata } from "@/config/seo";
 /**
  * Programmatic SEO route — auto-generates a "Best [brand] deals UK" page
  * for every handset brand we have plans for. One page per brand.
@@ -13,13 +14,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Smartphone, TrendingDown, Award, ArrowRight } from "lucide-react";
+import { Smartphone, Award, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { ProviderLogo } from "@/components/shared/provider-logo";
-import { ArticleJsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
+import { JsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
+import { ListingUnavailable } from "@/components/shared/listing-unavailable";
 import { prisma } from "@/lib/prisma";
 import { siteConfig } from "@/config/seo";
 
@@ -66,6 +68,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       canonical: `${siteConfig.url}/best-deals/${brand.toLowerCase()}`,
     },
     openGraph: {
+      ...defaultMetadata.openGraph,
       type: "article",
       title,
       description,
@@ -82,13 +85,19 @@ export default async function BestBrandDealsPage({ params }: PageProps) {
     where: {
       handsetModel: { equals: display, mode: "insensitive" },
       category: "mobile",
+      provider: { isActive: true },
+      OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
     },
     include: { provider: true },
     orderBy: { monthlyCost: "asc" },
     take: 30,
-  });
+  }).catch(() => null);
 
-  if (deals.length === 0) notFound();
+  if (!deals?.length) {
+    const knownBrands = ["apple", "samsung", "google", "doro", "nokia", "ttfone", "motorola", "honor", "xiaomi", "sony", "oppo", "oneplus"];
+    if (!knownBrands.includes(brand.toLowerCase())) notFound();
+    return <><section className="page-banner px-4 py-16"><div className="mx-auto max-w-6xl"><h1 className="text-4xl sm:text-5xl">{display} phone deals</h1><p className="mt-4 text-white/70">Compare phone contracts and explore your next upgrade.</p></div></section><div className="mx-auto max-w-6xl px-4 py-12"><ListingUnavailable unavailable={!deals} title={deals ? "No matching plans right now" : undefined} description={deals ? "There are no current plans for this brand. Explore our offers or check back for new listings." : undefined} /></div></>;
+  }
 
   // Aggregate stats for credibility + dynamic copy
   const cheapest = deals[0];
@@ -113,14 +122,7 @@ export default async function BestBrandDealsPage({ params }: PageProps) {
           },
         ]}
       />
-      <ArticleJsonLd
-        title={`Best ${display} Phone Deals UK ${year}`}
-        description={`Compare the cheapest ${display} phone deals in the UK. Real prices from ${providerCount} retailers.`}
-        url={`${siteConfig.url}/best-deals/${brand.toLowerCase()}`}
-        publishedAt={new Date()}
-        updatedAt={new Date()}
-        author="ValueSwitch Editorial"
-      />
+      <JsonLd data={{ "@context": "https://schema.org", "@type": "CollectionPage", name: `${display} Phone Deals UK`, url: `${siteConfig.url}/best-deals/${encodeURIComponent(brand.toLowerCase())}` }} />
 
       {/* Hero */}
       <section className="page-banner bg-gradient-to-br from-[#1a365d] via-[#1e3a5f] to-[#2a4a7f] text-white">

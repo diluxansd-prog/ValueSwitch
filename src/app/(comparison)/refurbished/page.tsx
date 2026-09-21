@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -23,9 +24,8 @@ import {
 } from "@/lib/utils/phone-recency";
 
 export const metadata: Metadata = {
-  title: "Refurbished Phones — iPhone, Samsung & Pixel from £99",
-  description:
-    "Compare refurbished iPhone, Samsung Galaxy and Google Pixel deals from Mozillion and other certified UK sellers. Save up to 50% vs new — same phone, lower price.",
+  ...pageMetadata("/refurbished", "Refurbished Phones — iPhone, Samsung & Pixel from £99", "Compare refurbished iPhone, Samsung Galaxy and Google Pixel deals from Mozillion and other certified UK sellers. Save up to 50% vs new — same phone, lower price."),
+
 };
 
 export const dynamic = "force-dynamic";

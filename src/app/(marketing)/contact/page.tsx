@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Mail, Phone, MapPin, HelpCircle, Building2 } from "lucide-react";
@@ -7,9 +8,8 @@ import { ContactForm } from "./contact-form";
 import { COMPANY } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Contact Us",
-  description:
-    "Get in touch with ValueSwitch. We're here to help with any questions about comparing, switching or saving money on your household bills.",
+  ...pageMetadata("/contact", "Contact Us", "Get in touch with ValueSwitch. We're here to help with any questions about comparing, switching or saving money on your household bills."),
+
 };
 
 export default function ContactPage() {

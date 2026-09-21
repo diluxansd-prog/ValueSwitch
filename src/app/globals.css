@@ -250,3 +250,16 @@
 .hero-secondary:hover { background: #ffffff15; }
 .section-eyebrow { color: #327057; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
 .dark .section-eyebrow { color: #b8d691; }
+
+/* Real handset artwork on a softly lit editorial stage. */
+.iphone-campaign { background: radial-gradient(ellipse at 90% 10%, #80624b38, transparent 58%), linear-gradient(120deg, #1b2523, #20201e 65%, #34302b); }
+.iphone-halo { position: absolute; top: 4%; left: 5%; width: 90%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #e8c4a836 0%, #c19d7e12 47%, transparent 68%); pointer-events: none; }
+.iphone-product { filter: drop-shadow(0 24px 22px #0007); }
+.campaign-action { transition: transform .2s ease, background .2s ease; }
+.campaign-action:hover { transform: translateY(-2px); }
+@media (prefers-reduced-motion: no-preference) {
+  .iphone-product { animation: handset-reveal .65s cubic-bezier(.2,.7,.3,1) both; transition: transform .45s ease; }
+  .iphone-product:hover { transform: translateY(-6px) rotate(2deg); }
+  @keyframes handset-reveal { from { opacity: 0; transform: translateY(18px) rotate(-4deg) scale(.97); } to { opacity: 1; transform: translateY(0) rotate(0) scale(1); } }
+  html { scroll-behavior: smooth; }
+}

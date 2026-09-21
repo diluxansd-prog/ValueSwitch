@@ -11,7 +11,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,9 +91,9 @@ export default function RegisterPage() {
   return (
     <Card className="border-border/50 shadow-xl shadow-black/5">
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight">
           Create your account
-        </CardTitle>
+        </h1>
         <CardDescription>
           Start comparing and saving on your bills today
         </CardDescription>

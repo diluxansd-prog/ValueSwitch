@@ -43,7 +43,7 @@ const categories = [
   },
 ];
 
-export function HeroSection({ stats }: { stats?: { deals: number; providers: number } } = {}) {
+export function HeroSection({ stats, hasIPhonePromotion }: { stats?: { deals: number; providers: number }; hasIPhonePromotion?: boolean } = {}) {
   const [categoryId, setCategoryId] = useState("sim");
   const [optionIndex, setOptionIndex] = useState(0);
   const category = categories.find((item) => item.id === categoryId)!;
@@ -77,6 +77,7 @@ export function HeroSection({ stats }: { stats?: { deals: number; providers: num
               <p className="mb-3 text-sm text-slate-300">Already have something in mind?</p>
               <SiteSearch />
             </div>
+            {hasIPhonePromotion && <a href="#iphone-promotions" className="group mt-5 inline-flex min-h-11 items-center gap-3 text-sm text-[#edc8ad] hover:text-white"><span className="rounded-md bg-white/10 px-2 py-1 text-[10px] font-semibold tracking-wider uppercase">Featured</span>Explore iPhone 18 Pro Max <ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-1" /></a>}
           </div>
           <div id="deal-finder" className="rounded-3xl border border-white/15 bg-card p-5 text-card-foreground shadow-2xl shadow-black/10 sm:p-7">
             <div className="mb-6 flex items-center justify-between gap-3">

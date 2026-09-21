@@ -7,7 +7,7 @@ import { ProviderLogo } from "@/components/shared/provider-logo";
 import { getTrendingDeals } from "@/lib/services/trending.service";
 import { getDisplayOffers } from "@/lib/offers-live";
 import { getBrandColor } from "@/config/brand-colors";
-import { siteConfig } from "@/config/seo";
+import { siteConfig , pageMetadata } from "@/config/seo";
 import {
   BreadcrumbJsonLd,
   ItemListJsonLd,
@@ -20,17 +20,8 @@ import {
  */
 
 export const metadata: Metadata = {
-  title: "Most Popular Deals — What Our Visitors Choose",
-  description:
-    "The mobile and broadband deals ValueSwitch visitors click most this month, ranked from our own traffic — plus the newest voucher codes from our partners.",
-  alternates: { canonical: `${siteConfig.url}/popular` },
-  openGraph: {
-    type: "website",
-    title: "Most Popular Deals — What Our Visitors Choose",
-    description:
-      "Ranked from real clicks on ValueSwitch, updated hourly.",
-    url: `${siteConfig.url}/popular`,
-  },
+  ...pageMetadata("/popular", "Most Popular Deals — What Our Visitors Choose", "The mobile and broadband deals ValueSwitch visitors click most this month, ranked from our own traffic — plus the newest voucher codes from our partners."),
+
 };
 
 export const revalidate = 3600;

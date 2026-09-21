@@ -11,6 +11,7 @@ import { prisma } from "@/lib/prisma";
 import { SearchInput } from "./search-input";
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: true },
   title: "Search",
   description: "Search deals, providers, and guides on ValueSwitch.",
 };

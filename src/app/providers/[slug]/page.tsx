@@ -28,7 +28,8 @@ import {
   getAllProviderSlugs,
 } from "@/lib/services/provider.service";
 import { formatPrice } from "@/lib/constants";
-import { siteConfig } from "@/config/seo";
+import { siteConfig, pageMetadata } from "@/config/seo";
+import { getKnownPartner, ProviderFallback } from "@/components/shared/provider-fallback";
 import {
   getProviderColor,
   getProviderInitials,
@@ -58,14 +59,11 @@ export async function generateMetadata({
   const provider = await getProviderBySlug(slug);
 
   if (!provider) {
-    return { title: "Provider Not Found" };
+    const partner = getKnownPartner(slug);
+    return partner ? pageMetadata(`/providers/${slug}`, `${partner.name} Deals & Offers`, `Explore ${partner.name} promotions and check current plans and prices with the retailer.`) : { title: "Provider Not Found" };
   }
 
-  return {
-    title: `${provider.name} - Plans, Reviews & Trust Score`,
-    description: `Compare ${provider.name} plans and deals. Trust score: ${provider.trustScore ?? "N/A"}/5. Read ${provider.reviewCount} reviews from real customers.`,
-    alternates: { canonical: `${siteConfig.url}/providers/${slug}` },
-  };
+  return pageMetadata(`/providers/${slug}`, `${provider.name} Plans, Deals & Reviews`, `Compare ${provider.name} plans, prices and contract terms. Explore available deals and customer reviews on ValueSwitch.`);
 }
 
 export default async function ProviderDetailPage({
@@ -75,6 +73,8 @@ export default async function ProviderDetailPage({
   const provider = await getProviderBySlug(slug);
 
   if (!provider) {
+    const partner = getKnownPartner(slug);
+    if (partner) return <ProviderFallback partner={partner} />;
     notFound();
   }
 

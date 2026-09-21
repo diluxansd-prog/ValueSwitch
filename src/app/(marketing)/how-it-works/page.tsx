@@ -1,8 +1,7 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  Search,
-  BarChart3,
   ArrowRight,
   CheckCircle2,
   Zap,
@@ -13,12 +12,10 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
-  title: "How It Works",
-  description:
-    "Learn how ValueSwitch helps you compare and switch providers in 4 simple steps. Save money on energy, broadband, mobile, insurance and more.",
+  ...pageMetadata("/how-it-works", "How It Works", "Learn how ValueSwitch helps you compare and switch providers in 4 simple steps. Save money on energy, broadband, mobile, insurance and more."),
+
 };
 
 const steps = [

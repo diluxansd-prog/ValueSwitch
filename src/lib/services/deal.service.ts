@@ -26,7 +26,7 @@ export async function getAllDealSlugs() {
     const plans = await prisma.plan.findMany({
       // Expired deals stay in the DB for history but leave the sitemap —
       // their merchant product pages often no longer exist.
-      where: { OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
+      where: { provider: { isActive: true }, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
       select: { slug: true },
     });
     return plans.map((p) => p.slug);

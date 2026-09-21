@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Tv, Wifi, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { siteConfig } from "@/config/seo";
+import { siteConfig , pageMetadata } from "@/config/seo";
 import { BreadcrumbJsonLd, FAQPageJsonLd } from "@/components/shared/json-ld";
 
 /**
@@ -15,17 +15,8 @@ import { BreadcrumbJsonLd, FAQPageJsonLd } from "@/components/shared/json-ld";
  */
 
 export const metadata: Metadata = {
-  title: "Broadband & TV Packages UK 2026 — What to Bundle and When",
-  description:
-    "Should you bundle broadband with TV in 2026? When bundles beat streaming, what full-fibre providers offer instead, and today's best fibre deals.",
-  alternates: { canonical: `${siteConfig.url}/broadband/tv-packages` },
-  openGraph: {
-    type: "website",
-    title: "Broadband & TV Packages UK — What to Bundle and When",
-    description:
-      "When a broadband + TV bundle beats streaming apps, and the best full-fibre deals to pair them with.",
-    url: `${siteConfig.url}/broadband/tv-packages`,
-  },
+  ...pageMetadata("/broadband/tv-packages", "Broadband & TV Packages UK 2026 — What to Bundle and When", "Should you bundle broadband with TV in 2026? When bundles beat streaming, what full-fibre providers offer instead, and today's best fibre deals."),
+
 };
 
 export const revalidate = 86400;

@@ -231,7 +231,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
     merchantName: "Mozillion",
     title: "iPhone 18 Pro Max — no mid-contract price rises",
     description:
-      "Pre-order the iPhone 18 Pro Max on Mozillion with uncapped 5G, unlimited calls and texts, EU roaming — and a price locked for the whole contract.",
+      "Explore iPhone 18 Pro Max contracts on Mozillion with uncapped 5G, unlimited calls and texts, EU roaming and no mid-contract price rises. Confirm availability and full costs with the retailer.",
     category: "phones",
     destinationUrl: "https://www.mozillion.com/bundle/apple/iphone-18-pro-max",
     priority: 118,
@@ -242,7 +242,7 @@ export const CURATED_OFFERS: CuratedOffer[] = [
     startsAt: "2026-09-17",
     merchant: "mozillion",
     merchantName: "Mozillion",
-    title: "iPhone 18 Pro — pre-order, price locked",
+    title: "iPhone 18 Pro — no mid-contract price rises",
     description:
       "iPhone 18 Pro on Mozillion contracts with no mid-contract price rises, uncapped 5G data and inclusive EU roaming. SIM-free also available.",
     category: "phones",
@@ -517,7 +517,8 @@ export const OFFER_CATEGORY_LABELS: Record<OfferCategory, string> = {
 /** Offers still in date, sorted by category then priority. */
 export function getActiveOffers(now: Date = new Date()): CuratedOffer[] {
   return CURATED_OFFERS.filter(
-    (o) => !o.endsAt || new Date(`${o.endsAt}T23:59:59Z`) >= now
+    (o) => (!o.startsAt || new Date(`${o.startsAt}T00:00:00Z`) <= now)
+      && (!o.endsAt || new Date(`${o.endsAt}T23:59:59.999Z`) >= now)
   ).sort((a, b) => b.priority - a.priority);
 }
 

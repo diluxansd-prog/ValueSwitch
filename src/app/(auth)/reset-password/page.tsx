@@ -11,7 +11,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,9 +71,9 @@ function ResetPasswordContent() {
           <div className="mx-auto mb-2 flex items-center justify-center size-12 rounded-full bg-[#38a169]/10">
             <CheckCircle2 className="size-6 text-[#38a169]" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Password reset successful
-          </CardTitle>
+          </h1>
           <CardDescription>
             Your password has been updated. Redirecting you to sign in...
           </CardDescription>
@@ -96,9 +95,9 @@ function ResetPasswordContent() {
     return (
       <Card className="border-border/50 shadow-xl shadow-black/5">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Invalid reset link
-          </CardTitle>
+          </h1>
           <CardDescription>
             This password reset link is invalid or has expired. Please request a
             new one.
@@ -123,9 +122,9 @@ function ResetPasswordContent() {
   return (
     <Card className="border-border/50 shadow-xl shadow-black/5">
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight">
           Set new password
-        </CardTitle>
+        </h1>
         <CardDescription>
           Enter your new password below.
         </CardDescription>

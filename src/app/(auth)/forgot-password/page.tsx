@@ -10,7 +10,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,9 +48,9 @@ export default function ForgotPasswordPage() {
           <div className="mx-auto mb-2 flex items-center justify-center size-12 rounded-full bg-[#38a169]/10">
             <CheckCircle2 className="size-6 text-[#38a169]" />
           </div>
-          <CardTitle className="text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl font-bold tracking-tight">
             Check your email
-          </CardTitle>
+          </h1>
           <CardDescription className="text-sm">
             If an account exists for{" "}
             <span className="font-medium text-foreground">{email}</span>, we
@@ -93,9 +92,9 @@ export default function ForgotPasswordPage() {
   return (
     <Card className="border-border/50 shadow-xl shadow-black/5">
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight">
           Reset your password
-        </CardTitle>
+        </h1>
         <CardDescription>
           Enter the email address associated with your account and we&apos;ll
           send you a link to reset your password.

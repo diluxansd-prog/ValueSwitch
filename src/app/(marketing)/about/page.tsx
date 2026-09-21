@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -7,17 +8,14 @@ import {
   Heart,
   Shield,
   Zap,
-  TrendingUp,
   ArrowRight,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 
 export const metadata: Metadata = {
-  title: "About ValueSwitch",
-  description:
-    "Learn about ValueSwitch, the UK's trusted price comparison service. Our mission is to help millions of households and businesses save money by switching.",
+  ...pageMetadata("/about", "About ValueSwitch", "Learn about ValueSwitch, the UK's trusted price comparison service. Our mission is to help millions of households and businesses save money by switching."),
+
 };
 
 const stats = [

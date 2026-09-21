@@ -1,11 +1,11 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
 
 export const metadata: Metadata = {
-  title: "Accessibility Statement",
-  description:
-    "ValueSwitch accessibility statement. Learn about our commitment to making our comparison service accessible to everyone.",
+  ...pageMetadata("/accessibility", "Accessibility Statement", "ValueSwitch accessibility statement. Learn about our commitment to making our comparison service accessible to everyone."),
+
 };
 
 export default function AccessibilityPage() {

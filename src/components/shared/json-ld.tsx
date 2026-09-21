@@ -9,7 +9,7 @@ export function JsonLd({ data }: JsonLdProps) {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(data).replace(/</g, "\\u003c") }}
     />
   );
 }
@@ -64,7 +64,7 @@ export function WebSiteJsonLd() {
         url: siteConfig.url,
         potentialAction: {
           "@type": "SearchAction",
-          target: `${siteConfig.url}/energy/compare?postcode={search_term_string}`,
+          target: `${siteConfig.url}/search?q={search_term_string}`,
           "query-input": "required name=search_term_string",
         },
       }}
@@ -196,9 +196,7 @@ export function ProductJsonLd({
           "@type": "Offer",
           price: price.toFixed(2),
           priceCurrency: "GBP",
-          availability: "https://schema.org/InStock",
           url,
-          priceValidUntil: new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0],
         },
       }}
     />
@@ -206,8 +204,7 @@ export function ProductJsonLd({
 }
 
 /**
- * HowTo schema for step-by-step guides. Eligible for Google's "How-to"
- * rich result with numbered steps.
+ * Semantic HowTo markup for step-by-step guides.
  */
 export function HowToJsonLd({
   name,

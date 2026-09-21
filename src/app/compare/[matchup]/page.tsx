@@ -1,3 +1,4 @@
+import { defaultMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -431,6 +432,7 @@ export async function generateMetadata({
     description: config.description,
     alternates: { canonical: `${siteConfig.url}/compare/${matchup}` },
     openGraph: {
+      ...defaultMetadata.openGraph,
       type: "article",
       title: config.title,
       description: config.description,

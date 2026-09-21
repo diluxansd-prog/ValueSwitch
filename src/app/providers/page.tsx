@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
@@ -9,9 +10,8 @@ import { getProviderColor, getProviderInitials } from "@/lib/utils/provider-avat
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Our Providers",
-  description:
-    "Browse our mobile network affiliate partners. Compare deals from Vodafone, Talkmobile, TTfone, and Lebara.",
+  ...pageMetadata("/providers", "Our Providers", "Browse our mobile network affiliate partners. Compare deals from Vodafone, Talkmobile, TTfone, and Lebara."),
+
 };
 
 const FILTER_CATEGORIES = [

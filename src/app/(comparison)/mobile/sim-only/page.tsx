@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -5,7 +6,10 @@ import { PageHero } from "@/components/shared/page-hero";
 import { DealCatalogue } from "@/components/comparison/deal-catalogue";
 import { getCatalogue } from "@/lib/services/catalogue.service";
 
-export const metadata: Metadata = { title: "SIM-Only Deals — Compare Data, Prices & Plans", description: "Keep your phone and compare SIM-only plans. Explore monthly budgets, unlimited data and flexible contracts from UK providers." };
+export const metadata: Metadata = {
+  ...pageMetadata("/mobile/sim-only", "SIM-Only Deals — Compare Data, Prices & Plans", "Keep your phone and compare SIM-only plans. Explore monthly budgets, unlimited data and flexible contracts from UK providers."),
+
+};
 export const dynamic = "force-dynamic";
 const shortcuts = [{ label: "£10 a month or less", href: "/sim-only/under-10" }, { label: "Unlimited data", href: "/sim-only/unlimited" }, { label: "100GB or more", href: "/sim-only/100gb-plus" }, { label: "30-day rolling", href: "/sim-only/30-day-rolling" }];
 export default async function SimOnlyPage() {

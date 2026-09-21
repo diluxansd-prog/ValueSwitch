@@ -1,3 +1,4 @@
+import { defaultMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -283,6 +284,7 @@ export async function generateMetadata({
       canonical: `${siteConfig.url}/sim-only/${filter}`,
     },
     openGraph: {
+      ...defaultMetadata.openGraph,
       title: config.title,
       description: config.description,
       url: `${siteConfig.url}/sim-only/${filter}`,

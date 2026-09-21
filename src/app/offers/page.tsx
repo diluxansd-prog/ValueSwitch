@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { BadgePercent, Clock, ShieldCheck, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { siteConfig } from "@/config/seo";
+import { siteConfig , pageMetadata } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
 import { OFFER_CATEGORY_LABELS } from "@/lib/offers";
 import { getDisplayOffers } from "@/lib/offers-live";
@@ -21,16 +21,8 @@ import {
  */
 
 export const metadata: Metadata = {
-  title: "UK Mobile & Broadband Offers + Voucher Codes",
-  description:
-    "Live voucher codes and offers from Lebara, VOXI, Vodafone, Quickline and more. 50% off SIM plans, £300 broadband switching rewards, 80% off travel eSIMs.",
-  alternates: { canonical: `${siteConfig.url}/offers` },
-  openGraph: {
-    title: "UK Mobile & Broadband Offers + Voucher Codes",
-    description:
-      "Hand-checked voucher codes and promotions from our UK network and broadband partners — updated from live affiliate feeds.",
-    url: `${siteConfig.url}/offers`,
-  },
+  ...pageMetadata("/offers", "UK Mobile & Broadband Offers + Voucher Codes", "Live voucher codes and offers from Lebara, VOXI, Vodafone, Quickline and more. 50% off SIM plans, £300 broadband switching rewards, 80% off travel eSIMs."),
+
 };
 
 // Offer end-dates and admin-created banners make this page
@@ -64,6 +56,10 @@ function formatEnds(iso: string): string {
   });
 }
 
+function recentOfferCutoff(now = new Date()) {
+  return new Date(now.getTime() - 14 * 86400_000).toISOString().slice(0, 10);
+}
+
 export default async function OffersPage() {
   // Curated offers + any extra live promotions from the Awin Promotions
   // API — new partner offers appear automatically on revalidate.
@@ -75,9 +71,7 @@ export default async function OffersPage() {
   // featured image banners above the coupon grid.
   const imageBanners = activePromos.filter((p) => p.imageUrl);
 
-  const newCutoff = new Date(Date.now() - 14 * 86400_000)
-    .toISOString()
-    .slice(0, 10);
+  const newCutoff = recentOfferCutoff();
 
   const cards: OfferCard[] = offers.map((o) => {
     const brand = getBrandColor(o.merchant);

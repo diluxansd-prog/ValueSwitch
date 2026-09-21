@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -19,21 +20,21 @@ import { Button } from "@/components/ui/button";
 import { ProviderLogo } from "@/components/shared/provider-logo";
 import { prisma } from "@/lib/prisma";
 import { getBrandColor } from "@/config/brand-colors";
+import { ListingUnavailable } from "@/components/shared/listing-unavailable";
 
 export const metadata: Metadata = {
-  title: "Compare Full-Fibre Broadband Deals UK",
-  description:
-    "Compare the best UK full-fibre broadband deals — gigabit speeds, no-contract options, and real monthly prices. Updated daily from Quickline, Highland Broadband and other Awin partners.",
+  ...pageMetadata("/broadband", "Compare Full-Fibre Broadband Deals UK", "Compare the best UK full-fibre broadband deals — gigabit speeds, no-contract options, and real monthly prices. Updated daily from Quickline, Highland Broadband and other Awin partners."),
+
 };
 
 export const dynamic = "force-dynamic";
 
 async function getBroadbandDeals() {
   return prisma.plan.findMany({
-    where: { category: "broadband" },
+    where: { category: "broadband", provider: { isActive: true }, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
     include: { provider: true },
     orderBy: { monthlyCost: "asc" },
-  });
+  }).catch(() => []);
 }
 
 async function getBroadbandStats() {
@@ -181,7 +182,7 @@ export default async function BroadbandPage() {
                 asChild
                 className="border-white/40 bg-white/10 backdrop-blur text-white hover:bg-white/20 font-bold px-8"
               >
-                <Link href="/broadband/speed-test">
+                <Link href="https://speed.cloudflare.com/">
                   <Gauge className="size-5" />
                   Run a speed test
                 </Link>
@@ -269,7 +270,7 @@ export default async function BroadbandPage() {
                 bg: "from-rose-50 to-pink-50 dark:from-rose-950/40 dark:to-pink-950/40",
               },
               {
-                href: "/broadband/speed-test",
+                href: "https://speed.cloudflare.com/",
                 icon: Gauge,
                 title: "Speed test",
                 desc: "See what you're actually getting",
@@ -329,15 +330,7 @@ export default async function BroadbandPage() {
           </div>
 
           {deals.length === 0 ? (
-            <Card className="border-2 border-dashed">
-              <CardContent className="p-12 text-center">
-                <Wifi className="mx-auto size-12 text-muted-foreground/40 mb-4" />
-                <p className="text-lg font-semibold">No fibre deals yet</p>
-                <p className="mt-2 text-muted-foreground">
-                  We&apos;re onboarding broadband partners — come back soon.
-                </p>
-              </CardContent>
-            </Card>
+            <ListingUnavailable title="No broadband listings to show right now" description="Current broadband listings are unavailable. Browse partner offers or explore our guides while we refresh the comparison." />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {deals.map((deal) => {

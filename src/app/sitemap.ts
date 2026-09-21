@@ -15,35 +15,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url;
 
   const staticPages: MetadataRoute.Sitemap = [
-    { url: baseUrl, lastModified: new Date(), changeFrequency: "daily", priority: 1 },
-    { url: `${baseUrl}/energy`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}/broadband`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}/mobile`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}/insurance`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}/finance`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
-    { url: `${baseUrl}/business`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${baseUrl}/energy/compare`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${baseUrl}/broadband/compare`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${baseUrl}/mobile/compare`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${baseUrl}/popular`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
-    { url: `${baseUrl}/offers`, lastModified: new Date(), changeFrequency: "daily", priority: 0.85 },
-    { url: `${baseUrl}/providers`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${baseUrl}/guides`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
-    { url: `${baseUrl}/about`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/for-advertisers`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
-    { url: `${baseUrl}/how-it-works`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/contact`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/faq`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.5 },
-    { url: `${baseUrl}/privacy`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
-    { url: `${baseUrl}/terms`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
-    { url: `${baseUrl}/accessibility`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.3 },
-    { url: `${baseUrl}/search`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.4 },
+    { url: baseUrl, changeFrequency: "daily", priority: 1 },
+    { url: `${baseUrl}/broadband`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}/mobile`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${baseUrl}/popular`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${baseUrl}/offers`, changeFrequency: "daily", priority: 0.85 },
+    { url: `${baseUrl}/providers`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/guides`, changeFrequency: "weekly", priority: 0.7 },
+    { url: `${baseUrl}/about`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/for-advertisers`, changeFrequency: "monthly", priority: 0.6 },
+    { url: `${baseUrl}/how-it-works`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/contact`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/faq`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${baseUrl}/privacy`, changeFrequency: "monthly", priority: 0.3 },
+    { url: `${baseUrl}/terms`, changeFrequency: "monthly", priority: 0.3 },
+    { url: `${baseUrl}/accessibility`, changeFrequency: "monthly", priority: 0.3 },
   ];
 
   const dealSlugs = await getAllDealSlugs();
   const dealPages: MetadataRoute.Sitemap = dealSlugs.map((slug) => ({
     url: `${baseUrl}/deals/${slug}`,
-    lastModified: new Date(),
     changeFrequency: "weekly",
     priority: 0.6,
   }));
@@ -51,7 +42,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const providerSlugs = await getAllProviderSlugs();
   const providerPages: MetadataRoute.Sitemap = providerSlugs.map((slug) => ({
     url: `${baseUrl}/providers/${slug}`,
-    lastModified: new Date(),
     changeFrequency: "weekly",
     priority: 0.6,
   }));
@@ -59,7 +49,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Programmatic SEO: /best-deals/[brand] auto-pages
   const brandRows = await prisma.plan
     .findMany({
-      where: { handsetModel: { not: null }, category: "mobile" },
+      where: { handsetModel: { not: null }, category: "mobile", provider: { isActive: true }, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
       select: { handsetModel: true },
       distinct: ["handsetModel"],
     })
@@ -68,8 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     .map((b) => b.handsetModel!.toLowerCase())
     .filter((b) => b !== "other" && b !== "vodafone")
     .map((brand) => ({
-      url: `${baseUrl}/best-deals/${brand}`,
-      lastModified: new Date(),
+      url: `${baseUrl}/best-deals/${encodeURIComponent(brand)}`,
       changeFrequency: "weekly" as const,
       priority: 0.7,
     }));
@@ -77,7 +66,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const guides = await getAllGuideSlugs();
   const guidePages: MetadataRoute.Sitemap = guides.map((g) => ({
     url: `${baseUrl}/guides/${g.category}/${g.slug}`,
-    lastModified: new Date(),
     changeFrequency: "monthly",
     priority: 0.5,
   }));
@@ -93,7 +81,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
   const simOnlyPages: MetadataRoute.Sitemap = simOnlyFilters.map((f) => ({
     url: `${baseUrl}/sim-only/${f}`,
-    lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
@@ -108,7 +95,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
   const matchupPages: MetadataRoute.Sitemap = matchups.map((m) => ({
     url: `${baseUrl}/compare/${m}`,
-    lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.8,
   }));
@@ -116,7 +102,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // City-level broadband pages — programmatic UK city footprint
   const cityBroadbandPages: MetadataRoute.Sitemap = UK_CITIES.map((c) => ({
     url: `${baseUrl}/broadband/${c.slug}`,
-    lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.75,
   }));
@@ -134,7 +119,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
   const bestPickPages: MetadataRoute.Sitemap = bestPicks.map((p) => ({
     url: `${baseUrl}/best/${p}`,
-    lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.85,
   }));
@@ -143,37 +127,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const subcategoryPages: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/mobile/contracts`,
-      lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.85,
     },
     {
       url: `${baseUrl}/mobile/sim-only`,
-      lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.85,
     },
     {
       url: `${baseUrl}/refurbished`,
-      lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.8,
     },
     {
       url: `${baseUrl}/broadband/fibre`,
-      lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.8,
     },
     {
       url: `${baseUrl}/broadband/tv-packages`,
-      lastModified: new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     },
   ];
 
-  return [
+  const pages: MetadataRoute.Sitemap = [
     ...staticPages,
     ...subcategoryPages,
     ...dealPages,
@@ -185,4 +164,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...bestPickPages,
     ...guidePages,
   ];
+  return [...new Map(pages.map(page => [page.url, page])).values()];
 }

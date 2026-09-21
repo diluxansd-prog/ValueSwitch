@@ -22,7 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { COMPANY } from "@/lib/constants";
-import { siteConfig } from "@/config/seo";
+import { siteConfig , pageMetadata } from "@/config/seo";
 import { BreadcrumbJsonLd } from "@/components/shared/json-ld";
 
 /**
@@ -47,17 +47,8 @@ import { BreadcrumbJsonLd } from "@/components/shared/json-ld";
  */
 
 export const metadata: Metadata = {
-  title: "For Advertisers — Partner with ValueSwitch UK",
-  description:
-    "ValueSwitch is a registered UK price comparison publisher (Companies House 17108611). Honest editorial standards, GDPR-compliant, brand-safe placement. Apply to partner with us.",
-  alternates: { canonical: `${siteConfig.url}/for-advertisers` },
-  openGraph: {
-    title: "Partner with ValueSwitch — UK Price Comparison",
-    description:
-      "Honest UK price comparison. Real prices from Awin partner feeds. Registered UK company. GDPR compliant.",
-    url: `${siteConfig.url}/for-advertisers`,
-    type: "website",
-  },
+  ...pageMetadata("/for-advertisers", "For Advertisers — Partner with ValueSwitch UK", "ValueSwitch is a registered UK price comparison publisher (Companies House 17108611). Honest editorial standards, GDPR-compliant, brand-safe placement. Apply to partner with us."),
+
 };
 
 export const dynamic = "force-dynamic";

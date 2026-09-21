@@ -1,3 +1,4 @@
+import { defaultMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -64,6 +65,7 @@ export async function generateMetadata({
     description,
     alternates: { canonical: `${siteConfig.url}/broadband/${city}` },
     openGraph: {
+      ...defaultMetadata.openGraph,
       type: "website",
       title,
       description,

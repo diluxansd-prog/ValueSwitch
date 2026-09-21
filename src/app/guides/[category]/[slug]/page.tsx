@@ -1,3 +1,4 @@
+import { defaultMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -52,6 +53,7 @@ export async function generateMetadata({
       `Read our comprehensive guide on ${guide.title}. Expert advice from ValueSwitch.`,
     alternates: { canonical: url },
     openGraph: {
+      ...defaultMetadata.openGraph,
       type: "article",
       title: guide.title,
       description: guide.excerpt ?? undefined,

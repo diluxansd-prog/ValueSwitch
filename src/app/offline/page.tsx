@@ -3,6 +3,7 @@ import { WifiOff } from "lucide-react";
 import { OfflineRetry } from "./offline-retry";
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: true },
   title: "Offline",
 };
 

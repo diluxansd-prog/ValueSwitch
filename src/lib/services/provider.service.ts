@@ -1,8 +1,9 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "@prisma/client";
 
 export async function getProviders(category?: string) {
   try {
-    const where: any = { isActive: true };
+    const where: Prisma.ProviderWhereInput = { isActive: true };
     if (category) where.categories = { contains: category };
 
     const providers = await prisma.provider.findMany({
@@ -24,6 +25,7 @@ export async function getProviders(category?: string) {
 export async function getAllProviderSlugs() {
   try {
     const providers = await prisma.provider.findMany({
+      where: { isActive: true },
       select: { slug: true },
     });
     return providers.map((p) => p.slug);

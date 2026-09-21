@@ -12,7 +12,6 @@ import {
   CardDescription,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,9 +83,9 @@ function LoginContent() {
   return (
     <Card className="border-border/50 shadow-xl shadow-black/5">
       <CardHeader className="space-y-1 text-center">
-        <CardTitle className="text-2xl font-bold tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight">
           Welcome back
-        </CardTitle>
+        </h1>
         <CardDescription>
           Sign in to your account to continue saving
         </CardDescription>
@@ -187,9 +186,9 @@ export default function LoginPage() {
       fallback={
         <Card className="border-border/50 shadow-xl shadow-black/5">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight">
               Welcome back
-            </CardTitle>
+            </h1>
           </CardHeader>
         </Card>
       }

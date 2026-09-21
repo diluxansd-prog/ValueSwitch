@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -12,9 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Frequently Asked Questions",
-  description:
-    "Find answers to common questions about ValueSwitch. Learn how our comparison service works, how switching works, and how we keep your data safe.",
+  ...pageMetadata("/faq", "Frequently Asked Questions", "Find answers to common questions about ValueSwitch. Learn how our comparison service works, how switching works, and how we keep your data safe."),
+
 };
 
 const faqs = [

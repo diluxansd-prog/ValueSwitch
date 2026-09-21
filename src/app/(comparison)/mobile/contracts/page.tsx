@@ -1,3 +1,4 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -5,7 +6,10 @@ import { PageHero } from "@/components/shared/page-hero";
 import { DealCatalogue } from "@/components/comparison/deal-catalogue";
 import { getCatalogue } from "@/lib/services/catalogue.service";
 
-export const metadata: Metadata = { title: "Mobile Phone Contracts — Compare Pay-Monthly Deals", description: "Find your next phone contract. Compare monthly prices, upfront costs and providers for iPhone, Samsung Galaxy, Google Pixel and more." };
+export const metadata: Metadata = {
+  ...pageMetadata("/mobile/contracts", "Mobile Phone Contracts — Compare Pay-Monthly Deals", "Find your next phone contract. Compare monthly prices, upfront costs and providers for iPhone, Samsung Galaxy, Google Pixel and more."),
+
+};
 export const dynamic = "force-dynamic";
 export default async function MobileContractsPage() {
   const catalogue = await getCatalogue("mobile", "contract");

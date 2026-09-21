@@ -1,10 +1,10 @@
+import { pageMetadata } from "@/config/seo";
 import type { Metadata } from "next";
 import { Separator } from "@/components/ui/separator";
 
 export const metadata: Metadata = {
-  title: "Terms of Service",
-  description:
-    "ValueSwitch Terms of Service. Read our terms and conditions for using the ValueSwitch comparison platform.",
+  ...pageMetadata("/terms", "Terms of Service", "ValueSwitch Terms of Service. Read our terms and conditions for using the ValueSwitch comparison platform."),
+
 };
 
 export default function TermsPage() {
