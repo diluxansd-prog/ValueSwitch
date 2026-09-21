@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import type { Metadata } from "next";
 import { CronControlClient } from "@/components/admin/cron-control";
+import { DataRepairButton } from "@/components/admin/data-repair-button";
 import { MERCHANT_FEEDS } from "@/config/merchants";
 
 export const metadata: Metadata = {
@@ -90,6 +91,8 @@ export default async function AdminCronPage() {
   );
 
   return (
+    <>
+    <DataRepairButton />
     <CronControlClient
       runs={runs.map((r) => ({
         id: r.id,
@@ -104,5 +107,6 @@ export default async function AdminCronPage() {
       merchants={merchantStatus}
       cronSecretSet={Boolean(process.env.CRON_SECRET)}
     />
+    </>
   );
 }
