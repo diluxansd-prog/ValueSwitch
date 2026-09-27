@@ -105,7 +105,8 @@ const STATEMENTS: { id: string; sql: string }[] = [
     sql: `INSERT INTO "Provider" ("id", "name", "slug", "website", "awinMerchantId", "description", "categories", "isActive", "createdAt", "updatedAt")
       VALUES
         ('prov_connect_fibre', 'Connect Fibre', 'connect-fibre', 'https://www.connectfibre.co.uk/', '114602', 'Ultrafast full-fibre broadband with symmetrical speeds across rural and semi-rural UK.', 'broadband', true, NOW(), NOW()),
-        ('prov_lightning_fibre', 'Lightning Fibre', 'lightning-fibre', 'https://www.lightningfibre.co.uk/', '119853', 'Eastbourne and Sussex full-fibre network with symmetrical speeds and local support.', 'broadband', true, NOW(), NOW())
+        ('prov_lightning_fibre', 'Lightning Fibre', 'lightning-fibre', 'https://www.lightningfibre.co.uk/', '119853', 'Eastbourne and Sussex full-fibre network with symmetrical speeds and local support.', 'broadband', true, NOW(), NOW()),
+        ('prov_voxi', 'VOXI', 'voxi', 'https://www.voxi.co.uk/', '10951', 'Vodafone''s under-30s brand: endless social media and video on selected plans, no credit check.', 'mobile', true, NOW(), NOW())
       ON CONFLICT ("slug") DO NOTHING`,
   },
   {

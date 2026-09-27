@@ -221,6 +221,19 @@ export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
     category: "mobile",
   },
   {
+    // VOXI — Vodafone's under-30s brand. Joined on Awin with a 282-product
+    // Enhanced Telco feed (FID 51937); needs that FID in the combined feed.
+    slug: "voxi",
+    name: "VOXI",
+    awinMerchantId: "10951",
+    feedUrlEnv: "AWIN_VOXI_FEED_URL",
+    landingPages: {
+      handset: "https://www.voxi.co.uk/",
+      simOnly: "https://www.voxi.co.uk/plans",
+    },
+    category: "mobile",
+  },
+  {
     // Connect Fibre — full-fibre ISP, joined on Awin with a product feed.
     // Needs its FID adding to the combined feed before rows appear.
     slug: "connect-fibre",
