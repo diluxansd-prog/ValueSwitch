@@ -220,6 +220,32 @@ export const MERCHANT_FEEDS: MerchantFeedConfig[] = [
     },
     category: "mobile",
   },
+  {
+    // Connect Fibre — full-fibre ISP, joined on Awin with a product feed.
+    // Needs its FID adding to the combined feed before rows appear.
+    slug: "connect-fibre",
+    name: "Connect Fibre",
+    awinMerchantId: "114602",
+    feedUrlEnv: "AWIN_CONNECTFIBRE_FEED_URL",
+    landingPages: {
+      handset: "https://www.connectfibre.co.uk/",
+      simOnly: "https://www.connectfibre.co.uk/",
+    },
+    category: "broadband",
+  },
+  {
+    // Lightning Fibre — Eastbourne & Sussex full-fibre network. Joined,
+    // product feed available, best EPC of our broadband partners.
+    slug: "lightning-fibre",
+    name: "Lightning Fibre",
+    awinMerchantId: "119853",
+    feedUrlEnv: "AWIN_LIGHTNINGFIBRE_FEED_URL",
+    landingPages: {
+      handset: "https://www.lightningfibre.co.uk/",
+      simOnly: "https://www.lightningfibre.co.uk/",
+    },
+    category: "broadband",
+  },
 ];
 
 /** Return only merchants whose feed URL is configured in env. */

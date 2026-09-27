@@ -25,6 +25,9 @@ import { generateAwinLink } from "@/lib/affiliate";
 import { fixMojibake, isAirtimeOnlyRow } from "@/lib/deal-quality";
 import type { MerchantFeedConfig } from "@/config/merchants";
 
+/** Merchants selling international/travel SIMs rather than UK plans. */
+const TRAVEL_SIM_MERCHANTS = new Set(["sim-local", "worldsim", "knowroaming"]);
+
 export interface FeedImportResult {
   ok: boolean;
   merchant: string;
@@ -721,7 +724,11 @@ async function importInternal(
         const isBroadband =
           row["Telcos:contract_type"] === "Broadband" ||
           merchant.category === "broadband";
-        const subcategory = isBroadband
+        // Global travel SIMs are not UK contracts — keep them out of the
+        // SIM-only tables and on their own provider/travel pages instead.
+        const subcategory = TRAVEL_SIM_MERCHANTS.has(merchant.slug)
+          ? "travel-esim"
+          : isBroadband
           ? "fibre"
           : isSimFree
             ? "sim-free"

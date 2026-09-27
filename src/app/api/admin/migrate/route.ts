@@ -80,6 +80,23 @@ const STATEMENTS: { id: string; sql: string }[] = [
           END`,
   },
   {
+    // Sim Local, WorldSIM and KnowRoaming sell international travel SIMs,
+    // not UK contracts. Tagging them keeps them off the SIM-only tables
+    // while leaving them live (and earning) on their provider pages.
+    id: "plan-tag-travel-sims",
+    sql: `UPDATE "Plan" SET "subcategory" = 'travel-esim'
+      WHERE "providerId" IN (SELECT "id" FROM "Provider" WHERE "slug" IN ('sim-local', 'worldsim', 'knowroaming'))
+        AND COALESCE("subcategory", '') <> 'travel-esim'`,
+  },
+  {
+    // Be Fibre's Awin programme closed in Sept 2026: every link
+    // dead-ends on Awin, so none of their stock should stay listed.
+    id: "plan-expire-closed-befibre",
+    sql: `UPDATE "Plan" SET "expiresAt" = NOW()
+      WHERE "providerId" IN (SELECT "id" FROM "Provider" WHERE "slug" = 'be-fibre')
+        AND ("expiresAt" IS NULL OR "expiresAt" > NOW())`,
+  },
+  {
     // Vodafone's feed ships UTF-8 decoded as Latin-1 ("at Â£10").
     id: "plan-fix-mojibake-pound",
     sql: `UPDATE "Plan" SET "name" = REPLACE("name", 'Â£', '£'),
