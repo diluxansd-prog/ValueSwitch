@@ -97,6 +97,18 @@ const STATEMENTS: { id: string; sql: string }[] = [
         AND ("expiresAt" IS NULL OR "expiresAt" > NOW())`,
   },
   {
+    // Connect Fibre and Lightning Fibre are joined on Awin with product
+    // feeds, but a refresh needs a Provider row to attach plans to.
+    // ON CONFLICT keeps this repeatable and never overwrites edits made
+    // in /admin/providers.
+    id: "provider-add-fibre-partners",
+    sql: `INSERT INTO "Provider" ("id", "name", "slug", "website", "awinMerchantId", "description", "categories", "isActive", "createdAt", "updatedAt")
+      VALUES
+        ('prov_connect_fibre', 'Connect Fibre', 'connect-fibre', 'https://www.connectfibre.co.uk/', '114602', 'Ultrafast full-fibre broadband with symmetrical speeds across rural and semi-rural UK.', 'broadband', true, NOW(), NOW()),
+        ('prov_lightning_fibre', 'Lightning Fibre', 'lightning-fibre', 'https://www.lightningfibre.co.uk/', '119853', 'Eastbourne and Sussex full-fibre network with symmetrical speeds and local support.', 'broadband', true, NOW(), NOW())
+      ON CONFLICT ("slug") DO NOTHING`,
+  },
+  {
     // Vodafone's feed ships UTF-8 decoded as Latin-1 ("at Â£10").
     id: "plan-fix-mojibake-pound",
     sql: `UPDATE "Plan" SET "name" = REPLACE("name", 'Â£', '£'),
