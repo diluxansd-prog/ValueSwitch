@@ -373,7 +373,9 @@ export async function generateMetadata({
   };
 }
 
-export const dynamic = "force-dynamic";
+// Rebuilt at most twice an hour: feeds import weekly, so per-request
+// database reads only kept the Neon compute awake (and burned its quota).
+export const revalidate = 1800;
 
 export default async function BestPickPage({ params }: PageProps) {
   const { type } = await params;

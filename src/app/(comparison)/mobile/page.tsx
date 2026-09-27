@@ -10,7 +10,9 @@ export const metadata: Metadata = {
   ...pageMetadata("/mobile", "Compare Mobile Deals — Phone Contracts & SIM Only", "Explore mobile contracts, SIM-only plans and refurbished phones. Compare prices, providers and contract terms with ValueSwitch."),
 
 };
-export const dynamic = "force-dynamic";
+// Rebuilt at most twice an hour: feeds import weekly, so per-request
+// database reads only kept the Neon compute awake (and burned its quota).
+export const revalidate = 1800;
 const options = [
   { icon: Smartphone, title: "A new phone", description: "Find your next handset with a monthly plan to match.", href: "/mobile/contracts", label: "Compare phone contracts", color: "bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300" },
   { icon: CardSim, title: "A better SIM plan", description: "Keep your phone and compare data, price and flexibility.", href: "/mobile/sim-only", label: "Explore SIM-only deals", color: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300" },

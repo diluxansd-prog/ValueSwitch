@@ -10,7 +10,9 @@ export const metadata: Metadata = {
   ...pageMetadata("/mobile/sim-only", "SIM-Only Deals — Compare Data, Prices & Plans", "Keep your phone and compare SIM-only plans. Explore monthly budgets, unlimited data and flexible contracts from UK providers."),
 
 };
-export const dynamic = "force-dynamic";
+// Rebuilt at most twice an hour: feeds import weekly, so per-request
+// database reads only kept the Neon compute awake (and burned its quota).
+export const revalidate = 1800;
 const shortcuts = [{ label: "£10 a month or less", href: "/sim-only/under-10" }, { label: "Unlimited data", href: "/sim-only/unlimited" }, { label: "100GB or more", href: "/sim-only/100gb-plus" }, { label: "30-day rolling", href: "/sim-only/30-day-rolling" }];
 export default async function SimOnlyPage() {
   const catalogue = await getCatalogue("mobile", "sim-only");

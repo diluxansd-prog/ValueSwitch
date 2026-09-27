@@ -10,7 +10,9 @@ export const metadata: Metadata = {
   ...pageMetadata("/mobile/contracts", "Mobile Phone Contracts — Compare Pay-Monthly Deals", "Find your next phone contract. Compare monthly prices, upfront costs and providers for iPhone, Samsung Galaxy, Google Pixel and more."),
 
 };
-export const dynamic = "force-dynamic";
+// Rebuilt at most twice an hour: feeds import weekly, so per-request
+// database reads only kept the Neon compute awake (and burned its quota).
+export const revalidate = 1800;
 export default async function MobileContractsPage() {
   const catalogue = await getCatalogue("mobile", "contract");
   return <>
