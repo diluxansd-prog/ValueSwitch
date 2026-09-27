@@ -41,22 +41,30 @@ async function getBroadbandDeals() {
 }
 
 async function getBroadbandStats() {
+  // Count only what a visitor can actually see: listings exclude retired
+  // plans and inactive providers, so the headline stats must too —
+  // otherwise the page claims "6 live deals" above an empty table.
+  const visible = {
+    category: "broadband",
+    provider: { isActive: true },
+    OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+  };
   try {
     const [total, providers, fastest, lastUpdate] = await Promise.all([
-      prisma.plan.count({ where: { category: "broadband" } }),
+      prisma.plan.count({ where: visible }),
       prisma.plan
         .findMany({
-          where: { category: "broadband" },
+          where: visible,
           select: { providerId: true },
           distinct: ["providerId"],
         })
         .then((p) => p.length),
       prisma.plan.aggregate({
-        where: { category: "broadband" },
+        where: visible,
         _max: { downloadSpeed: true },
       }),
       prisma.plan.findFirst({
-        where: { category: "broadband" },
+        where: visible,
         orderBy: { updatedAt: "desc" },
         select: { updatedAt: true },
       }),
