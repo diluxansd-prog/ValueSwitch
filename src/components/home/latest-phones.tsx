@@ -195,6 +195,11 @@ export async function LatestPhones() {
                         {isSimFree ? "total" : "/mo"}
                       </span>
                     </div>
+                    {!isSimFree && p.setupFee > 0 && (
+                      <p className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 mt-0.5">
+                        + £{p.setupFee.toFixed(2)} upfront
+                      </p>
+                    )}
                     {!isSimFree && p.contractLength && (
                       <p className="text-[10px] text-muted-foreground mt-0.5">
                         {p.contractLength}-month contract

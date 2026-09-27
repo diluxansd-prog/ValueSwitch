@@ -220,6 +220,11 @@ export default async function PopularPage() {
                         <span className="ml-0.5 text-xs text-muted-foreground">
                           /mo
                         </span>
+                        {d.setupFee > 0 && (
+                          <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                            + £{d.setupFee.toFixed(2)} upfront
+                          </p>
+                        )}
                       </div>
                       <Button
                         asChild

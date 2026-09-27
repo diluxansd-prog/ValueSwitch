@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getMerchantLink, type AwinMerchantSlug } from "@/lib/affiliate";
-import { isPlausibleHandsetDeal } from "@/lib/deal-quality";
+import { isPlausibleHandsetDeal, termTotal } from "@/lib/deal-quality";
 import { getDisplayOffers } from "@/lib/offers-live";
 import { siteConfig } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
@@ -618,14 +618,23 @@ export default async function BestPickPage({ params }: PageProps) {
                   {featured.name.replace(/ - £[\d.]+\/mo.*/, "")}
                 </h2>
                 {featuredPriceTrusted ? (
-                  <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    <span className="text-3xl font-extrabold tabular-nums">
-                      £{featured.monthlyCost.toFixed(2)}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      /month{featured.contractLength ? ` · ${featured.contractLength}-month term` : ""}
-                    </span>
-                  </p>
+                  <>
+                    <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                      <span className="text-3xl font-extrabold tabular-nums">
+                        £{featured.monthlyCost.toFixed(2)}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        /month{featured.contractLength ? ` · ${featured.contractLength}-month term` : ""}
+                      </span>
+                    </p>
+                    {/* A low monthly price usually means a large upfront
+                        payment — never show one without the other. */}
+                    <p className="mt-1 text-sm font-medium text-amber-700 dark:text-amber-400">
+                      {featured.setupFee > 0
+                        ? `plus £${featured.setupFee.toFixed(2)} upfront — £${termTotal(featured).toFixed(2)} over the contract`
+                        : `No upfront cost — £${termTotal(featured).toFixed(2)} over the contract`}
+                    </p>
+                  </>
                 ) : (
                   <p className="mt-3 text-sm text-muted-foreground">
                     Live pricing and storage options are shown on{" "}
@@ -833,6 +842,11 @@ export default async function BestPickPage({ params }: PageProps) {
                                 /mo
                               </span>
                             </div>
+                            {deal.setupFee > 0 && (
+                              <p className="text-[10px] font-semibold opacity-95">
+                                + £{deal.setupFee.toFixed(2)} upfront
+                              </p>
+                            )}
                             {deal.contractLength === 1 && (
                               <p className="text-[10px] opacity-85 font-medium">
                                 30-day rolling
