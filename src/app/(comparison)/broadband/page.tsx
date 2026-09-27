@@ -21,6 +21,7 @@ import { ProviderLogo } from "@/components/shared/provider-logo";
 import { prisma } from "@/lib/prisma";
 import { getBrandColor } from "@/config/brand-colors";
 import { ListingUnavailable } from "@/components/shared/listing-unavailable";
+import { getFallbackOffers } from "@/lib/offers-live";
 
 export const metadata: Metadata = {
   ...pageMetadata("/broadband", "Compare Full-Fibre Broadband Deals UK", "Compare the best UK full-fibre broadband deals — gigabit speeds, no-contract options, and real monthly prices. Updated daily from Quickline, Highland Broadband and other Awin partners."),
@@ -124,9 +125,10 @@ function speedTier(mbps?: number | null): {
 }
 
 export default async function BroadbandPage() {
-  const [deals, stats] = await Promise.all([
+  const [deals, stats, fallbackOffers] = await Promise.all([
     getBroadbandDeals(),
     getBroadbandStats(),
+    getFallbackOffers(["broadband"]),
   ]);
 
   const cheapest =
@@ -332,7 +334,7 @@ export default async function BroadbandPage() {
           </div>
 
           {deals.length === 0 ? (
-            <ListingUnavailable title="No broadband listings to show right now" description="Current broadband listings are unavailable. Browse partner offers or explore our guides while we refresh the comparison." />
+            <ListingUnavailable offers={fallbackOffers} title="No broadband listings to show right now" description="Current broadband listings are unavailable. Browse partner offers or explore our guides while we refresh the comparison." />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {deals.map((deal) => {

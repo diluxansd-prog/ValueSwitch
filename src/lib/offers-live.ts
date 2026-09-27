@@ -171,3 +171,40 @@ export async function getDisplayOffers(): Promise<DisplayOffersResult> {
   );
   return { offers, note };
 }
+
+/** Offer shape safe to hand to a client component. */
+export interface FallbackOffer {
+  id: string;
+  title: string;
+  description: string;
+  merchantName: string;
+  badge: string;
+  href: string;
+}
+
+/**
+ * Partner offers to show when a listing has nothing to display.
+ *
+ * Deals live in the database; these live in the app and in Awin's
+ * promotions API, so they still work when the database is unreachable —
+ * which keeps a comparison page useful instead of blank.
+ */
+export async function getFallbackOffers(
+  categories: OfferCategory[],
+  limit = 6
+): Promise<FallbackOffer[]> {
+  const { offers } = await getDisplayOffers().catch(() => ({
+    offers: [] as DisplayOffer[],
+  }));
+  return offers
+    .filter((o) => categories.includes(o.category))
+    .slice(0, limit)
+    .map((o) => ({
+      id: o.id,
+      title: o.title,
+      description: o.description,
+      merchantName: o.merchantName,
+      badge: o.badge,
+      href: o.href,
+    }));
+}

@@ -22,6 +22,7 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { ProviderLogo } from "@/components/shared/provider-logo";
 import { JsonLd, BreadcrumbJsonLd } from "@/components/shared/json-ld";
 import { ListingUnavailable } from "@/components/shared/listing-unavailable";
+import { getFallbackOffers } from "@/lib/offers-live";
 import { prisma } from "@/lib/prisma";
 import { siteConfig } from "@/config/seo";
 
@@ -96,7 +97,7 @@ export default async function BestBrandDealsPage({ params }: PageProps) {
   if (!deals?.length) {
     const knownBrands = ["apple", "samsung", "google", "doro", "nokia", "ttfone", "motorola", "honor", "xiaomi", "sony", "oppo", "oneplus"];
     if (!knownBrands.includes(brand.toLowerCase())) notFound();
-    return <><section className="page-banner px-4 py-16"><div className="mx-auto max-w-6xl"><h1 className="text-4xl sm:text-5xl">{display} phone deals</h1><p className="mt-4 text-white/70">Compare phone contracts and explore your next upgrade.</p></div></section><div className="mx-auto max-w-6xl px-4 py-12"><ListingUnavailable unavailable={!deals} title={deals ? "No matching plans right now" : undefined} description={deals ? "There are no current plans for this brand. Explore our offers or check back for new listings." : undefined} /></div></>;
+    return <><section className="page-banner px-4 py-16"><div className="mx-auto max-w-6xl"><h1 className="text-4xl sm:text-5xl">{display} phone deals</h1><p className="mt-4 text-white/70">Compare phone contracts and explore your next upgrade.</p></div></section><div className="mx-auto max-w-6xl px-4 py-12"><ListingUnavailable offers={await getFallbackOffers(["phones", "sim"])} unavailable={!deals} title={deals ? "No matching plans right now" : undefined} description={deals ? "There are no current plans for this brand. Explore our offers or check back for new listings." : undefined} /></div></>;
   }
 
   // Aggregate stats for credibility + dynamic copy

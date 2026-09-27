@@ -5,8 +5,9 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import { ComparisonCard } from "@/components/comparison/comparison-card";
 import { ListingUnavailable } from "@/components/shared/listing-unavailable";
 import type { PlanWithProvider } from "@/types/comparison";
+import type { FallbackOffer } from "@/lib/offers-live";
 
-export function DealCatalogue({ plans, unavailable = false }: { plans: PlanWithProvider[]; unavailable?: boolean }) {
+export function DealCatalogue({ plans, unavailable = false, offers = [] }: { plans: PlanWithProvider[]; unavailable?: boolean; offers?: FallbackOffer[] }) {
   const [query, setQuery] = useState("");
   const [budget, setBudget] = useState("");
   const [provider, setProvider] = useState("");
@@ -15,8 +16,8 @@ export function DealCatalogue({ plans, unavailable = false }: { plans: PlanWithP
   const filtered = useMemo(() => plans.filter(plan => (!query || `${plan.name} ${plan.provider.name}`.toLowerCase().includes(query.toLowerCase())) && (!budget || plan.monthlyCost <= Number(budget)) && (!provider || plan.provider.id === provider)).sort((a, b) => sort === "upfront" ? a.setupFee - b.setupFee : sort === "total" ? (a.monthlyCost * (a.contractLength || 1) + a.setupFee) - (b.monthlyCost * (b.contractLength || 1) + b.setupFee) : a.monthlyCost - b.monthlyCost), [plans, query, budget, provider, sort]);
   const active = query || budget || provider;
   const fieldClass = "h-11 w-full min-w-0 rounded-xl border bg-background px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600";
-  if (unavailable) return <ListingUnavailable />;
-  if (plans.length === 0) return <ListingUnavailable unavailable={false} title="No deals listed at the moment" description="We’re waiting for new listings in this category. Explore other offers or read a guide while you decide what matters most." />;
+  if (unavailable) return <ListingUnavailable offers={offers} />;
+  if (plans.length === 0) return <ListingUnavailable offers={offers} unavailable={false} title="No deals listed at the moment" description="We’re waiting for new listings in this category. Explore other offers or read a guide while you decide what matters most." />;
   return <div>
     <div className="mb-7 rounded-2xl border bg-card p-4 sm:p-5">
       <div className="mb-4 flex items-center gap-2 text-sm font-semibold"><SlidersHorizontal aria-hidden="true" className="size-4" />Make it your shortlist</div>

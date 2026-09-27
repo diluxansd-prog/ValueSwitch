@@ -16,7 +16,8 @@ import { ProviderLogo } from "@/components/shared/provider-logo";
 import { prisma } from "@/lib/prisma";
 import { siteConfig , pageMetadata } from "@/config/seo";
 import { getBrandColor } from "@/config/brand-colors";
-import { getDisplayOffers } from "@/lib/offers-live";
+import { getDisplayOffers, getFallbackOffers } from "@/lib/offers-live";
+import { ListingUnavailable } from "@/components/shared/listing-unavailable";
 import {
   BreadcrumbJsonLd,
   ItemListJsonLd,
@@ -66,6 +67,7 @@ function speedLabel(mbps?: number | null): string {
 }
 
 export default async function FibreBroadbandPage() {
+  const fallbackOffers = await getFallbackOffers(["broadband"]);
   const [deals, display] = await Promise.all([
     prisma.plan
       .findMany({
@@ -230,18 +232,11 @@ export default async function FibreBroadbandPage() {
             you order.
           </p>
           {deals.length === 0 ? (
-            <div className="rounded-2xl border-2 border-dashed py-16 text-center">
-              <p className="text-lg font-semibold">
-                Feed refresh in progress
-              </p>
-              <p className="text-sm text-muted-foreground mt-2">
-                Check back shortly, or browse{" "}
-                <Link href="/offers" className="underline">
-                  live fibre promotions
-                </Link>
-                .
-              </p>
-            </div>
+            <ListingUnavailable
+              offers={fallbackOffers}
+              title="Fibre listings are refreshing"
+              description="Current fibre prices are being updated. These partner offers are live now — availability is always confirmed against your address by the provider."
+            />
           ) : (
             <div className="space-y-3">
               {deals.map((d) => {
