@@ -46,9 +46,10 @@ const DATA_PATHS = [
   "/providers",
 ];
 
-// Per-instance cache so the probe adds at most one subrequest a minute.
+// Per-instance cache. The endpoint answers from observed query outcomes
+// and never opens its own connection, so this costs no database time.
 let dbHealth: { ok: boolean; at: number } = { ok: true, at: 0 };
-const HEALTH_TTL_MS = 60_000;
+const HEALTH_TTL_MS = 300_000;
 
 async function databaseIsDown(origin: string): Promise<boolean> {
   const now = Date.now();

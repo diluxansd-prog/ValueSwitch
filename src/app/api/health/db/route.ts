@@ -1,40 +1,42 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getRecentDbStatus } from "@/lib/db-status";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
- * Is Postgres actually serving?
+ * Is Postgres serving? Used by the middleware to answer crawlers with a
+ * 503 instead of an empty-looking page during an outage.
  *
- * Used by the middleware to answer crawlers with 503 instead of a page
- * that looks empty, which is what a database outage otherwise looks
- * like to Google. The result is held for 30s per instance so the probe
- * can't itself become load on the database.
+ * Answers from the outcome of queries the app has already run. It only
+ * opens its own connection when nothing has been observed recently —
+ * otherwise this endpoint would keep the compute awake permanently and
+ * bill for a database nobody is using.
  */
-let cached: { ok: boolean; at: number } | null = null;
-const TTL_MS = 30_000;
-
 export async function GET() {
-  const now = Date.now();
-  if (cached && now - cached.at < TTL_MS) {
+  const seen = getRecentDbStatus();
+  if (seen) {
     return NextResponse.json(
-      { ok: cached.ok, cached: true },
-      { status: cached.ok ? 200 : 503, headers: { "Cache-Control": "no-store" } }
+      { ok: seen.ok, source: "observed", ageMs: Date.now() - seen.at },
+      { status: seen.ok ? 200 : 503, headers: { "Cache-Control": "no-store" } }
     );
   }
 
-  let ok = false;
+  // Nothing recent to go on: a quiet site is healthy until proven
+  // otherwise, so don't wake the database just to ask.
+  return NextResponse.json(
+    { ok: true, source: "idle" },
+    { status: 200, headers: { "Cache-Control": "no-store" } }
+  );
+}
+
+/** Explicit probe for manual checks — opens a real connection. */
+export async function POST() {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    ok = true;
+    return NextResponse.json({ ok: true, source: "probe" });
   } catch {
-    ok = false;
+    return NextResponse.json({ ok: false, source: "probe" }, { status: 503 });
   }
-  cached = { ok, at: now };
-
-  return NextResponse.json(
-    { ok },
-    { status: ok ? 200 : 503, headers: { "Cache-Control": "no-store" } }
-  );
 }
