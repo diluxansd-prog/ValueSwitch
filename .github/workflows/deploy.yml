@@ -1,0 +1,102 @@
+# Build on Linux, ship the standalone bundle to the VPS, swap it in.
+#
+# The build MUST run on Linux: Prisma generates a platform-specific query
+# engine, and a Windows build produces a .dll the server can't load.
+#
+# Repository secrets required:
+#   SSH_HOST        server IP or hostname
+#   SSH_USER        deploy user (valueswitch)
+#   SSH_KEY         private half of the deploy key (ed25519)
+#   SSH_KNOWN_HOSTS output of: ssh-keyscan -H <server-ip>
+name: Deploy to VPS
+
+# Manual for now. Once the server is up and the four secrets are set,
+# uncomment the push trigger so every merge to main deploys itself.
+on:
+  workflow_dispatch:
+  # push:
+  #   branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Prisma only needs a syntactically valid URL to generate the
+          # client; no database is contacted during the build.
+          DATABASE_URL: postgresql://build:build@localhost:5432/build
+          NEXT_TELEMETRY_DISABLED: "1"
+
+      - name: Assemble release
+        run: |
+          set -euo pipefail
+          mkdir -p release
+          cp -r .next/standalone/. release/
+          mkdir -p release/.next
+          cp -r .next/static release/.next/static
+          [ -d public ] && cp -r public release/public
+          test -f release/server.js
+          test -d release/.next/static
+          echo "release size: $(du -sh release | cut -f1)"
+
+      - name: Set up SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Upload release
+        run: |
+          set -euo pipefail
+          STAMP=$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}
+          echo "STAMP=$STAMP" >> $GITHUB_ENV
+          rsync -az --delete release/ \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/opt/valueswitch/releases/$STAMP/"
+
+      - name: Activate and verify
+        run: |
+          set -euo pipefail
+          ssh "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -euo pipefail <<SSHEOF
+            cd /opt/valueswitch
+            # Carry the ISR/image cache across releases so a deploy doesn't
+            # dump the whole cache and hammer the database afterwards.
+            if [ -d current/.next/cache ]; then
+              cp -r current/.next/cache releases/$STAMP/.next/cache || true
+            fi
+            ln -sfn releases/$STAMP current-new
+            mv -Tf current-new current
+            sudo systemctl restart valueswitch
+            # Keep the last five releases for quick rollback.
+            ls -1dt releases/*/ | tail -n +6 | xargs -r rm -rf
+          SSHEOF
+
+      - name: Health check
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 20); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 \
+              "https://www.valueswitch.co.uk/api/health/db" || true)
+            if [ "$code" = "200" ]; then echo "healthy after ${i} tries"; exit 0; fi
+            echo "attempt $i: HTTP $code"; sleep 6
+          done
+          echo "Deploy did not come up healthy — rolling back"
+          ssh "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            'cd /opt/valueswitch && PREV=$(ls -1dt releases/*/ | sed -n 2p) && ln -sfn "$PREV" current-new && mv -Tf current-new current && sudo systemctl restart valueswitch'
+          exit 1

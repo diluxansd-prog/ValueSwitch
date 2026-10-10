@@ -1,5 +1,9 @@
 generator client {
   provider = "prisma-client-js"
+  // "native" keeps local dev working on Windows; the Debian target is the
+  // engine the Ubuntu VPS needs, and a build run on Windows would
+  // otherwise ship a .dll engine the server can't load.
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {

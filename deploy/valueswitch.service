@@ -1,0 +1,30 @@
+# systemd unit for the Next.js standalone server.
+# Install to /etc/systemd/system/valueswitch.service
+[Unit]
+Description=ValueSwitch (Next.js)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=valueswitch
+WorkingDirectory=/opt/valueswitch/current
+# Secrets live here, root-owned, chmod 600 — never in the repo.
+EnvironmentFile=/etc/valueswitch.env
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+# The ISR cache and image cache live under .next/cache and must survive
+# restarts, so no PrivateTmp games with the working directory.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/valueswitch
+PrivateTmp=true
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target

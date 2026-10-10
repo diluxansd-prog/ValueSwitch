@@ -1,0 +1,14 @@
+# Replaces vercel.json crons. Install for the valueswitch user:
+#   sudo crontab -u valueswitch deploy/crontab
+# CRON_SECRET is read from the same env file systemd uses.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Weekly multi-merchant feed refresh — Sunday 03:00 UTC
+0 3 * * 0 . /etc/valueswitch.env; curl -fsS --max-time 900 -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3000/api/cron/refresh-feed >> /var/log/valueswitch-cron.log 2>&1
+
+# Daily price alerts — 09:00 UTC
+0 9 * * * . /etc/valueswitch.env; curl -fsS --max-time 300 -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3000/api/cron/price-alerts >> /var/log/valueswitch-cron.log 2>&1
+
+# Weekly digest email — Sunday 09:00 UTC
+0 9 * * 0 . /etc/valueswitch.env; curl -fsS --max-time 300 -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3000/api/cron/weekly-digest >> /var/log/valueswitch-cron.log 2>&1
